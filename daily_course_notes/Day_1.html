@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Day 1 - Terminal Shortcuts Helper</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --ink: #161616;
+      --muted: #666;
+      --soft: #f6f7f8;
+      --line: #e2e5e8;
+      --accent: #0f766e;
+      --accent-soft: #e6f4f1;
+      --warn: #b45309;
+      --blue: #1d4ed8;
+      --fixed-terminal-height: 246px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(15, 118, 110, 0.08), transparent 32%),
+        linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
+      line-height: 1.55;
+      min-height: 100vh;
+    }
+
+    .language-flags {
+      position: fixed;
+      top: calc(var(--fixed-terminal-height) + 14px);
+      left: 14px;
+      z-index: 15;
+      display: flex;
+      gap: 6px;
+      padding: 5px;
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+    }
+
+    .language-flags button {
+      width: 36px;
+      height: 32px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      background: transparent;
+      font-size: 20px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .language-flags button:hover,
+    .language-flags button.active {
+      background: var(--accent-soft);
+      border-color: #9dd8cf;
+    }
+
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: calc(var(--fixed-terminal-height) + 76px) 28px 64px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 270px;
+      gap: 32px;
+      align-items: end;
+      padding-bottom: 26px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-size: clamp(32px, 5vw, 58px);
+      line-height: 0.98;
+      letter-spacing: 0;
+      max-width: 760px;
+      margin-bottom: 18px;
+    }
+
+    .intro {
+      max-width: 720px;
+      color: #3d3d3d;
+      font-size: 17px;
+    }
+
+    .terminal-window {
+      border: 1px solid #1f2937;
+      background: #111827;
+      color: #d1fae5;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 22px 55px rgba(17, 24, 39, 0.24);
+    }
+
+    .terminal-bar {
+      display: flex;
+      gap: 6px;
+      padding: 9px 10px;
+      background: #1f2937;
+      border-bottom: 1px solid #374151;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #ef4444;
+    }
+
+    .dot:nth-child(2) { background: #f59e0b; }
+    .dot:nth-child(3) { background: #22c55e; }
+
+    .terminal-body {
+      min-height: 132px;
+      padding: 18px;
+      font: 14px/1.6 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .terminal-body span {
+      color: #93c5fd;
+    }
+
+    .interactive-terminal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 20;
+      height: var(--fixed-terminal-height);
+      margin: 0;
+      padding: 12px 28px;
+      background: rgba(255, 255, 255, 0.96);
+      border-bottom: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+    }
+
+    .interactive-terminal .terminal-window {
+      display: flex;
+      flex-direction: column;
+      max-width: 1120px;
+      height: 100%;
+      margin: 0 auto;
+    }
+
+    .interactive-terminal .terminal-body {
+      flex: 1;
+      min-height: 0;
+      max-height: none;
+      overflow: auto;
+    }
+
+    .terminal-title {
+      margin-left: auto;
+      color: #cbd5e1;
+      font: 12px/1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .prompt {
+      color: #93c5fd;
+    }
+
+    .typed-command {
+      color: #f8fafc;
+    }
+
+    .terminal-output {
+      color: #bbf7d0;
+      white-space: pre-wrap;
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 8px;
+      height: 15px;
+      margin-left: 2px;
+      background: #d1fae5;
+      vertical-align: -2px;
+      animation: blink 0.9s steps(2, start) infinite;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    .lesson-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin: 24px 0;
+    }
+
+    .note {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 14px 16px;
+    }
+
+    .note strong {
+      display: block;
+      font-size: 13px;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    .note p {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .helper-layout {
+      display: grid;
+      grid-template-columns: 220px minmax(0, 1fr);
+      gap: 24px;
+      align-items: start;
+      margin-top: 22px;
+    }
+
+    .helper-layout > * {
+      min-width: 0;
+    }
+
+    .shortcut-menu {
+      position: sticky;
+      top: calc(var(--fixed-terminal-height) + 72px);
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .shortcut-menu h2 {
+      padding: 14px 16px;
+      font-size: 15px;
+      border-bottom: 1px solid var(--line);
+      background: var(--soft);
+    }
+
+    .shortcut-menu a {
+      display: block;
+      padding: 10px 16px;
+      color: #333;
+      font-size: 14px;
+      text-decoration: none;
+      border-bottom: 1px solid #f0f1f2;
+    }
+
+    .shortcut-menu a:hover {
+      color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    section {
+      scroll-margin-top: calc(var(--fixed-terminal-height) + 24px);
+      margin-bottom: 26px;
+    }
+
+    .section-heading {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      font-size: 22px;
+      line-height: 1.2;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      min-width: 760px;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th {
+      text-align: left;
+      padding: 11px 14px;
+      color: #59606a;
+      background: var(--soft);
+      border-bottom: 1px solid var(--line);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid #edf0f2;
+      vertical-align: top;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr[data-demo-command] {
+      cursor: pointer;
+    }
+
+    tr[data-demo-command]:hover,
+    tr[data-demo-command]:focus-within {
+      background: #f0fdfa;
+    }
+
+    code,
+    kbd {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 13px;
+      border-radius: 5px;
+    }
+
+    code {
+      display: inline-block;
+      padding: 2px 7px;
+      color: #0f172a;
+      background: #eef2ff;
+      border: 1px solid #dbe3ff;
+      white-space: nowrap;
+    }
+
+    kbd {
+      display: inline-block;
+      min-width: 26px;
+      padding: 3px 7px;
+      color: #111827;
+      background: #fff;
+      border: 1px solid #cdd2d8;
+      box-shadow: inset 0 -2px 0 #e5e7eb;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .is-hidden {
+      display: none;
+    }
+
+    @media (max-width: 820px) {
+      :root {
+        --fixed-terminal-height: 224px;
+      }
+
+      header,
+      .helper-layout,
+      .lesson-strip {
+        grid-template-columns: 1fr;
+      }
+
+      .shortcut-menu {
+        position: static;
+      }
+
+      .page {
+        padding: calc(var(--fixed-terminal-height) + 74px) 18px 44px;
+      }
+
+      .interactive-terminal {
+        padding: 10px 14px;
+      }
+
+      .section-heading {
+        display: block;
+      }
+
+      .hint {
+        margin-top: 4px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="language-flags" aria-label="Language selector">
+    <button type="button" class="active" data-lang="en" aria-label="English">🇬🇧</button>
+    <button type="button" data-lang="hy" aria-label="Armenian">🇦🇲</button>
+    <button type="button" data-lang="ru" aria-label="Russian">🇷🇺</button>
+  </div>
+
+  <main class="page">
+    <header>
+      <div>
+        <p class="eyebrow" data-i18n="eyebrow">Day 1 / Terminal Basics</p>
+        <h1 data-i18n="title">Shortcuts Helper Menu</h1>
+        <p class="intro" data-i18n="intro">
+          A quick reference for learning Mac shortcuts, Terminal navigation, and basic Unix commands.
+          Built for students who are just starting to code.
+        </p>
+      </div>
+
+      <div class="terminal-window" aria-label="Terminal preview">
+        <div class="terminal-bar">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </div>
+        <div class="terminal-body">
+          <div><span>student@tumo</span> ~ % pwd</div>
+          <div>/Users/student</div>
+          <div><span>student@tumo</span> ~ % ls</div>
+          <div>Desktop Documents Downloads</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="lesson-strip">
+      <div class="note">
+        <strong data-i18n="goalLabel">Goal</strong>
+        <p data-i18n="goalText">Move around folders, create files, and explain what commands do.</p>
+      </div>
+      <div class="note">
+        <strong data-i18n="practiceLabel">Practice</strong>
+        <p data-i18n="practiceText">Type commands slowly, read the output, and explain what changed.</p>
+      </div>
+      <div class="note">
+        <strong data-i18n="ruleLabel">Class Rule</strong>
+        <p data-i18n="ruleText">Never run a command you do not understand, especially delete commands.</p>
+      </div>
+    </div>
+
+    <div class="helper-layout">
+      <nav class="shortcut-menu" aria-label="Shortcut helper menu">
+        <h2 data-i18n="menuTitle">Helper Menu</h2>
+        <a href="#mac" data-i18n="menuMac">Mac Shortcuts</a>
+        <a href="#terminal" data-i18n="menuTerminal">Terminal Commands</a>
+        <a href="#unix" data-i18n="menuUnix">Unix File Commands</a>
+      </nav>
+
+      <div>
+        <section class="interactive-terminal" aria-label="Interactive fake terminal">
+          <div class="terminal-window">
+            <div class="terminal-bar">
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <span class="terminal-title" data-i18n="liveTerminalTitle">Live practice terminal</span>
+            </div>
+            <div class="terminal-body" id="demoTerminal" aria-live="polite">
+              <div><span class="prompt">student@tumo</span> ~ % <span class="typed-command" id="typedCommand"></span><span class="cursor"></span></div>
+              <div class="terminal-output" id="terminalOutput" data-i18n="terminalIdle">Hover over a command below to see what it does.</div>
+            </div>
+          </div>
+        </section>
+
+        <section id="mac">
+          <div class="section-heading">
+            <h2 data-i18n="macTitle">Basic Mac Shortcuts</h2>
+            <p class="hint" data-i18n="macHint">Use these everywhere: browser, editor, notes, and Finder.</p>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th data-i18n="colShortcut">Shortcut</th>
+                  <th data-i18n="colAction">Action</th>
+                  <th data-i18n="colUse">When to use it</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><kbd title="Command">⌘</kbd> + <kbd>C</kbd></td>
+                  <td data-i18n="copyAction">Copy selected text or file</td>
+                  <td data-i18n="copyUse">Save something without removing it.</td>
+                </tr>
+                <tr>
+                  <td><kbd title="Command">⌘</kbd> + <kbd>V</kbd></td>
+                  <td data-i18n="pasteAction">Paste copied text or file</td>
+                  <td data-i18n="pasteUse">Put copied content somewhere new.</td>
+                </tr>
+                <tr>
+                  <td><kbd title="Command">⌘</kbd> + <kbd>Z</kbd></td>
+                  <td data-i18n="undoAction">Undo the last action</td>
+                  <td data-i18n="undoUse">Fix a mistake quickly.</td>
+                </tr>
+                <tr>
+                  <td><kbd title="Command">⌘</kbd> + <kbd>Space</kbd></td>
+                  <td data-i18n="spotlightAction">Open Spotlight search</td>
+                  <td data-i18n="spotlightUse">Find Terminal, apps, or files fast.</td>
+                </tr>
+                <tr>
+                  <td><kbd title="Command">⌘</kbd> + <kbd>Tab</kbd></td>
+                  <td data-i18n="switchAction">Switch between open apps</td>
+                  <td data-i18n="switchUse">Move between Terminal, browser, and editor.</td>
+                </tr>
+                <tr>
+                  <td><kbd title="Command">⌘</kbd> + <kbd>S</kbd></td>
+                  <td data-i18n="saveAction">Save current file</td>
+                  <td data-i18n="saveUse">Save before testing code.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="terminal">
+          <div class="section-heading">
+            <h2 data-i18n="terminalTitle">Terminal Navigation</h2>
+            <p class="hint" data-i18n="terminalHint">These commands help you know where you are and move safely.</p>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th data-i18n="colCommand">Command</th>
+                  <th data-i18n="colMeaning">Meaning</th>
+                  <th data-i18n="colExample">Example</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr data-demo-command="pwd" tabindex="0">
+                  <td><code>pwd</code></td>
+                  <td data-i18n="pwdMeaning">Print the folder you are currently inside.</td>
+                  <td><code>pwd</code></td>
+                </tr>
+                <tr data-demo-command="ls" tabindex="0">
+                  <td><code>ls</code></td>
+                  <td data-i18n="lsMeaning">List files and folders.</td>
+                  <td><code>ls</code></td>
+                </tr>
+                <tr data-demo-command="cd Desktop" tabindex="0">
+                  <td><code>cd</code></td>
+                  <td data-i18n="cdMeaning">Change folder.</td>
+                  <td><code>cd Desktop</code></td>
+                </tr>
+                <tr data-demo-command="cd .." tabindex="0">
+                  <td><code>cd ..</code></td>
+                  <td data-i18n="upMeaning">Move one folder up.</td>
+                  <td><code>cd ..</code></td>
+                </tr>
+                <tr data-demo-command="clear" tabindex="0">
+                  <td><code>clear</code></td>
+                  <td data-i18n="clearMeaning">Clean the Terminal screen.</td>
+                  <td><code>clear</code></td>
+                </tr>
+                <tr data-demo-command="history" tabindex="0">
+                  <td><code>history</code></td>
+                  <td data-i18n="historyMeaning">Show commands you typed before.</td>
+                  <td><code>history</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="unix">
+          <div class="section-heading">
+            <h2 data-i18n="unixTitle">Unix File Commands</h2>
+            <p class="hint" data-i18n="unixHint">Practice in a test folder before using real class files.</p>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th data-i18n="colCommand2">Command</th>
+                  <th data-i18n="colMeaning2">Meaning</th>
+                  <th data-i18n="colExample2">Example</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr data-demo-command="mkdir day1" tabindex="0">
+                  <td><code>mkdir</code></td>
+                  <td data-i18n="mkdirMeaning">Make a new folder.</td>
+                  <td><code>mkdir day1</code></td>
+                </tr>
+                <tr data-demo-command="touch notes.txt" tabindex="0">
+                  <td><code>touch</code></td>
+                  <td data-i18n="touchMeaning">Create an empty file.</td>
+                  <td><code>touch notes.txt</code></td>
+                </tr>
+                <tr data-demo-command="cat notes.txt" tabindex="0">
+                  <td><code>cat</code></td>
+                  <td data-i18n="catMeaning">Show the contents of a text file.</td>
+                  <td><code>cat notes.txt</code></td>
+                </tr>
+                <tr data-demo-command="cp notes.txt backup.txt" tabindex="0">
+                  <td><code>cp</code></td>
+                  <td data-i18n="cpMeaning">Copy a file.</td>
+                  <td><code>cp notes.txt backup.txt</code></td>
+                </tr>
+                <tr data-demo-command="mv notes.txt day1.txt" tabindex="0">
+                  <td><code>mv</code></td>
+                  <td data-i18n="mvMeaning">Move or rename a file.</td>
+                  <td><code>mv notes.txt day1.txt</code></td>
+                </tr>
+                <tr data-demo-command="rm old-file.txt" tabindex="0">
+                  <td><code>rm</code></td>
+                  <td data-i18n="rmMeaning">Remove a file. Be careful: it can delete permanently.</td>
+                  <td><code>rm old-file.txt</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const translations = {
+      en: {
+        eyebrow: "Day 1 / Terminal Basics",
+        title: "Shortcuts Helper Menu",
+        intro: "A quick reference for learning Mac shortcuts, Terminal navigation, and basic Unix commands. Built for students who are just starting to code.",
+        goalLabel: "Goal",
+        goalText: "Move around folders, create files, and explain what commands do.",
+        practiceLabel: "Practice",
+        practiceText: "Type commands slowly, read the output, and explain what changed.",
+        ruleLabel: "Class Rule",
+        ruleText: "Never run a command you do not understand, especially delete commands.",
+        liveTerminalTitle: "Live practice terminal",
+        terminalIdle: "Hover over a command below to see what it does.",
+        menuTitle: "Helper Menu",
+        menuMac: "Mac Shortcuts",
+        menuTerminal: "Terminal Commands",
+        menuUnix: "Unix File Commands",
+        macTitle: "Basic Mac Shortcuts",
+        macHint: "Use these everywhere: browser, editor, notes, and Finder.",
+        colShortcut: "Shortcut",
+        colAction: "Action",
+        colUse: "When to use it",
+        copyAction: "Copy selected text or file",
+        copyUse: "Save something without removing it.",
+        pasteAction: "Paste copied text or file",
+        pasteUse: "Put copied content somewhere new.",
+        undoAction: "Undo the last action",
+        undoUse: "Fix a mistake quickly.",
+        spotlightAction: "Open Spotlight search",
+        spotlightUse: "Find Terminal, apps, or files fast.",
+        switchAction: "Switch between open apps",
+        switchUse: "Move between Terminal, browser, and editor.",
+        saveAction: "Save current file",
+        saveUse: "Save before testing code.",
+        terminalTitle: "Terminal Navigation",
+        terminalHint: "These commands help you know where you are and move safely.",
+        colCommand: "Command",
+        colMeaning: "Meaning",
+        colExample: "Example",
+        pwdMeaning: "Print the folder you are currently inside.",
+        lsMeaning: "List files and folders.",
+        cdMeaning: "Change folder.",
+        upMeaning: "Move one folder up.",
+        clearMeaning: "Clean the Terminal screen.",
+        historyMeaning: "Show commands you typed before.",
+        unixTitle: "Unix File Commands",
+        unixHint: "Practice in a test folder before using real class files.",
+        colCommand2: "Command",
+        colMeaning2: "Meaning",
+        colExample2: "Example",
+        mkdirMeaning: "Make a new folder.",
+        touchMeaning: "Create an empty file.",
+        catMeaning: "Show the contents of a text file.",
+        cpMeaning: "Copy a file.",
+        mvMeaning: "Move or rename a file.",
+        rmMeaning: "Remove a file. Be careful: it can delete permanently."
+      },
+      hy: {
+        eyebrow: "Օր 1 / Տերմինալի հիմունքներ",
+        title: "Արագ օգնության մենյու",
+        intro: "Կարճ հուշաթերթ Mac ստեղների, Terminal շարժվելու եւ հիմնական Unix հրամանների համար։ Նախատեսված է կոդավորում նոր սկսող աշակերտների համար։",
+        goalLabel: "Նպատակ",
+        goalText: "Շարժվել թղթապանակներում, ստեղծել ֆայլեր եւ բացատրել հրամանների իմաստը։",
+        practiceLabel: "Փորձ",
+        practiceText: "Հրամանները գրիր դանդաղ, կարդա արդյունքը եւ բացատրիր՝ ինչ փոխվեց։",
+        ruleLabel: "Դասարանի կանոն",
+        ruleText: "Մի գործարկիր հրաման, որը չես հասկանում, հատկապես ջնջելու հրամաններ։",
+        liveTerminalTitle: "Կենդանի փորձնական Terminal",
+        terminalIdle: "Մկնիկը պահիր ներքեւի հրամանի վրա՝ տեսնելու ինչ է անում։",
+        menuTitle: "Օգնության մենյու",
+        menuMac: "Mac կարճ ուղիներ",
+        menuTerminal: "Terminal հրամաններ",
+        menuUnix: "Unix ֆայլերի հրամաններ",
+        macTitle: "Հիմնական Mac կարճ ուղիներ",
+        macHint: "Օգտագործիր browser-ում, editor-ում, նշումներում եւ Finder-ում։",
+        colShortcut: "Կարճ ուղի",
+        colAction: "Գործողություն",
+        colUse: "Երբ օգտագործել",
+        copyAction: "Պատճենել ընտրված տեքստը կամ ֆայլը",
+        copyUse: "Պահել մի բան առանց այն հեռացնելու։",
+        pasteAction: "Տեղադրել պատճենած տեքստը կամ ֆայլը",
+        pasteUse: "Դնել պատճենած նյութը նոր տեղում։",
+        undoAction: "Հետ բերել վերջին գործողությունը",
+        undoUse: "Արագ ուղղել սխալը։",
+        spotlightAction: "Բացել Spotlight որոնումը",
+        spotlightUse: "Արագ գտնել Terminal, ծրագրեր կամ ֆայլեր։",
+        switchAction: "Փոխվել բաց ծրագրերի միջեւ",
+        switchUse: "Անցնել Terminal-ի, browser-ի եւ editor-ի միջեւ։",
+        saveAction: "Պահպանել ընթացիկ ֆայլը",
+        saveUse: "Պահպանել կոդը փորձարկելուց առաջ։",
+        terminalTitle: "Terminal-ում շարժվելը",
+        terminalHint: "Այս հրամանները օգնում են հասկանալ որտեղ ես եւ շարժվել անվտանգ։",
+        colCommand: "Հրաման",
+        colMeaning: "Իմաստ",
+        colExample: "Օրինակ",
+        pwdMeaning: "Ցույց է տալիս այն թղթապանակը, որտեղ հիմա գտնվում ես։",
+        lsMeaning: "Ցույց է տալիս ֆայլերն ու թղթապանակները։",
+        cdMeaning: "Փոխում է թղթապանակը։",
+        upMeaning: "Բարձրանում է մեկ թղթապանակ վերեւ։",
+        clearMeaning: "Մաքրում է Terminal-ի էկրանը։",
+        historyMeaning: "Ցույց է տալիս նախկինում գրած հրամանները։",
+        unixTitle: "Unix ֆայլերի հրամաններ",
+        unixHint: "Փորձիր փորձնական թղթապանակում մինչ իրական դասի ֆայլերի հետ աշխատելը։",
+        colCommand2: "Հրաման",
+        colMeaning2: "Իմաստ",
+        colExample2: "Օրինակ",
+        mkdirMeaning: "Ստեղծում է նոր թղթապանակ։",
+        touchMeaning: "Ստեղծում է դատարկ ֆայլ։",
+        catMeaning: "Ցույց է տալիս տեքստային ֆայլի պարունակությունը։",
+        cpMeaning: "Պատճենում է ֆայլ։",
+        mvMeaning: "Տեղափոխում կամ վերանվանում է ֆայլ։",
+        rmMeaning: "Ջնջում է ֆայլ։ Զգույշ եղիր՝ այն կարող է ջնջվել վերջնական։"
+      },
+      ru: {
+        eyebrow: "День 1 / Основы Terminal",
+        title: "Меню быстрых подсказок",
+        intro: "Короткая шпаргалка по сочетаниям клавиш Mac, навигации в Terminal и базовым Unix-командам. Для учеников, которые только начинают программировать.",
+        goalLabel: "Цель",
+        goalText: "Перемещаться по папкам, создавать файлы и объяснять, что делают команды.",
+        practiceLabel: "Практика",
+        practiceText: "Печатай команды медленно, читай результат и объясняй, что изменилось.",
+        ruleLabel: "Правило класса",
+        ruleText: "Не запускай команду, которую не понимаешь, особенно команды удаления.",
+        liveTerminalTitle: "Живой учебный Terminal",
+        terminalIdle: "Наведи мышку на команду ниже, чтобы увидеть, что она делает.",
+        menuTitle: "Меню помощи",
+        menuMac: "Клавиши Mac",
+        menuTerminal: "Команды Terminal",
+        menuUnix: "Unix-файлы",
+        macTitle: "Базовые сочетания клавиш Mac",
+        macHint: "Используй в браузере, редакторе, заметках и Finder.",
+        colShortcut: "Сочетание",
+        colAction: "Действие",
+        colUse: "Когда использовать",
+        copyAction: "Скопировать выбранный текст или файл",
+        copyUse: "Сохранить что-то, не удаляя оригинал.",
+        pasteAction: "Вставить скопированный текст или файл",
+        pasteUse: "Поместить скопированное в новое место.",
+        undoAction: "Отменить последнее действие",
+        undoUse: "Быстро исправить ошибку.",
+        spotlightAction: "Открыть поиск Spotlight",
+        spotlightUse: "Быстро найти Terminal, приложения или файлы.",
+        switchAction: "Переключаться между открытыми приложениями",
+        switchUse: "Переходить между Terminal, браузером и редактором.",
+        saveAction: "Сохранить текущий файл",
+        saveUse: "Сохранить перед проверкой кода.",
+        terminalTitle: "Навигация в Terminal",
+        terminalHint: "Эти команды помогают понять, где ты находишься, и двигаться безопасно.",
+        colCommand: "Команда",
+        colMeaning: "Значение",
+        colExample: "Пример",
+        pwdMeaning: "Показывает папку, в которой ты сейчас находишься.",
+        lsMeaning: "Показывает файлы и папки.",
+        cdMeaning: "Переходит в другую папку.",
+        upMeaning: "Поднимается на одну папку выше.",
+        clearMeaning: "Очищает экран Terminal.",
+        historyMeaning: "Показывает команды, которые ты вводил раньше.",
+        unixTitle: "Unix-команды для файлов",
+        unixHint: "Практикуйся в тестовой папке перед работой с настоящими файлами класса.",
+        colCommand2: "Команда",
+        colMeaning2: "Значение",
+        colExample2: "Пример",
+        mkdirMeaning: "Создает новую папку.",
+        touchMeaning: "Создает пустой файл.",
+        catMeaning: "Показывает содержимое текстового файла.",
+        cpMeaning: "Копирует файл.",
+        mvMeaning: "Перемещает или переименовывает файл.",
+        rmMeaning: "Удаляет файл. Осторожно: файл может удалиться навсегда."
+      }
+    };
+
+    const buttons = document.querySelectorAll(".language-flags button");
+    const translatable = document.querySelectorAll("[data-i18n]");
+    const typedCommand = document.getElementById("typedCommand");
+    const terminalOutput = document.getElementById("terminalOutput");
+    const demoRows = document.querySelectorAll("[data-demo-command]");
+    let typingTimer;
+    let activeCommand = "";
+
+    const commandDemos = {
+      "pwd": "/Users/student",
+      "ls": "Desktop   Documents   Downloads   day1",
+      "cd Desktop": "Now you are inside:\n/Users/student/Desktop",
+      "cd ..": "Moved up one folder:\n/Users/student",
+      "clear": "",
+      "history": "1  pwd\n2  ls\n3  cd Desktop\n4  cd ..",
+      "mkdir day1": "Created folder: day1",
+      "touch notes.txt": "Created empty file: notes.txt",
+      "cat notes.txt": "Hello TUMO!\nToday I learned pwd, ls, and cd.",
+      "cp notes.txt backup.txt": "Copied notes.txt to backup.txt",
+      "mv notes.txt day1.txt": "Renamed notes.txt to day1.txt",
+      "rm old-file.txt": "Removed old-file.txt\nCareful: real rm does not use Trash."
+    };
+
+    function typeCommand(command) {
+      activeCommand = command;
+      window.clearInterval(typingTimer);
+      typedCommand.textContent = "";
+      terminalOutput.textContent = "";
+
+      let index = 0;
+      typingTimer = window.setInterval(() => {
+        typedCommand.textContent = command.slice(0, index + 1);
+        index += 1;
+
+        if (index >= command.length) {
+          window.clearInterval(typingTimer);
+          window.setTimeout(() => {
+            terminalOutput.textContent = commandDemos[command];
+          }, 140);
+        }
+      }, 42);
+    }
+
+    function setLanguage(lang) {
+      document.documentElement.lang = lang;
+      buttons.forEach((button) => {
+        button.classList.toggle("active", button.dataset.lang === lang);
+      });
+
+      translatable.forEach((node) => {
+        const key = node.dataset.i18n;
+        if (key === "terminalIdle" && activeCommand) return;
+        node.textContent = translations[lang][key] || translations.en[key] || node.textContent;
+      });
+    }
+
+    buttons.forEach((button) => {
+      button.addEventListener("click", () => setLanguage(button.dataset.lang));
+    });
+
+    demoRows.forEach((row) => {
+      const command = row.dataset.demoCommand;
+      row.addEventListener("mouseenter", () => typeCommand(command));
+      row.addEventListener("focus", () => typeCommand(command));
+      row.addEventListener("click", () => typeCommand(command));
+    });
+  </script>
+</body>
+</html>

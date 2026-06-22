@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Context Window — TUMO AI Workshop</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #1c1814;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 36px 20px 52px;
+    }
+
+    /* ── Header ─────────────────────────────────────────── */
+    header {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 44px;
+    }
+    h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+    h1 em { font-style: normal; color: #c8a550; }
+    .tagline { font-size: 12px; color: #555; margin-top: 4px; }
+
+    /* ── Controls ───────────────────────────────────────── */
+    .controls { display: flex; align-items: center; gap: 24px; }
+    .ctrl { display: flex; align-items: center; gap: 8px; }
+    .ctrl-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: #555;
+    }
+    input[type=range] { width: 88px; accent-color: #c8a550; cursor: pointer; }
+    .ctrl-val {
+      font-size: 13px;
+      font-weight: 700;
+      color: #c8a550;
+      min-width: 20px;
+    }
+    .ctrl-unit { font-size: 10px; color: #444; }
+
+    .btn {
+      padding: 9px 22px;
+      background: #c8a550;
+      border: none;
+      color: #1c1814;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+    }
+    .btn:hover:not(:disabled) { background: #d4b460; }
+    .btn:active:not(:disabled) { background: #b89440; }
+    .btn:disabled { background: #282420; color: #444; cursor: default; }
+
+    /* ── Scene ──────────────────────────────────────────── */
+    .scene {
+      position: relative;
+      width: 900px;
+      height: 340px;
+      user-select: none;
+    }
+
+    /* Floor (forgotten zone) */
+    .floor {
+      position: absolute;
+      inset: 0;
+      background: #1c1814;
+    }
+    .floor-label {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #333;
+    }
+    .floor-arrow {
+      position: absolute;
+      top: 14px;
+      left: 76px;
+      font-size: 10px;
+      color: #2e2a26;
+    }
+
+    /* Desk */
+    .desk {
+      position: absolute;
+      left: 185px;
+      top: 22px;
+      right: 0;
+      height: 286px;
+      background:
+        repeating-linear-gradient(
+          91deg,
+          transparent 0,
+          transparent 48px,
+          rgba(0,0,0,0.028) 48px,
+          rgba(0,0,0,0.028) 50px
+        ),
+        linear-gradient(174deg, #d8ac44 0%, #c89438 55%, #b07a28 100%);
+      box-shadow:
+        0 0 0 3px #7a5010,
+        0 14px 52px rgba(0,0,0,0.7),
+        inset 0 1px 0 rgba(255,255,255,0.13),
+        inset 0 -1px 0 rgba(0,0,0,0.15);
+    }
+
+    /* Desk front edge */
+    .desk::after {
+      content: '';
+      position: absolute;
+      left: -3px;
+      right: -3px;
+      bottom: -16px;
+      height: 16px;
+      background: linear-gradient(180deg, #7a5010 0%, #5a3800 100%);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+    }
+
+    .desk-label {
+      position: absolute;
+      top: 12px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: rgba(0,0,0,0.2);
+      pointer-events: none;
+    }
+
+    /* Papers overlay — sits above floor and desk */
+    .papers {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    /* Individual paper */
+    .paper {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 102px;
+      height: 132px;
+      background: #fffef8;
+      padding: 10px 9px 9px;
+      transition:
+        transform 0.55s cubic-bezier(0.34, 1.08, 0.64, 1),
+        filter 0.45s ease,
+        box-shadow 0.45s ease;
+      will-change: transform;
+    }
+
+    .paper.in-context {
+      filter: none;
+      box-shadow: 3px 6px 18px rgba(0,0,0,0.5), 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    .paper.forgotten {
+      filter: grayscale(1) brightness(0.45);
+      box-shadow: 1px 2px 6px rgba(0,0,0,0.2);
+    }
+
+    .paper-role {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      padding-bottom: 5px;
+      margin-bottom: 5px;
+      border-bottom: 1px solid #eee;
+    }
+    .user .paper-role { color: #222; }
+    .ai   .paper-role { color: #999; }
+
+    .paper-body {
+      font-size: 8px;
+      line-height: 1.6;
+      color: #333;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 7;
+      -webkit-box-orient: vertical;
+    }
+
+    /* ── Caption ─────────────────────────────────────────── */
+    .caption {
+      margin-top: 34px;
+      font-size: 12px;
+      color: #555;
+      text-align: center;
+      max-width: 520px;
+      line-height: 1.75;
+    }
+    .caption strong { color: #c8a550; font-weight: 600; }
+
+    /* ── Send hint ───────────────────────────────────────── */
+    .hint {
+      margin-top: 10px;
+      font-size: 11px;
+      color: #383430;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Context <em>Window</em></h1>
+    <div class="tagline">The AI can only see what's on the desk right now.</div>
+  </div>
+  <div class="controls">
+    <div class="ctrl">
+      <span class="ctrl-label">Context size</span>
+      <input type="range" id="slider" min="2" max="6" value="4">
+      <span class="ctrl-val" id="sliderVal">4</span>
+      <span class="ctrl-unit">papers</span>
+    </div>
+    <button class="btn" id="addBtn" onclick="addMessage()">Send message</button>
+  </div>
+</header>
+
+<div class="scene">
+  <div class="floor">
+    <div class="floor-label">Forgotten</div>
+    <div class="floor-arrow">←</div>
+  </div>
+  <div class="desk">
+    <div class="desk-label">The Desk — what the AI can see</div>
+  </div>
+  <div class="papers" id="papers"></div>
+</div>
+
+<div class="caption">
+  Papers on the desk = what the AI reads right now.
+  <strong>Papers that slide off are gone forever.</strong>
+  The AI has no idea they ever existed — it doesn't know what it's forgotten.
+</div>
+<div class="hint" id="hint"></div>
+
+<script>
+  const PAPER_W   = 102;
+  const PAPER_H   = 132;
+  const DESK_LEFT = 185;  // x where desk starts
+  const DESK_W    = 715;  // 900 - 185
+  const DESK_TOP  = 22;
+  const DESK_H    = 286;
+  const PAD       = 22;
+
+  const conversation = [
+    { role: 'user', text: 'How do I make a variable in Python?' },
+    { role: 'ai',   text: 'Use = to assign: x = 5 or name = "Alice".' },
+    { role: 'user', text: 'Can I change it later?' },
+    { role: 'ai',   text: 'Yes — just reassign it: x = 10. Variables can hold any value.' },
+    { role: 'user', text: 'What about lists?' },
+    { role: 'ai',   text: 'Lists use brackets: fruits = ["apple", "banana", "mango"].' },
+    { role: 'user', text: 'How do I add to a list?' },
+    { role: 'ai',   text: 'Use .append(): fruits.append("grape") adds to the end.' },
+    { role: 'user', text: "What's a for loop?" },
+    { role: 'ai',   text: 'for item in fruits: runs the block once per item.' },
+    { role: 'user', text: 'How do I print each one?' },
+    { role: 'ai',   text: 'Put print(item) inside the loop, indented 4 spaces.' },
+    { role: 'user', text: 'Why does indentation matter?' },
+    { role: 'ai',   text: 'Python uses indentation instead of brackets to define blocks.' },
+    { role: 'user', text: "What's a function?" },
+    { role: 'ai',   text: 'def greet(name): return "Hello " + name — a reusable block.' },
+    { role: 'user', text: 'Can functions call each other?' },
+    { role: 'ai',   text: 'Yes — that is how bigger programs are built up.' },
+    { role: 'user', text: 'What is recursion?' },
+    { role: 'ai',   text: 'A function that calls itself. It must have a stopping condition.' },
+  ];
+
+  const paperEls = new Map();
+  let shownCount = 6;
+
+  const slider    = document.getElementById('slider');
+  const sliderVal = document.getElementById('sliderVal');
+  const container = document.getElementById('papers');
+  const addBtn    = document.getElementById('addBtn');
+  const hint      = document.getElementById('hint');
+
+  /* Deterministic pseudo-random (so positions are stable per message index) */
+  function rng(seed, k) {
+    const v = Math.sin(seed * k + 1.618) * 43758.5453;
+    return v - Math.floor(v);
+  }
+
+  function getTarget(idx, inWindow, windowPos, winSize) {
+    if (inWindow) {
+      const spacing = 80;
+      const totalW  = (winSize - 1) * spacing + PAPER_W;
+      const startX  = DESK_LEFT + (DESK_W - totalW) / 2;
+      const x       = startX + windowPos * spacing;
+      const baseY   = DESK_TOP + (DESK_H - PAPER_H) / 2;
+      const offsetY = (rng(idx, 5.7) - 0.5) * 22;
+      const rot     = (rng(idx, 7.3) - 0.5) * 14;
+      return { x, y: baseY + offsetY, rot, z: 10 + windowPos };
+    } else {
+      // Scatter on floor (x: 5–70 so paper stays within 0–172px)
+      const x   = 5  + rng(idx, 2.1) * 65;
+      const y   = 18 + rng(idx, 4.5) * 178;
+      const rot = (rng(idx, 1.9) - 0.5) * 46;
+      return { x, y, rot, z: idx };
+    }
+  }
+
+  function setTransform(el, { x, y, rot, z }) {
+    el.style.transform = `translate(${x}px, ${y}px) rotate(${rot}deg)`;
+    el.style.zIndex    = z;
+  }
+
+  function render() {
+    const winSize    = parseInt(slider.value);
+    sliderVal.textContent = winSize;
+
+    const visible    = conversation.slice(0, shownCount);
+    const inWinStart = Math.max(0, visible.length - winSize);
+
+    visible.forEach((msg, i) => {
+      const inWindow  = i >= inWinStart;
+      const windowPos = i - inWinStart;   // negative when forgotten (ignored in getTarget)
+
+      let el     = paperEls.get(i);
+      const isNew = !el;
+
+      if (isNew) {
+        el = document.createElement('div');
+        el.className = `paper ${msg.role}`;
+        el.innerHTML =
+          `<div class="paper-role">${msg.role === 'user' ? 'You' : 'AI'}</div>` +
+          `<div class="paper-body">${msg.text}</div>`;
+
+        /* Start off-screen right (no transition), then slide in */
+        el.style.transition = 'none';
+        el.style.transform  = `translate(${DESK_LEFT + DESK_W + 80}px, ${DESK_TOP + (DESK_H - PAPER_H) / 2}px) rotate(0deg)`;
+        el.style.zIndex     = 1;
+        el.classList.add('in-context');
+        container.appendChild(el);
+        paperEls.set(i, el);
+
+        el.getBoundingClientRect(); // force reflow
+        el.style.transition = ''; // restore CSS transition
+      }
+
+      const target = getTarget(i, inWindow, Math.max(windowPos, 0), winSize);
+      setTransform(el, target);
+      el.classList.toggle('in-context', inWindow);
+      el.classList.toggle('forgotten',  !inWindow);
+    });
+
+    const done = shownCount >= conversation.length;
+    addBtn.disabled = done;
+    hint.textContent = done ? 'End of demo conversation.' : '';
+  }
+
+  function addMessage() {
+    if (shownCount >= conversation.length) return;
+    shownCount++;
+    render();
+  }
+
+  slider.addEventListener('input', render);
+  render();
+</script>
+</body>
+</html>

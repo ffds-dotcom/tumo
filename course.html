@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TUMO Chess Workshop — Course Plan</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #fff;
+      color: #111;
+      display: flex;
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* Sidebar */
+    nav {
+      width: 200px;
+      min-width: 200px;
+      border-right: 1px solid #e8e8e8;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 28px 0;
+    }
+
+    nav .logo {
+      padding: 0 20px 18px;
+      border-bottom: 1px solid #e8e8e8;
+      margin-bottom: 14px;
+    }
+
+    nav .logo h2 {
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    nav .logo p {
+      font-size: 11px;
+      color: #999;
+      margin-top: 3px;
+    }
+
+    nav a {
+      display: block;
+      padding: 5px 20px;
+      font-size: 13px;
+      color: #666;
+      text-decoration: none;
+    }
+
+    nav a:hover { color: #111; }
+    nav a.active { color: #111; font-weight: 600; }
+
+    nav .section-label {
+      padding: 14px 20px 4px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #ccc;
+      font-weight: 600;
+    }
+
+    /* Main */
+    main {
+      flex: 1;
+      max-width: 800px;
+      padding: 48px 52px 100px;
+    }
+
+    /* Header */
+    .course-header {
+      margin-bottom: 48px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid #e8e8e8;
+    }
+
+    .course-header h1 {
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .course-header .meta {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      font-size: 13px;
+      color: #777;
+    }
+
+    /* Arc table */
+    .arc-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      font-size: 13px;
+    }
+
+    .arc-table th {
+      text-align: left;
+      padding: 7px 12px;
+      font-weight: 600;
+      border-bottom: 1px solid #e8e8e8;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #999;
+    }
+
+    .arc-table td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #f2f2f2;
+      color: #444;
+    }
+
+    /* Day sections */
+    .day-section {
+      margin-bottom: 52px;
+      scroll-margin-top: 24px;
+    }
+
+    .day-header {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #e8e8e8;
+    }
+
+    .day-header h2 {
+      font-size: 19px;
+      font-weight: 700;
+    }
+
+    .day-header .focus-tag {
+      font-size: 12px;
+      color: #999;
+    }
+
+    /* Time blocks */
+    .time-block {
+      border: 1px solid #e8e8e8;
+      margin-bottom: 8px;
+    }
+
+    .time-block-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 11px 16px;
+      background: #fafafa;
+      border-bottom: 1px solid #e8e8e8;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .time-block-header:hover { background: #f4f4f4; }
+
+    .time-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #999;
+      white-space: nowrap;
+      min-width: 88px;
+    }
+
+    .time-block-header h3 {
+      font-size: 14px;
+      font-weight: 600;
+      flex: 1;
+    }
+
+    .toggle-icon {
+      font-size: 10px;
+      color: #ccc;
+      transition: transform 0.15s;
+    }
+
+    .time-block-header.open .toggle-icon { transform: rotate(180deg); }
+
+    .time-block-body {
+      padding: 16px 18px;
+      display: none;
+    }
+
+    .time-block-body.open { display: block; }
+
+    .time-block-body ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .time-block-body ul li {
+      padding: 4px 0 4px 14px;
+      position: relative;
+      font-size: 14px;
+      line-height: 1.55;
+      color: #333;
+      border-bottom: 1px solid #f5f5f5;
+    }
+
+    .time-block-body ul li:last-child { border-bottom: none; }
+
+    .time-block-body ul li::before {
+      content: '–';
+      position: absolute;
+      left: 0;
+      color: #ccc;
+    }
+
+    .time-block-body ol { padding-left: 20px; }
+
+    .time-block-body ol li {
+      padding: 4px 0;
+      font-size: 14px;
+      line-height: 1.55;
+      color: #333;
+    }
+
+    /* Sub-sections */
+    .sub-section { margin-top: 16px; }
+    .sub-section:first-child { margin-top: 0; }
+
+    .sub-section h4 {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #bbb;
+      margin-bottom: 8px;
+    }
+
+    /* Callouts — all unified */
+    .callout, .note, .warning {
+      border-left: 2px solid #ddd;
+      padding: 8px 12px;
+      margin: 10px 0;
+      font-size: 13px;
+      color: #555;
+    }
+
+    .callout { font-style: italic; }
+    .callout strong, .note strong, .warning strong { color: #111; font-style: normal; }
+
+    /* Day goal */
+    .day-goal { border: 1px solid #e8e8e8; margin-top: 12px; }
+
+    .day-goal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      cursor: pointer;
+      user-select: none;
+      background: #fafafa;
+    }
+
+    .day-goal-header:hover { background: #f4f4f4; }
+
+    .day-goal-header .goal-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #bbb;
+    }
+
+    .day-goal-body {
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #444;
+      display: none;
+      border-top: 1px solid #e8e8e8;
+    }
+
+    .day-goal-body.open { display: block; }
+
+    /* Code */
+    code {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 12px;
+      background: #f5f5f5;
+      padding: 1px 5px;
+      color: #333;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin: 10px 0;
+    }
+
+    th {
+      text-align: left;
+      padding: 7px 10px;
+      font-weight: 600;
+      border-bottom: 1px solid #e8e8e8;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #999;
+    }
+
+    td {
+      padding: 7px 10px;
+      border-bottom: 1px solid #f2f2f2;
+      color: #444;
+      vertical-align: top;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    /* Tier labels */
+    .tier-easy, .tier-medium, .tier-hard {
+      font-size: 11px;
+      font-weight: 600;
+      color: #999;
+    }
+
+    /* Principles */
+    .principles { list-style: decimal; padding-left: 20px; }
+
+    .principles li {
+      padding: 4px 0;
+      font-size: 14px;
+      line-height: 1.55;
+      color: #333;
+    }
+
+    /* Bug list */
+    .bug-item {
+      display: flex;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid #f2f2f2;
+      font-size: 14px;
+      align-items: flex-start;
+    }
+
+    .bug-item:last-child { border-bottom: none; }
+
+    .bug-num {
+      font-size: 11px;
+      font-weight: 700;
+      color: #999;
+      white-space: nowrap;
+      padding-top: 2px;
+    }
+
+    /* Variant list */
+    .variant-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .variant-item {
+      border: 1px solid #e8e8e8;
+      padding: 8px 10px;
+      font-size: 13px;
+    }
+
+    .variant-item strong {
+      display: block;
+      font-size: 12px;
+      margin-bottom: 2px;
+    }
+
+    .variant-item span { color: #777; font-size: 12px; }
+
+    @media (max-width: 900px) {
+      nav { display: none; }
+      main { padding: 24px 20px 60px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar Navigation -->
+<nav id="sidebar">
+  <div class="logo">
+    <h2>TUMO Chess Workshop</h2>
+    <p>Yerevan · June 22 – July 3</p>
+  </div>
+  <div class="section-label">Warmup</div>
+  <a href="#day1">Day 1 — June 22</a>
+  <a href="#day2">Day 2 — June 23</a>
+  <div class="section-label">Chess Core</div>
+  <a href="#day3">Day 3 — June 24</a>
+  <a href="#day4">Day 4 — June 25</a>
+  <a href="#day5">Day 5 — June 26</a>
+  <div class="section-label">Polish</div>
+  <a href="#day6">Day 6 — June 29</a>
+  <a href="#day7">Day 7 — June 30</a>
+  <div class="section-label">Mastery</div>
+  <a href="#day8">Day 8 — July 1</a>
+  <a href="#day9">Day 9 — July 2</a>
+  <div class="section-label">Wrap-up</div>
+  <a href="#day10">Day 10 — July 3</a>
+  <div class="section-label">Reference</div>
+  <a href="#game-assignments">Game Assignments</a>
+</nav>
+
+<main>
+
+  <!-- Course Header -->
+  <div class="course-header">
+    <h1>TUMO Chess Workshop</h1>
+    <div class="meta">
+      <span><strong>Location:</strong> Yerevan</span>
+      <span><strong>Dates:</strong> June 22 – July 3, 2026</span>
+      <span><strong>Hours:</strong> 9:30 – 1:30 daily</span>
+      <span><strong>Students:</strong> 21 · Ages 12–17</span>
+    </div>
+    <div style="margin-top:20px;border:1px solid #e8e8e8">
+      <div class="time-block-header" onclick="toggleBlock(this)">
+        <span class="time-label">Course Arc</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="time-block-body" style="padding:0">
+        <table class="arc-table" style="margin:0">
+          <thead>
+            <tr><th>Phase</th><th>Days</th><th>Focus</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Warmup</td><td>1–2</td><td>Prompt engineering, Git basics, small game build</td></tr>
+            <tr><td>Chess core</td><td>3–5</td><td>Board UI, pieces, two-player gameplay</td></tr>
+            <tr><td>Polish</td><td>6–7</td><td>Rule enforcement, unit testing, chess bot</td></tr>
+            <tr><td>Mastery</td><td>8–9</td><td>Custom variants, precision prompting</td></tr>
+            <tr><td>Wrap-up</td><td>10</td><td>Presentations or catch-up</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────── DAY 1 ─────────────── -->
+  <div class="day-section" id="day1">
+    <div class="day-header">
+      <h2>Day 1 — June 22</h2>
+      <span class="focus-tag">Orientation · Demo · Setup · Ability Gauge</span>
+    </div>
+
+    <!-- 9:30 intro speech -->
+    <div class="time-block">
+      <div class="time-block-header" onclick="toggleBlock(this)">
+        <span class="time-label">9:30 – 10:00</span>
+        <h3>Introduction Speech</h3>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="time-block-body">
+        <ol>
+          <li><strong>Who you are</strong> — your background, why you're here, what you've built</li>
+          <li><strong>What this is</strong> — not a class, a lab; they're developers building a real product</li>
+          <li><strong>The end goal</strong> — a fully playable chess game that <em>they</em> built; if working alone, something they can add to their GitHub or portfolio to showcase their capabilities</li>
+          <li><strong>What "coding with AI" means</strong> — not copy-paste; AI writes code fast, but a human still has to think, review, and steer it</li>
+          <li><strong>What they'll learn</strong> — prompt engineering, Git, unit testing, debugging: real developer skills</li>
+          <li><strong>The 10-day arc</strong> — 2 days warmup → 5 days building chess → 3 days bots/polish/ship</li>
+          <li><strong>Ground rules</strong> — ask questions, help each other, write your own prompts (don't share outputs)</li>
+          <li><strong>Different ages, different experience</strong> — I can't create one class that fits everyone, so my goal is to challenge each of you. If it's too easy, tell me — I will find ways to make it harder. If it's too hard, or you're struggling to understand something especially code-related, tell me. There's no shame in it.</li>
+          <li><strong>Your role in this course</strong> — think of me as your client, or your product manager. I will ask for things and suggest things for you to implement. It's your job to implement them properly.</li>
+          <li><strong>What today looks like</strong> — intros → course walkthrough → live demo → computer setup → first exercise</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 10:00 intros -->
+    <div class="time-block">
+      <div class="time-block-header" onclick="toggleBlock(this)">
+        <span class="time-label">10:00 – 10:15</span>
+        <h3>Student Introductions</h3>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="time-block-body">
+        <ul>
+          <li>Each student: <strong>name + one thing they know how to code</strong> — or "I'm just starting"</li>
+          <li>21 students × ~30 sec = ~10.5 min</li>
+          <li>Optional follow-up: "Have you used AI to write code before?"</li>
+          <li>Listen for: language/tool mentions (Python, JS, Scratch, etc.), project mentions, confidence level</li>
+        </ul>
+        <div class="note">
+          <strong>Ability gauge:</strong> Build a rough mental map of skill tiers (none / some / experienced). Group forming is optional — can be decided on Day 2.
+        </div>
+      </div>
+    </div>
+
+    <!-- 10:15 demo -->
+    <div class="time-block">
+      <div class="time-block-header" onclick="toggleBlock(this)">
+        <span class="time-label">10:15 – 11:00</span>
+        <h3>Course Overview + Live Demo + Prompt Engineering</h3>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="time-block-body">
+
+        <div class="sub-section">
+          <h4>Part A — Prompting Rules</h4>
+          <ol>
+            <li>Break the chess game down into individual rules and implement them <strong>one at a time</strong> — never ask Claude to implement multiple things in a single prompt</li>
+            <li>Make <strong>small, focused commits</strong> — each commit should represent one working change</li>
+            <li>After every change, <strong>test and validate</strong> that Claude did it correctly before moving on — once confirmed, commit it so it stays in history</li>
+            <li>If you don't understand what Claude did, <strong>ask it to explain</strong> — don't move on until you understand the change</li>
+            <li>Even better: ask Claude to <strong>generate a webpage</strong> that explains all the changes it made — so you always have a readable record of what was built and why</li>
+          </ol>
+          <div class="callout">
+            <strong>Work in baby steps.</strong> Small changes are critical because:
+            <ol style="margin-top:6px;padding-left:18px">
+              <li>You will understand what the AI does better if it goes step by step</li>
+              <li>You can correct the AI faster</li>
+              <li>You can catch and describe errors more easily</li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="sub-section">
+          <h4>Part B — Course Overview (10 min)</h4>
+          <ul>
+            <li>Walk through the 10-day arc on a whiteboard or slide</li>
+            <li>Show the endgame: a chess app with bot opponent</li>
+          </ul>
+          <div class="callout">
+            <strong>Say aloud:</strong> "Over 10 days you'll build a fully playable chess game using AI as your coding partner. You'll learn to give AI precise instructions, use Git so your work is never lost, write unit tests so you can trust your code, and ship something real."
+          </div>
+        </div>
+
+        <div class="sub-section">
+          <h4>Part C — Live Demo: Build a Game in Front of the Class (20 min)</h4>
+          <ul>
+            <li>Open <code>claude.ai</code>, share screen</li>
+            <li>Start with a vague prompt ("make me a game") → show weak output</li>
+            <li>Re-prompt precisely → show the improvement → compare to <code>platformer.html</code> as the polished version</li>
+            <li>Point out a bug live → "this is what we fix as developers"</li>
+          </ul>
+          <div class="note"><strong>Key message:</strong> AI is fast but it needs a skilled human steering it. You are that human.</div>
+        </div>
+
+        <div class="sub-section">
+          <h4>Part D — Claude Models + Prompt Engineering Principles (10 min)</h4>
+          <ul>
+            <li><strong>Haiku</strong> — fast, cheap, good for simple tasks</li>
+            <li><strong>Sonnet</strong> — balanced, your daily driver</li>
+            <li><strong>Opus</strong> — most powerful, use for hard problems</li>
+          </ul>
+          <ol class="principles">
+            <li>Be specific — give context, describe the goal, not just the symptom</li>
+            <li>Describe expected vs. actual behavior when debugging</li>
+            <li>Iterate — bad output is feedback, not failure</li>
+            <li>Always read before you paste — AI can introduce bugs silently</li>
+          </ol>
+        </div>
+
+        <div class="sub-section">
+          <h4>Exercise — Paper Prompt (5 min)</h4>
+          <ul>
+            <li>Ask: <em>"Write the prompt you'd give Claude to build a game where a ball bounces around the screen."</em></li>
+            <li>Students write on paper — no computers</li>
+            <li>Compare 3–4 answers aloud: who was vague? who was specific?</li>
+            <li>Use their answers to segue directly into the 4 principles above</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 11:00 setup -->
+    <div class="time-block">
+      <div class="time-block-header" onclick="toggleBlock(this)">
+        <span class="time-label">11:00 – 12:00</span>
+        <h3>Computer Setup</h3>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="time-block-body">
+        <ol>
+          <li>Open terminal / command prompt</li>
+          <li>Create a course folder: <code>mkdir chess-workshop && cd chess-workshop</code></li>
+          <li>Create a file: <code>touch index.html</code>, open in browser, verify it loads</li>
+          <li>Create a Claude.ai account using a personal email</li>
+          <li><em>Stretch goal:</em> <code>git init</code> + first commit if time allows</li>
+        </ol>
+        <div class="note"><strong>Gauging signal:</strong> Note who breezes through terminal vs. who needs hand-holding — use for pairing strategy.</div>
+      </div>
+    </div>
+
+    <!-- 12:00 tile jumper -->
+    <div class="time-block">
+      <div class="time-block-header" onclick="toggleBlock(this)">
+        <span class="time-label">12:00 – 1:30</span>
+        <h3>Project: Tile Jumper Debugging Exercise</h3>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="time-block-body">
+        <p><code>platformer.html</code></p>
+
+      </div>
+    </div>
+
+    <div class="day-goal">
+      <strong>End of Day Goal</strong>
+      Every student has a working terminal, a Claude account, and has made at least one AI-assisted code change.
+    </div>
+
+    <!-- Assets -->
+    <div style="margin-top:16px">
+      <table class="assets-table">
+        <thead><tr><th>Asset</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><code>platformer.html</code></td><td>Live demo reference — polished game to compare AI output against</td></tr>
+          <tr><td><code>exercises/tile-jumper-buggy.html</code></td><td>Student exercise — 3 bugs to find and fix</td></tr>
+          <tr><td><code>exercises/tile-jumper-solution.html</code></td><td>Reference solution — unblock stuck students at end</td></tr>
+          <tr><td><code>prompt-engineering-fundamentals.key</code></td><td>Existing slide deck for prompt engineering section</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ─────────────── DAY 2 ─────────────── -->
+  <div class="day-section" id="day2">
+    <div class="day-header">
+      <h2>Day 2 — June 23</h2>
+      <span class="focus-tag">Git Basics · Individual Game Build</span>
+    </div>
+
+    <div class="time-block">
+      <div class="time-block-header" onclick="toggleBlock(this)">
+        <span class="time-label">9:30 – 11:30</span>
+        <h3>Git Introduction</h3>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="time-block-body">
+        <ul>
+          <li>Git intro lecture: what version control is and why it matters</li>
+          <li>Walk through together: <code>git init</code>, <code>git add</code>, <code>git commit</code>, <code>git log</code></li>
+          <li>Students create a repo for their assigned game project</li>
+          <li>Goal: every student makes their first commit before moving on</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="time-block">
+      <div class="time-block-header" onclick="toggleBlock(this)">
+        <span class="time-label">11:30 – 1:30</span>
+        <h3>Individual Game Build + Showcase</h3>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="time-block-body">
+        <ul>
+          <li>Students build their assigned game from scratch using Claude</li>
+          <li>Requirements per game: see <em>Game Assignments</em> section</li>
+          <li>Teacher circulates: observe prompt quality, how students handle bad output</li>
+          <li>Final 15 min: each student does a 60-second demo of whatever they built</li>
+        </ul>
+        <div class="note"><strong>Gauging:</strong> Finalize ability-tier observations from Day 1. Decide on grouping if applicable.</div>
+      </div>
+    </div>
+
+    <div class="day-goal">
+      <strong>End of Day Goal</strong>
+      Each student has a working (or partially working) game in a Git repo with at least 2–3 commits showing progress.
+    </div>
+  </div>
+
+  <!-- ─────────────── DAY 3 ─────────────── -->
+  <div class="day-section" id="day3">
+    <div class="day-header">
+      <h2>Day 3 — June 24</h2>
+      <span class="focus-tag">Chess Board UI</span>
+    </div>
+
+    <div class="time-block">
+      <div class="time-block-header" onclick="toggleBlock(this)">
+        <span class="time-label">9:30 – 11:30</span>
+        <h3>Build the Chess Board</h3>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="time-block-body">
+        <ul>
+          <li>Students choose their language/tech stack (default: HTML/CSS/JS)</li>
+          <li>Create a new project workspace + Git repo: <code>chess-app</code></li>
+          <li>First commit: empty project scaffold</li>
+          <li>Task: build a chess board — 8×8 grid, alternating colors, correct dimensions</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="time-block">
+      <div class="time-block-header" onclick="toggleBlock(this)">
+        <span class="time-label">11:30 – 1:30</span>
+        <h3>Teacher Review</h3>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="time-block-body">
+        <ul>
+          <li>Teacher reviews each group's board against UI requirements</li>
+          <li>Review code and Git history — look for meaningful commit messages</li>
+        </ul>
+        <div class="warning"><strong>Hard rule:</strong> Students cannot move on to pieces until the board is fully complete and approved.</div>
+        <div class="sub-section" style="margin-top:14px">
+          <h4>Board UI Requirements (minimum)</h4>
+          <ul>
+            <li>8×8 grid with correct alternating light/dark squares</li>
+            <li>Board is visually centered on the page</li>
+            <li>Squares are equal size and proportional</li>
+            <li>Board has file (a–h) and rank (1–8) labels</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────── DAY 4 ─────────────── -->
+  <div class="day-section" id="day4">
+    <div class="day-header">
+      <h2>Day 4 — June 25</h2>
+      <span class="focus-tag">Chess Pieces · Movement · Drag and Drop</span>
+    </div>
+
+    <div class="time-block">
+      <div class="time-block-header" onclick="toggleBlock(this)">
+        <span class="time-label">9:30 – 11:30</span>
+        <h3>Piece Placement + Movement</h3>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="time-block-body">
+        <ul>
+          <li>Teacher lecture: chess rules overview (how each piece moves), and how to represent a piece in code (position, type, color)</li>
+          <li>Students place pieces on the board in starting positions</li>
+          <li>Begin implementing click-to-select and click-to-move (or drag-and-drop)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="time-block">
+      <div class="time-block-header" onclick="toggleBlock(this)">
+        <span class="time-label">11:30 – 1:30</span>
+        <h3>Progressive Unlocks</h3>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="time-block-body">
+        <ul>
+          <li>Teacher works with each group individually</li>
+          <li>Progressive requirement unlocks (teacher decides when a group is ready):</li>
+        </ul>
+        <ul style="margin-left:16px; margin-top:8px">
+          <li>Piece movement animations</li>
+          <li>Move log (notation display)</li>
+          <li>Audio on move/capture</li>
+          <li>Captured pieces display</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="day-goal">
+      <strong>End of Day Goal</strong>
+      All pieces are on the board; players can move pieces (even without rule enforcement yet).
+    </div>
+  </div>
+
+  <!-- ─────────────── DAY 5 ─────────────── -->
+  <div class="day-section" id="day5">
+    <div class="day-header">
+      <h2>Day 5 — June 26</h2>
+      <span class="focus-tag">Fully Functional Two-Player Chess</span>
+    </div>
+
+    <div class="time-block">
+      <div class="time-block-header" onclick="toggleBlock(this)">
+        <span class="time-label">9:30 – 1:30</span>
+        <h3>Continuation of Day 4</h3>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="time-block-body">
+        <div class="sub-section">
+          <h4>Goals for This Day</h4>
+          <ul>
+            <li>Players can take turns (white moves, then black, then white...)</li>
+            <li>Capturing works (moving onto an opponent's piece removes it)</li>
+            <li>Basic illegal move blocking (can't move to a square occupied by your own piece)</li>
+            <li>Win detection: game ends when a king is captured (or checkmated — stretch goal)</li>
+          </ul>
+        </div>
+        <div class="note"><strong>Teacher role:</strong> Work with every group. No group should leave Day 5 without a game where two people can sit down and play.</div>
+        <div class="sub-section" style="margin-top:14px">
+          <h4>Stretch Goals</h4>
+          <ul>
+            <li>Check detection and visual indicator</li>
+            <li>Highlight valid moves on selection</li>
+            <li>Turn indicator UI</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="day-goal">
+      <strong>End of Day Goal</strong>
+      Two people can sit down and play a real game of chess, even if rule enforcement is incomplete.
+    </div>
+  </div>
+
+  <!-- ─────────────── DAY 6 ─────────────── -->
+  <div class="day-section" id="day6">
+    <div class="day-header">
+      <h2>Day 6 — June 29</h2>
+      <span class="focus-tag">Rule Enforcement · Unit Testing</span>
+    </div>
+
+    <div class="time-block">
+      <div class="time-block-header" onclick="toggleBlock(this)">
+        <span class="time-label">9:30 – 11:30</span>
+        <h3>Full Rule Enforcement</h3>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="time-block-body">
+        <ul>
+          <li>Each piece type follows its legal movement rules</li>
+          <li>Illegal moves are blocked (not just same-color squares)</li>
+          <li>Special moves: castling, en passant, pawn promotion</li>
+          <li>UI shows highlighted valid moves when a piece is selected</li>
+          <li>Students prompt Claude to implement and test each rule one at a time</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="time-block">
+      <div class="time-block-header" onclick="toggleBlock(this)">
+        <span class="time-label">11:30 – 1:30</span>
+        <h3>Unit Testing</h3>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="time-block-body">
+        <ul>
+          <li>Teacher lecture: what unit tests are and why they exist</li>
+          <li>Live demo: show how a unit test catches a bug that AI introduced silently</li>
+          <li>Students write unit tests for their move validation logic</li>
+          <li>Unit tests must be integrated into prompts going forward: <em>"write a function and a unit test for it"</em></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="day-goal">
+      <strong>End of Day Goal</strong>
+      Game enforces legal moves for all piece types; at least 5 unit tests written and passing.
+    </div>
+  </div>
+
+  <!-- ─────────────── DAY 7 ─────────────── -->
+  <div class="day-section" id="day7">
+    <div class="day-header">
+      <h2>Day 7 — June 30</h2>
+      <span class="focus-tag">Chess Bot — Most Challenging Day</span>
+    </div>
+
+    <div class="time-block">
+      <div class="time-block-header" onclick="toggleBlock(this)">
+        <span class="time-label">9:30 – 11:30</span>
+        <h3>Bot Algorithm Lecture + Planning</h3>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="time-block-body">
+        <ul>
+          <li>Random move bot (baseline)</li>
+          <li>Minimax algorithm (look ahead N moves)</li>
+          <li>Basic evaluation function — material value: pawn=1, knight/bishop=3, rook=5, queen=9</li>
+          <li>Students plan their bot: algorithm choice, depth, how to test it</li>
+        </ul>
+        <div class="warning"><strong>Rule:</strong> No third-party chess libraries. Algorithm must be self-implemented with AI help.</div>
+      </div>
+    </div>
+
+    <div class="time-block">
+      <div class="time-block-header" onclick="toggleBlock(this)">
+        <span class="time-label">11:30 – 1:30</span>
+        <h3>Bot Build + Validation</h3>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="time-block-body">
+        <ul>
+          <li>Students build the bot using Claude</li>
+          <li>Teacher works with each group on the algorithm</li>
+          <li>Students write tests to validate bot behavior (does it avoid losing its queen? does it take free pieces?)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="day-goal">
+      <strong>End of Day Goal</strong>
+      A bot that can play a legal game of chess against the player, even if it plays poorly.
+    </div>
+  </div>
+
+  <!-- ─────────────── DAY 8 ─────────────── -->
+  <div class="day-section" id="day8">
+    <div class="day-header">
+      <h2>Day 8 — July 1</h2>
+      <span class="focus-tag">Custom Chess Variant · Precision Prompting Challenge</span>
+    </div>
+
+    <div class="time-block">
+      <div class="time-block-header" onclick="toggleBlock(this)">
+        <span class="time-label">9:30 – 1:30</span>
+        <h3>Variant Challenge</h3>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="time-block-body">
+        <p style="font-size:14px;color:#555;margin-bottom:14px">Each group receives a unique challenge designed to force precise prompt engineering. Vague prompts won't work — the challenge is too specific.</p>
+
+        <div class="variant-list">
+          <div class="variant-item"><strong>4-Player Chess</strong><span>Two extra sets of pieces, 4-corner board</span></div>
+          <div class="variant-item"><strong>Never-Ending Chess</strong><span>Captured pieces respawn after N turns</span></div>
+          <div class="variant-item"><strong>Queens Only</strong><span>All pieces replaced with queens</span></div>
+          <div class="variant-item"><strong>Fog of War</strong><span>Only see squares your pieces can move to</span></div>
+          <div class="variant-item"><strong>Bot vs. Bot</strong><span>Two bots fighting, no human player</span></div>
+          <div class="variant-item"><strong>Speed Chess</strong><span>Each player has 30 seconds per move</span></div>
+          <div class="variant-item"><strong>Blindfold Mode</strong><span>No pieces shown, only move notation</span></div>
+        </div>
+
+        <div class="note" style="margin-top:14px"><strong>Teacher role:</strong> Assign variants based on group ability — harder variants for stronger groups.</div>
+        <div class="callout"><strong>Goal:</strong> Students must describe the variant precisely to Claude in order to implement it without wasting tokens on bad output. Prompt quality is the lesson.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────── DAY 9 ─────────────── -->
+  <div class="day-section" id="day9">
+    <div class="day-header">
+      <h2>Day 9 — July 2</h2>
+      <span class="focus-tag">Custom Tools · Optional Publishing</span>
+    </div>
+
+    <div class="time-block">
+      <div class="time-block-header" onclick="toggleBlock(this)">
+        <span class="time-label">9:30 – 11:30</span>
+        <h3>Add a Custom Tool</h3>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="time-block-body">
+        <ul>
+          <li>Each group adds one custom tool or feature to their chess app using AI prompts</li>
+          <li>Examples: piece maker, theme adjuster, sound manipulator, move history export, difficulty selector</li>
+        </ul>
+        <div class="warning"><strong>Rule:</strong> Core game and unit tests must remain intact after adding the tool.</div>
+      </div>
+    </div>
+
+    <div class="time-block">
+      <div class="time-block-header" onclick="toggleBlock(this)">
+        <span class="time-label">11:30 – 1:30</span>
+        <h3>Publish to GitHub Pages (optional)</h3>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="time-block-body">
+        <ul>
+          <li>Push repo to GitHub</li>
+          <li>Enable Pages in repo settings</li>
+          <li>Share URL with the class</li>
+        </ul>
+        <div class="note">Only for groups using HTML/CSS/JS who are in a good place with their game.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────── DAY 10 ─────────────── -->
+  <div class="day-section" id="day10">
+    <div class="day-header">
+      <h2>Day 10 — July 3</h2>
+      <span class="focus-tag">Final Presentations · Catch-up</span>
+    </div>
+
+    <div class="time-block">
+      <div class="time-block-header" onclick="toggleBlock(this)">
+        <span class="time-label">9:30 – 1:30</span>
+        <h3>Option A — Presentations</h3>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="time-block-body">
+        <ul>
+          <li>Live demo of the game (2–3 minutes)</li>
+          <li>Explain one technical decision they made</li>
+          <li>Show one unit test and what it catches</li>
+          <li>Walk through Git history — show the commit log</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="time-block">
+      <div class="time-block-header" onclick="toggleBlock(this)">
+        <span class="time-label">9:30 – 1:30</span>
+        <h3>Option B — Catch-up Day</h3>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="time-block-body">
+        <ul>
+          <li>Use the day to finish core functionality</li>
+          <li>Minimum bar: a two-player game where both players can make legal moves</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="day-goal">
+      <strong>End of Course Goal</strong>
+      Every student leaves having built a real, working chess application using AI as a coding partner — with Git history, unit tests, and a feature they designed themselves.
+    </div>
+  </div>
+
+  <!-- ─────────────── GAME ASSIGNMENTS ─────────────── -->
+  <div class="day-section" id="game-assignments">
+    <div class="day-header">
+      <h2>Game Assignments</h2>
+      <span class="focus-tag">Day 2 Exercise</span>
+    </div>
+
+    <div class="note" style="margin-bottom:16px">
+      <strong>How it works:</strong> Each student builds a unique game from scratch using Claude. Reveal assignments at the end of Day 1 or start of Day 2. Students must use Claude prompts only — no copying from the internet. End of Day 2: each student demos their game for ~60 seconds. Assign based on ability tier — don't assign randomly.
+    </div>
+
+    <div class="time-block">
+      <div class="time-block-header" onclick="toggleBlock(this)">
+        <span class="time-label tier-easy">Easy</span>
+        <h3>Beginners — No Prior Coding Experience</h3>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="time-block-body">
+        <table>
+          <thead><tr><th>#</th><th>Game</th><th>Key mechanic to describe</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Number guessing game</td><td>Random number, input, feedback (too high/low), attempt counter</td></tr>
+            <tr><td>2</td><td>Rock Paper Scissors</td><td>3-choice input, win/lose/draw logic, score tracking</td></tr>
+            <tr><td>3</td><td>Coin flip with stats</td><td>Random, running tally of heads/tails over N flips</td></tr>
+            <tr><td>4</td><td>Simon Says</td><td>Color sequence that grows each round, input matching</td></tr>
+            <tr><td>5</td><td>Whack-a-mole</td><td>Timed targets appear randomly, click to score, miss = penalty</td></tr>
+            <tr><td>6</td><td>Click-the-target</td><td>Shrinking bullseye, score based on accuracy and speed</td></tr>
+            <tr><td>7</td><td>Word scramble</td><td>Randomly scramble a word from a list, player types the answer</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="time-block">
+      <div class="time-block-header" onclick="toggleBlock(this)">
+        <span class="time-label tier-medium">Medium</span>
+        <h3>Some Prior Experience</h3>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="time-block-body">
+        <table>
+          <thead><tr><th>#</th><th>Game</th><th>Key mechanic to describe</th></tr></thead>
+          <tbody>
+            <tr><td>8</td><td>Pong</td><td>Ball physics, paddle collision, score, single or two-player</td></tr>
+            <tr><td>9</td><td>Snake</td><td>Continuous movement, direction change, growth, self-collision</td></tr>
+            <tr><td>10</td><td>Brick breaker</td><td>Ball, paddle, breakable brick grid, lives system</td></tr>
+            <tr><td>11</td><td>Tic-tac-toe</td><td>Two-player or vs. basic AI, win detection</td></tr>
+            <tr><td>12</td><td>Memory card matching</td><td>Flip two cards, match pairs, track turns</td></tr>
+            <tr><td>13</td><td>Catch falling objects</td><td>Basket moves left/right, objects fall, lives/score</td></tr>
+            <tr><td>14</td><td>Frogger (simplified)</td><td>Cross a road, avoid cars, lane-based movement</td></tr>
+            <tr><td>15</td><td>Typing speed test</td><td>Display a sentence, measure WPM, highlight errors</td></tr>
+            <tr><td>16</td><td>Flappy bird</td><td>Tap to flap, gravity, pipe gap collision</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="time-block">
+      <div class="time-block-header" onclick="toggleBlock(this)">
+        <span class="time-label tier-hard">Hard</span>
+        <h3>Experienced Students</h3>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="time-block-body">
+        <table>
+          <thead><tr><th>#</th><th>Game</th><th>Key mechanic to describe</th></tr></thead>
+          <tbody>
+            <tr><td>17</td><td>Space invaders</td><td>Enemy grid that moves and fires, shields, escalating speed</td></tr>
+            <tr><td>18</td><td>Minesweeper</td><td>Grid, mine placement, flood-fill reveal, flag system</td></tr>
+            <tr><td>19</td><td>Connect Four</td><td>Two-player, gravity-drop columns, 4-in-a-row detection</td></tr>
+            <tr><td>20</td><td>Tetris</td><td>Piece types, rotation, line clearing, gravity, game over</td></tr>
+            <tr><td>21</td><td>Tower defense</td><td>One lane, place turrets, enemy waves, health/currency system</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  function toggleBlock(header) {
+    header.classList.toggle('open');
+    header.nextElementSibling.classList.toggle('open');
+  }
+
+  // Auto-convert all .day-goal divs to collapsible
+  document.querySelectorAll('.day-goal').forEach(goal => {
+    const label = goal.querySelector('strong').textContent;
+    const text = goal.childNodes[goal.childNodes.length - 1].textContent.trim();
+    goal.innerHTML = `
+      <div class="day-goal-header" onclick="toggleBlock(this)">
+        <span class="goal-label">${label}</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="day-goal-body">${text}</div>
+    `;
+  });
+
+  // Sidebar active link on scroll
+  const sections = document.querySelectorAll('.day-section');
+  const navLinks = document.querySelectorAll('nav a');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(link => link.classList.remove('active'));
+        const active = document.querySelector(`nav a[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { threshold: 0.2 });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>
