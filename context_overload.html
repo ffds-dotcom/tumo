@@ -451,14 +451,16 @@
 
     .overlay-player {
       position: absolute;
-      top: 126px;
+      top: 96px;
       left: 50%;
       translate: -50% 0;
-      background: #f7e6a2;
+      background: #fff1a8;
       color: var(--ink);
-      box-shadow: inset -5px -5px 0 rgba(112, 79, 42, 0.12);
+      box-shadow:
+        0 10px 0 rgba(38, 56, 29, 0.22),
+        inset -7px -7px 0 rgba(112, 79, 42, 0.16);
       animation: panel-pop-in 280ms 80ms cubic-bezier(0.2, 0.9, 0.25, 1.12) both;
-      min-width: 210px;
+      width: min(620px, calc(100vw - 32px));
       pointer-events: auto;
     }
 
@@ -476,21 +478,41 @@
       text-transform: uppercase;
     }
 
-    .overlay-player span {
+    .overlay-player-label {
+      display: grid;
+      justify-items: center;
+      gap: 8px;
+    }
+
+    .overlay-player-instruction,
+    .overlay-player-detail {
       display: block;
       color: #5b683b;
-      font-size: 10px;
+      font-size: clamp(13px, 1.8vw, 20px);
       font-weight: 950;
+      line-height: 1;
+      letter-spacing: 0;
       text-transform: uppercase;
     }
 
-    .overlay-player strong {
+    .overlay-player-name {
       display: block;
-      margin-top: 2px;
-      max-width: 260px;
+      max-width: 100%;
+      padding: 6px 18px 7px;
+      border: 3px solid #26381d;
+      background: #d84938;
+      color: #fff7dc;
+      box-shadow: inset -5px -5px 0 rgba(76, 34, 25, 0.3);
       overflow-wrap: break-word;
-      font-size: 18px;
-      line-height: 1.12;
+      font-size: clamp(30px, 5vw, 58px);
+      font-weight: 950;
+      line-height: 0.98;
+      text-shadow: 3px 3px 0 rgba(59, 25, 22, 0.4);
+    }
+
+    .overlay-player-detail {
+      color: #26381d;
+      font-size: clamp(12px, 1.45vw, 16px);
     }
 
     .overlay-timebar {
@@ -510,9 +532,22 @@
       transition: transform 0.1s linear;
     }
 
-    .preview-card-list {
+    .preview-stack {
       position: absolute;
       inset: 0;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      overflow: auto;
+      padding: 250px 24px 92px;
+      pointer-events: none;
+    }
+
+    .preview-card-list {
+      width: min(100%, 1280px);
       min-height: 0;
       display: flex;
       align-items: center;
@@ -520,8 +555,8 @@
       align-content: center;
       gap: 14px;
       flex-wrap: wrap;
-      overflow: auto;
-      padding: 170px 24px 92px;
+      overflow: visible;
+      padding: 0;
       pointer-events: none;
     }
 
@@ -638,9 +673,7 @@
     }
 
     .overlay-go {
-      position: absolute;
-      top: 112px;
-      left: 10px;
+      position: static;
       z-index: 2;
       min-width: 98px;
       pointer-events: auto;
@@ -672,8 +705,8 @@
       display: none;
     }
 
-    .card-overlay.reveal .preview-card-list {
-      padding: 154px 24px 72px;
+    .card-overlay.reveal .preview-stack {
+      padding: 238px 24px 72px;
     }
 
     .card-overlay.reveal .instruction-card {
@@ -1057,6 +1090,11 @@
       text-align: left;
     }
 
+    .modal-language-flags {
+      justify-self: center;
+      margin-bottom: 6px;
+    }
+
     .player-setup label {
       color: #4f613c;
       font-size: 11px;
@@ -1145,21 +1183,19 @@
         left: 6px;
       }
 
-      .overlay-go {
-        top: 76px;
-        left: 6px;
-        min-width: 70px;
-        padding: 0 8px;
-      }
-
       .overlay-player {
-        top: 124px;
-        min-width: 190px;
+        top: 92px;
+        width: min(360px, calc(100vw - 16px));
       }
 
-      .overlay-player strong {
-        max-width: 220px;
-        font-size: 13px;
+      .overlay-player-instruction,
+      .overlay-player-detail {
+        font-size: 11px;
+      }
+
+      .overlay-player-name {
+        padding: 5px 10px 6px;
+        font-size: clamp(24px, 8vw, 36px);
       }
 
       .overlay-timer {
@@ -1170,13 +1206,22 @@
         font-size: 10px;
       }
 
-      .preview-card-list {
-        gap: 10px;
-        padding: 174px 8px 78px;
+      .preview-stack {
+        padding: 224px 8px 78px;
+        gap: 12px;
       }
 
-      .card-overlay.reveal .preview-card-list {
-        padding: 126px 8px 48px;
+      .preview-card-list {
+        gap: 10px;
+      }
+
+      .overlay-go {
+        min-width: 70px;
+        padding: 0 8px;
+      }
+
+      .card-overlay.reveal .preview-stack {
+        padding: 206px 8px 48px;
       }
 
       .instruction-card {
@@ -1352,7 +1397,7 @@
       </div>
       <div class="brand">
         <h1>Context Overload</h1>
-        <div class="subtitle" data-i18n="subtitle">Pixel village memory cards "a game to make humans feel what its like to hold too much context"</div>
+        <div class="subtitle" data-i18n="subtitle">A game to make humans feel what its like to hold too much context</div>
       </div>
       <div class="meters" aria-label="Run status">
         <div class="meter">
@@ -1365,7 +1410,7 @@
         </div>
         <div class="meter">
           <span data-i18n="cardsLabel">Cards</span>
-          <strong id="cardCount">1</strong>
+          <strong id="cardCount">2</strong>
         </div>
         <div class="meter">
           <span data-i18n="bestLabel">Best</span>
@@ -1447,15 +1492,17 @@
           <div class="overlay-timebar-fill" id="overlayTimebarFill"></div>
         </div>
         <div class="overlay-player">
-          <strong id="overlayPlayerNumber">1</strong>
+          <div class="overlay-player-label" id="overlayPlayerNumber">Player 1</div>
         </div>
       </div>
-      <div class="preview-card-list" id="previewCardList" aria-live="polite"></div>
+      <div class="preview-stack">
+        <div class="preview-card-list" id="previewCardList" aria-live="polite"></div>
+        <button class="action-button overlay-go" id="overlayGoButton" type="button" data-i18n="timerGo">GO</button>
+      </div>
       <div class="overlay-actions" id="overlayActions">
         <button class="action-button success-button" id="overlayCorrectButton" type="button" data-i18n="correctButton">Correct</button>
         <button class="action-button miss-button" id="overlayMissedButton" type="button" data-i18n="missedButton">Missed</button>
       </div>
-      <button class="action-button overlay-go" id="overlayGoButton" type="button" data-i18n="timerGo">GO</button>
     </div>
   </div>
 
@@ -1466,10 +1513,15 @@
         Memorize village drawing cards for 15 seconds, then recreate them as pixel art.
       </p>
       <div class="player-setup" id="playerSetup">
+        <div class="language-flags modal-language-flags" aria-label="Language selector">
+          <button type="button" class="active" data-lang="en" aria-label="English">🇬🇧</button>
+          <button type="button" data-lang="hy" aria-label="Armenian">🇦🇲</button>
+          <button type="button" data-lang="ru" aria-label="Russian">🇷🇺</button>
+        </div>
         <label data-i18n="playerNamesLabel">Player names</label>
         <div class="player-name-fields">
           <input class="player-name-input" type="text" maxlength="14" value="Player 1" data-default-name="Player 1" data-i18n-placeholder="playerOnePlaceholder" placeholder="Player 1" />
-          <input class="player-name-input" type="text" maxlength="14" value="Player 2" data-default-name="Player 2" data-i18n-placeholder="playerTwoPlaceholder" placeholder="Player 2" />
+          <input class="player-name-input" type="text" maxlength="14" data-default-name="Player 2" data-i18n-placeholder="playerTwoPlaceholder" placeholder="Player 2" />
           <input class="player-name-input" type="text" maxlength="14" data-default-name="Player 3" data-i18n-placeholder="playerThreePlaceholder" placeholder="Player 3" />
         </div>
       </div>
@@ -1483,6 +1535,7 @@
     const CELL_SIZE = 2;
     const BRUSH_SIZE = 4;
     const PREVIEW_SECONDS = 15;
+    const STARTING_CARD_COUNT = 2;
 
     const cardKeys = [
       "cardPig",
@@ -1557,11 +1610,15 @@
 
     const translations = {
       en: {
-        subtitle: "Pixel village memory cards \"a game to make humans feel what its like to hold too much context\"",
+        subtitle: "A game to make humans feel what its like to hold too much context",
         stageLabel: "Stage",
         playerLabel: "Player",
         playerPromptsLabel: "{player}'s Prompts",
         playerCheckLabel: "Did {player} do these prompts?",
+        playerPromptsFor: "Prompts For",
+        playerPromptsTask: "Memorize these cards",
+        playerCheckFor: "Check Drawing For",
+        playerCheckTask: "Did they complete every card?",
         cardsLabel: "Cards",
         bestLabel: "Best",
         nextLabel: "Next",
@@ -1591,7 +1648,7 @@
         timerOk: "OK",
         cardsFirst: "Cards first",
         hiddenCard: "Hidden card",
-        checkStart: "Start a run to see the first village card. After the timer, draw from memory.",
+        checkStart: "Start a run to see the first village cards. After the timer, draw from memory.",
         checkMemorize: "Memorize every card before the timer runs out.",
         checkDraw: "Cards are hidden. Draw the village from memory.",
         checkReveal: "Compare your drawing with the revealed cards.",
@@ -1666,11 +1723,15 @@
         }
       },
       hy: {
-        subtitle: "Փիքսելային գյուղի հիշողության քարտեր «խաղ, որ մարդիկ զգան, թե ինչ է չափազանց շատ համատեքստ պահելը»",
+        subtitle: "Խաղ, որ մարդիկ զգան, թե ինչ է չափազանց շատ համատեքստ պահելը",
         stageLabel: "Փուլ",
         playerLabel: "Խաղացող",
         playerPromptsLabel: "{player}-ի հուշումները",
         playerCheckLabel: "{player}-ը կատարե՞ց այս հուշումները",
+        playerPromptsFor: "Հուշումներ՝",
+        playerPromptsTask: "Հիշիր այս քարտերը",
+        playerCheckFor: "Ստուգիր նկարը՝",
+        playerCheckTask: "Կատարե՞լ է բոլոր քարտերը",
         cardsLabel: "Քարտեր",
         bestLabel: "Լավագույն",
         nextLabel: "Հաջորդ",
@@ -1700,7 +1761,7 @@
         timerOk: "OK",
         cardsFirst: "Սկզբում քարտերը",
         hiddenCard: "Թաքնված քարտ",
-        checkStart: "Սկսիր խաղը, որ տեսնես առաջին գյուղական քարտը։ Ժամաչափից հետո նկարիր հիշողությամբ։",
+        checkStart: "Սկսիր խաղը, որ տեսնես առաջին գյուղական քարտերը։ Ժամաչափից հետո նկարիր հիշողությամբ։",
         checkMemorize: "Հիշիր բոլոր քարտերը մինչ ժամանակը կավարտվի։",
         checkDraw: "Քարտերը թաքնված են։ Նկարիր գյուղը հիշողությամբ։",
         checkReveal: "Համեմատիր նկարածդ բացված քարտերի հետ։",
@@ -1775,11 +1836,15 @@
         }
       },
       ru: {
-        subtitle: "Пиксельные карты памяти про деревню «игра, чтобы люди почувствовали, каково держать слишком много контекста»",
+        subtitle: "Игра, чтобы люди почувствовали, каково держать слишком много контекста",
         stageLabel: "Этап",
         playerLabel: "Игрок",
         playerPromptsLabel: "Подсказки {player}",
         playerCheckLabel: "{player} выполнил(а) эти подсказки?",
+        playerPromptsFor: "Подсказки для",
+        playerPromptsTask: "Запомни эти карты",
+        playerCheckFor: "Проверь рисунок",
+        playerCheckTask: "Все карты выполнены?",
         cardsLabel: "Карты",
         bestLabel: "Рекорд",
         nextLabel: "Дальше",
@@ -1809,7 +1874,7 @@
         timerOk: "OK",
         cardsFirst: "Сначала карты",
         hiddenCard: "Скрытая карта",
-        checkStart: "Начни игру, чтобы увидеть первую деревенскую карту. После таймера рисуй по памяти.",
+        checkStart: "Начни игру, чтобы увидеть первые деревенские карты. После таймера рисуй по памяти.",
         checkMemorize: "Запомни все карты до конца таймера.",
         checkDraw: "Карты скрыты. Нарисуй деревню по памяти.",
         checkReveal: "Сравни свой рисунок с открытыми картами.",
@@ -1947,7 +2012,7 @@
     let phase = "idle";
     let stage = 1;
     let best = 0;
-    let playerNames = ["Player 1", "Player 2"];
+    let playerNames = ["Player 1"];
     let currentPlayerName = "Player 1";
     let stageCards = [];
     let drawPile = [];
@@ -1963,6 +2028,11 @@
     let pixels = makeBlankPixels();
     let selectedRevealCards = new Set();
     let revealAdvanceTimer = 0;
+    let audioContext = null;
+    let masterGain = null;
+    let scratchNode = null;
+    let scratchGain = null;
+    let cardPopTimers = [];
     let currentLang = "en";
     let checkCopyKey = "checkStart";
     let checkCopyParams = {};
@@ -1981,6 +2051,194 @@
 
     function translateCard(cardKey) {
       return translations[currentLang]?.cards?.[cardKey] ?? translations.en.cards[cardKey] ?? cardKey;
+    }
+
+    function getAudioContext() {
+      if (audioContext) {
+        return audioContext;
+      }
+
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) {
+        return null;
+      }
+
+      audioContext = new AudioContextClass();
+      masterGain = audioContext.createGain();
+      masterGain.gain.value = 0.45;
+      masterGain.connect(audioContext.destination);
+      return audioContext;
+    }
+
+    function resumeAudio() {
+      const context = getAudioContext();
+      if (context && context.state === "suspended") {
+        context.resume();
+      }
+    }
+
+    function playCardPop(index = 0) {
+      const context = getAudioContext();
+      if (!context || context.state !== "running") {
+        return;
+      }
+
+      const now = context.currentTime;
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      const filter = context.createBiquadFilter();
+
+      oscillator.type = "triangle";
+      oscillator.frequency.setValueAtTime(220 + (index % 5) * 22, now);
+      oscillator.frequency.exponentialRampToValueAtTime(92, now + 0.09);
+      filter.type = "lowpass";
+      filter.frequency.value = 1400;
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.15, now + 0.012);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.11);
+
+      oscillator.connect(filter);
+      filter.connect(gain);
+      gain.connect(masterGain);
+      oscillator.start(now);
+      oscillator.stop(now + 0.12);
+    }
+
+    function clearScheduledCardPops() {
+      cardPopTimers.forEach((timer) => clearTimeout(timer));
+      cardPopTimers = [];
+    }
+
+    function scheduleCardPops(count) {
+      clearScheduledCardPops();
+      resumeAudio();
+      for (let index = 0; index < count; index += 1) {
+        const timer = setTimeout(() => {
+          playCardPop(index);
+        }, 40 + Math.min(index * 70, 700));
+        cardPopTimers.push(timer);
+      }
+    }
+
+    function createScratchBuffer(context) {
+      const duration = 0.16;
+      const frameCount = Math.floor(context.sampleRate * duration);
+      const buffer = context.createBuffer(1, frameCount, context.sampleRate);
+      const data = buffer.getChannelData(0);
+
+      for (let index = 0; index < frameCount; index += 1) {
+        const fade = 1 - index / frameCount;
+        data[index] = (Math.random() * 2 - 1) * fade;
+      }
+
+      return buffer;
+    }
+
+    function startScratchSound() {
+      const context = getAudioContext();
+      if (!context || context.state !== "running" || scratchNode) {
+        return;
+      }
+
+      const source = context.createBufferSource();
+      const filter = context.createBiquadFilter();
+      const gain = context.createGain();
+      const now = context.currentTime;
+
+      source.buffer = createScratchBuffer(context);
+      source.loop = true;
+      filter.type = "bandpass";
+      filter.frequency.value = 1250;
+      filter.Q.value = 3.5;
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.045, now + 0.025);
+
+      source.connect(filter);
+      filter.connect(gain);
+      gain.connect(masterGain);
+      source.start(now);
+      scratchNode = source;
+      scratchGain = gain;
+    }
+
+    function stopScratchSound() {
+      if (!scratchNode || !audioContext) {
+        return;
+      }
+
+      const node = scratchNode;
+      const gain = scratchGain;
+      const now = audioContext.currentTime;
+      scratchNode = null;
+      scratchGain = null;
+
+      if (gain) {
+        gain.gain.cancelScheduledValues(now);
+        gain.gain.setValueAtTime(Math.max(gain.gain.value, 0.0001), now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.06);
+      }
+
+      node.stop(now + 0.07);
+    }
+
+    function playCoinSound() {
+      resumeAudio();
+      const context = getAudioContext();
+      if (!context || context.state !== "running") {
+        return;
+      }
+
+      const now = context.currentTime;
+      const tones = [
+        { frequency: 988, offset: 0, volume: 0.075 },
+        { frequency: 1568, offset: 0.065, volume: 0.09 }
+      ];
+
+      tones.forEach(({ frequency, offset, volume }) => {
+        const oscillator = context.createOscillator();
+        const gain = context.createGain();
+        const start = now + offset;
+
+        oscillator.type = "square";
+        oscillator.frequency.setValueAtTime(frequency, start);
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(volume, start + 0.008);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.085);
+
+        oscillator.connect(gain);
+        gain.connect(masterGain);
+        oscillator.start(start);
+        oscillator.stop(start + 0.095);
+      });
+    }
+
+    function playNegativeSound() {
+      resumeAudio();
+      const context = getAudioContext();
+      if (!context || context.state !== "running") {
+        return;
+      }
+
+      const now = context.currentTime;
+      const oscillator = context.createOscillator();
+      const filter = context.createBiquadFilter();
+      const gain = context.createGain();
+
+      oscillator.type = "sawtooth";
+      oscillator.frequency.setValueAtTime(190, now);
+      oscillator.frequency.exponentialRampToValueAtTime(78, now + 0.28);
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(650, now);
+      filter.frequency.exponentialRampToValueAtTime(260, now + 0.28);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.13, now + 0.018);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.31);
+
+      oscillator.connect(filter);
+      filter.connect(gain);
+      gain.connect(masterGain);
+      oscillator.start(now);
+      oscillator.stop(now + 0.33);
     }
 
     function setCheckCopy(key, params = {}) {
@@ -2073,8 +2331,20 @@
     }
 
     function updateOverlayPlayerLabel() {
-      const labelKey = phase === "reveal" ? "playerCheckLabel" : "playerPromptsLabel";
-      overlayPlayerNumber.textContent = translate(labelKey, { player: currentPlayerName });
+      const isReveal = phase === "reveal";
+      const instruction = document.createElement("span");
+      const name = document.createElement("strong");
+      const detail = document.createElement("span");
+
+      instruction.className = "overlay-player-instruction";
+      name.className = "overlay-player-name";
+      detail.className = "overlay-player-detail";
+
+      instruction.textContent = translate(isReveal ? "playerCheckFor" : "playerPromptsFor");
+      name.textContent = currentPlayerName;
+      detail.textContent = translate(isReveal ? "playerCheckTask" : "playerPromptsTask");
+
+      overlayPlayerNumber.replaceChildren(instruction, name, detail);
     }
 
     function setPhase(nextPhase) {
@@ -2088,6 +2358,13 @@
       cardOverlay.classList.toggle("reveal", phase === "reveal");
       applyPhaseText();
       updateOverlayPlayerLabel();
+
+      if (phase !== "draw") {
+        stopScratchSound();
+      }
+      if (phase !== "preview" && phase !== "reveal") {
+        clearScheduledCardPops();
+      }
 
       if (phase === "draw") {
         timebarFill.style.transform = "scaleX(0)";
@@ -2103,8 +2380,14 @@
       currentPlayerName = playerNames[(stage - 1) % playerNames.length] || translate("playerOnePlaceholder");
       playerNumber.textContent = currentPlayerName;
       updateOverlayPlayerLabel();
-      cardCount.textContent = stageCards.length || Math.min(stage, cardKeys.length);
+      cardCount.textContent = stageCards.length || currentCardTarget();
       bestStage.textContent = best;
+    }
+
+    function currentCardTarget() {
+      const activePlayerCount = Math.max(playerNames.length, 1);
+      const completedPlayerRounds = Math.floor((stage - 1) / activePlayerCount);
+      return Math.min(STARTING_CARD_COUNT + completedPlayerRounds, cardKeys.length);
     }
 
     function shuffle(list) {
@@ -2122,7 +2405,7 @@
     }
 
     function canDrawFromPile(cardKey, selectedSet) {
-      if (stage <= 5 && counterCardKeys.has(cardKey)) {
+      if (currentCardTarget() <= 5 && counterCardKeys.has(cardKey)) {
         return false;
       }
 
@@ -2143,7 +2426,7 @@
     }
 
     function drawStageCards() {
-      const targetCount = Math.min(stage, drawPile.length);
+      const targetCount = Math.min(currentCardTarget(), drawPile.length);
       const selected = [];
       const selectedSet = new Set();
 
@@ -2226,8 +2509,12 @@
       if (phase !== "reveal") {
         return;
       }
+      if (selectedRevealCards.has(index)) {
+        return;
+      }
 
       clearTimeout(revealAdvanceTimer);
+      playCoinSound();
       selectedRevealCards.add(index);
       syncRevealCardStates();
 
@@ -2268,6 +2555,7 @@
     }
 
     function startRun() {
+      resumeAudio();
       timerToken += 1;
       clearTimeout(revealAdvanceTimer);
       playerNames = Array.from(playerNameInputs)
@@ -2313,6 +2601,7 @@
       setCheckCopy("checkMemorize");
       previewEndAt = performance.now() + PREVIEW_SECONDS * 1000;
       setPhase("preview");
+      scheduleCardPops(stageCards.length);
       tickTimer(stageTimerToken);
     }
 
@@ -2349,6 +2638,7 @@
       if (phase !== "preview") {
         return;
       }
+      resumeAudio();
       hideCardsForDrawing();
     }
 
@@ -2362,6 +2652,7 @@
       revealActions.hidden = true;
       setCheckCopy("checkReveal");
       setPhase("reveal");
+      scheduleCardPops(stageCards.length);
     }
 
     function markCorrect() {
@@ -2384,6 +2675,7 @@
         return;
       }
       clearTimeout(revealAdvanceTimer);
+      playNegativeSound();
       setPhase("idle");
       openModal("modalGameOverTitle", "modalGameOverCopy", "newRunButton", { stage, best, player: currentPlayerName });
     }
@@ -2514,6 +2806,7 @@
         return;
       }
       event.preventDefault();
+      resumeAudio();
       canvas.setPointerCapture(event.pointerId);
       const { col, row } = cellFromPointer(event);
       lastPaintCell = null;
@@ -2524,6 +2817,7 @@
       }
 
       isDrawing = true;
+      startScratchSound();
       lastPaintCell = null;
       paintCell(col, row);
       lastPaintCell = { col, row };
@@ -2545,6 +2839,7 @@
       }
       isDrawing = false;
       lastPaintCell = null;
+      stopScratchSound();
     }
 
     function setTool(tool) {
