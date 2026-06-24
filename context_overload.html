@@ -169,7 +169,7 @@
 
     .meters {
       display: grid;
-      grid-template-columns: repeat(3, minmax(82px, 1fr));
+      grid-template-columns: repeat(4, minmax(82px, 1fr));
       gap: 6px;
     }
 
@@ -425,8 +425,15 @@
 
     .overlay-status {
       position: absolute;
-      inset: 0;
-      display: block;
+      top: 10px;
+      left: 50%;
+      z-index: 4;
+      width: min(780px, calc(100vw - 24px));
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      gap: 10px;
+      transform: translateX(-50%);
       pointer-events: none;
     }
 
@@ -439,9 +446,7 @@
     }
 
     .overlay-clock {
-      position: absolute;
-      top: 10px;
-      left: 10px;
+      flex: 0 0 clamp(118px, 18vw, 150px);
       background: #d84938;
       color: #fff7dc;
       box-shadow: inset -6px -6px 0 rgba(76, 34, 25, 0.28);
@@ -450,18 +455,19 @@
     }
 
     .overlay-prompt {
-      position: absolute;
-      top: 96px;
-      left: 50%;
-      translate: -50% 0;
+      flex: 1 1 0;
       background: #fff1a8;
       color: var(--ink);
       box-shadow:
         0 10px 0 rgba(38, 56, 29, 0.22),
         inset -7px -7px 0 rgba(112, 79, 42, 0.16);
       animation: panel-pop-in 280ms 80ms cubic-bezier(0.2, 0.9, 0.25, 1.12) both;
-      width: min(620px, calc(100vw - 32px));
+      max-width: 620px;
       pointer-events: auto;
+    }
+
+    .overlay-clock.timer-shake {
+      animation: timer-shake 190ms ease-in-out both;
     }
 
     .overlay-timer {
@@ -794,6 +800,25 @@
       }
     }
 
+    @keyframes timer-shake {
+      0%,
+      100% {
+        transform: translateX(0) rotate(0deg);
+      }
+      18% {
+        transform: translateX(-3px) rotate(-1.8deg);
+      }
+      38% {
+        transform: translateX(3px) rotate(1.8deg);
+      }
+      58% {
+        transform: translateX(-2px) rotate(-1deg);
+      }
+      78% {
+        transform: translateX(2px) rotate(1deg);
+      }
+    }
+
     @keyframes card-pop-in {
       0% {
         opacity: 0;
@@ -867,7 +892,12 @@
     }
 
     .board-panel.stage-active {
-      grid-template-rows: minmax(0, 1fr);
+      grid-template-rows: auto minmax(0, 1fr);
+    }
+
+    .board-panel.stage-active .board-head {
+      top: auto;
+      bottom: 82px;
     }
 
     .memory-panel,
@@ -1093,9 +1123,43 @@
       line-height: 1.45;
     }
 
+    .player-setup {
+      display: grid;
+      gap: 10px;
+      max-width: 340px;
+      margin: 18px auto 4px;
+      text-align: left;
+    }
+
     .modal-language-flags {
       justify-self: center;
       margin-bottom: 6px;
+    }
+
+    .player-setup label {
+      color: #4f613c;
+      font-size: 11px;
+      font-weight: 950;
+      text-transform: uppercase;
+    }
+
+    .player-setup input {
+      width: 100%;
+      height: 44px;
+      border: 3px solid #26381d;
+      background: #fffdf1;
+      color: var(--ink);
+      font: inherit;
+      font-size: 16px;
+      font-weight: 950;
+      text-align: left;
+      padding: 0 12px;
+      text-transform: uppercase;
+    }
+
+    .player-name-fields {
+      display: grid;
+      gap: 8px;
     }
 
     @media (max-width: 1080px) {
@@ -1146,7 +1210,9 @@
       }
 
       .overlay-status {
-        display: block;
+        top: 6px;
+        width: calc(100vw - 12px);
+        gap: 6px;
       }
 
       .overlay-clock,
@@ -1156,13 +1222,11 @@
       }
 
       .overlay-clock {
-        top: 6px;
-        left: 6px;
+        flex-basis: 86px;
       }
 
       .overlay-prompt {
-        top: 92px;
-        width: min(360px, calc(100vw - 16px));
+        max-width: none;
       }
 
       .overlay-prompt-instruction,
@@ -1227,7 +1291,7 @@
 
       .meters {
         grid-column: 1 / -1;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
       }
 
       #newRunButton {
@@ -1312,6 +1376,11 @@
         margin: 0;
       }
 
+      .board-panel.stage-active .board-head {
+        top: auto;
+        bottom: 118px;
+      }
+
       .tool-dock {
         grid-template-columns: 1fr;
         gap: 6px;
@@ -1380,6 +1449,10 @@
         <div class="meter">
           <span data-i18n="stageLabel">Stage</span>
           <strong id="stageNumber">1</strong>
+        </div>
+        <div class="meter">
+          <span data-i18n="playerLabel">Player</span>
+          <strong id="playerNumber">1</strong>
         </div>
         <div class="meter">
           <span data-i18n="cardsLabel">Cards</span>
@@ -1486,6 +1559,14 @@
       <p id="modalCopy">
         Look at the village cards for 15 seconds. Then draw them from memory.
       </p>
+      <div class="player-setup" id="playerSetup" hidden>
+        <label data-i18n="playerNamesLabel">Player names</label>
+        <div class="player-name-fields">
+          <input class="player-name-input" type="text" maxlength="14" value="Player 1" data-default-name="Player 1" data-i18n-placeholder="playerOnePlaceholder" placeholder="Player 1" />
+          <input class="player-name-input" type="text" maxlength="14" data-default-name="Player 2" data-i18n-placeholder="playerTwoPlaceholder" placeholder="Player 2" />
+          <input class="player-name-input" type="text" maxlength="14" data-default-name="Player 3" data-i18n-placeholder="playerThreePlaceholder" placeholder="Player 3" />
+        </div>
+      </div>
       <div class="language-flags modal-language-flags" aria-label="Language selector">
         <button type="button" class="active" data-lang="en" aria-label="English">🇬🇧</button>
         <button type="button" data-lang="hy" aria-label="Armenian">🇦🇲</button>
@@ -1578,15 +1659,24 @@
       en: {
         subtitle: "A game to make humans feel what its like to hold too much context",
         stageLabel: "Stage",
+        playerLabel: "Player",
         promptsTitle: "Prompts",
         promptsTask: "Memorize these cards",
         checkTitle: "Questionnaire",
         checkTask: "Did you draw every card?",
+        playerPromptsFor: "Prompts For",
+        playerPromptsTask: "Memorize these cards",
+        playerCheckFor: "Check Drawing For",
+        playerCheckTask: "Did they complete every card?",
         cardsLabel: "Cards",
         bestLabel: "Best",
         nextLabel: "Next",
         deckLabel: "Deck",
         newRunButton: "New Run",
+        playerNamesLabel: "Player names",
+        playerOnePlaceholder: "Player 1",
+        playerTwoPlaceholder: "Player 2",
+        playerThreePlaceholder: "Player 3",
         startButton: "Start",
         doneButton: "Done",
         correctButton: "Correct",
@@ -1614,10 +1704,12 @@
         checkReveal: "Compare your drawing with the revealed cards.",
         modalStartTitle: "Context Overload",
         modalStartCopy: "Look at the village cards for 15 seconds. Then draw them from memory.",
+        modalSetupTitle: "Players",
+        modalSetupCopy: "Add up to 3 player names. Non-empty names will take turns.",
         modalVictoryTitle: "Village Complete",
         modalVictoryCopy: "You survived all 50 memory cards and finished the whole deck.",
         modalGameOverTitle: "Game Over",
-        modalGameOverCopy: "Game over on stage {stage}. Your best cleared stage is {best}.",
+        modalGameOverCopy: "{player} is out of the game. The run ended on stage {stage}. Your best cleared stage is {best}.",
         memoryCardsAria: "Memory cards",
         pixelCanvasAria: "Drawing canvas",
         drawingToolsAria: "Drawing tools",
@@ -1683,15 +1775,24 @@
       hy: {
         subtitle: "Խաղ, որ մարդիկ զգան, թե ինչ է չափազանց շատ համատեքստ պահելը",
         stageLabel: "Փուլ",
+        playerLabel: "Խաղացող",
         promptsTitle: "Հուշումներ",
         promptsTask: "Հիշիր այս քարտերը",
         checkTitle: "Հարցաթերթիկ",
         checkTask: "Նկարե՞լ ես բոլոր քարտերը",
+        playerPromptsFor: "Հուշումներ՝",
+        playerPromptsTask: "Հիշիր այս քարտերը",
+        playerCheckFor: "Ստուգիր նկարը՝",
+        playerCheckTask: "Կատարե՞լ է բոլոր քարտերը",
         cardsLabel: "Քարտեր",
         bestLabel: "Լավագույն",
         nextLabel: "Հաջորդ",
         deckLabel: "Կապոց",
         newRunButton: "Նոր խաղ",
+        playerNamesLabel: "Խաղացողների անունները",
+        playerOnePlaceholder: "Խաղացող 1",
+        playerTwoPlaceholder: "Խաղացող 2",
+        playerThreePlaceholder: "Խաղացող 3",
         startButton: "Սկսել",
         doneButton: "Պատրաստ է",
         correctButton: "Ճիշտ է",
@@ -1719,10 +1820,12 @@
         checkReveal: "Համեմատիր նկարածդ բացված քարտերի հետ։",
         modalStartTitle: "Context Overload",
         modalStartCopy: "15 վայրկյան նայիր գյուղի քարտերին։ Հետո նկարիր դրանք հիշողությամբ։",
+        modalSetupTitle: "Խաղացողներ",
+        modalSetupCopy: "Ավելացրու մինչև 3 խաղացողի անուն։ Դատարկ չթողնված անունները կխաղան հերթով։",
         modalVictoryTitle: "Գյուղը ավարտված է",
         modalVictoryCopy: "Դու հաղթահարեցիր բոլոր 50 հիշողության քարտերը և ավարտեցիր ամբողջ կապոցը։",
         modalGameOverTitle: "Խաղն ավարտվեց",
-        modalGameOverCopy: "Խաղը ավարտվեց {stage}-րդ փուլում։ Քո լավագույն հաղթահարած փուլը {best}-ն է։",
+        modalGameOverCopy: "{player}-ը դուրս է խաղից։ Խաղը ավարտվեց {stage}-րդ փուլում։ Քո լավագույն հաղթահարած փուլը {best}-ն է։",
         memoryCardsAria: "Հիշողության քարտեր",
         pixelCanvasAria: "Նկարչական կտավ",
         drawingToolsAria: "Նկարչական գործիքներ",
@@ -1788,15 +1891,24 @@
       ru: {
         subtitle: "Игра, чтобы люди почувствовали, каково держать слишком много контекста",
         stageLabel: "Этап",
+        playerLabel: "Игрок",
         promptsTitle: "Подсказки",
         promptsTask: "Запомни эти карты",
         checkTitle: "Проверка",
         checkTask: "Ты нарисовал(а) все карты?",
+        playerPromptsFor: "Подсказки для",
+        playerPromptsTask: "Запомни эти карты",
+        playerCheckFor: "Проверь рисунок",
+        playerCheckTask: "Все карты выполнены?",
         cardsLabel: "Карты",
         bestLabel: "Рекорд",
         nextLabel: "Дальше",
         deckLabel: "Колода",
         newRunButton: "Новая игра",
+        playerNamesLabel: "Имена игроков",
+        playerOnePlaceholder: "Игрок 1",
+        playerTwoPlaceholder: "Игрок 2",
+        playerThreePlaceholder: "Игрок 3",
         startButton: "Старт",
         doneButton: "Готово",
         correctButton: "Верно",
@@ -1824,10 +1936,12 @@
         checkReveal: "Сравни свой рисунок с открытыми картами.",
         modalStartTitle: "Context Overload",
         modalStartCopy: "Смотри на деревенские карты 15 секунд. Потом нарисуй их по памяти.",
+        modalSetupTitle: "Игроки",
+        modalSetupCopy: "Добавь до 3 имен игроков. Непустые имена будут играть по очереди.",
         modalVictoryTitle: "Деревня готова",
         modalVictoryCopy: "Ты прошел все 50 карт памяти и закончил всю колоду.",
         modalGameOverTitle: "Игра окончена",
-        modalGameOverCopy: "Игра закончилась на этапе {stage}. Твой лучший пройденный этап: {best}.",
+        modalGameOverCopy: "{player} выходит из игры. Игра закончилась на этапе {stage}. Твой лучший пройденный этап: {best}.",
         memoryCardsAria: "Карты памяти",
         pixelCanvasAria: "Холст для рисования",
         drawingToolsAria: "Инструменты рисования",
@@ -1914,6 +2028,7 @@
     const phaseLabel = document.getElementById("phaseLabel");
     const timebarFill = document.getElementById("timebarFill");
     const stageNumber = document.getElementById("stageNumber");
+    const playerNumber = document.getElementById("playerNumber");
     const cardCount = document.getElementById("cardCount");
     const bestStage = document.getElementById("bestStage");
     const visibleCount = document.getElementById("visibleCount");
@@ -1929,12 +2044,15 @@
     const modalTitle = document.getElementById("modalTitle");
     const modalCopy = document.getElementById("modalCopy");
     const overlay = document.getElementById("overlay");
+    const playerSetup = document.getElementById("playerSetup");
+    const playerNameInputs = document.querySelectorAll(".player-name-input");
     const swatches = document.getElementById("swatches");
     const canvasFrame = document.getElementById("canvasFrame");
     const canvasLock = document.getElementById("canvasLock");
     const stageStrip = document.getElementById("stageStrip");
     const cardOverlay = document.getElementById("cardOverlay");
     const previewCardList = document.getElementById("previewCardList");
+    const overlayClock = document.querySelector(".overlay-clock");
     const overlayTimerNumber = document.getElementById("overlayTimerNumber");
     const overlayPhaseLabel = document.getElementById("overlayPhaseLabel");
     const overlayTimebarFill = document.getElementById("overlayTimebarFill");
@@ -1952,6 +2070,8 @@
     let phase = "idle";
     let stage = 1;
     let best = 0;
+    let playerNames = ["Player 1"];
+    let currentPlayerName = "Player 1";
     let stageCards = [];
     let drawPile = [];
     let drawnCardKeys = new Set();
@@ -1959,6 +2079,7 @@
     let previewEndAt = 0;
     let timerFrame = 0;
     let timerToken = 0;
+    let lastOverlayTimerSecond = null;
     let activeTool = "pencil";
     let activeColor = palette[0];
     let isDrawing = false;
@@ -1978,7 +2099,8 @@
       titleKey: "modalStartTitle",
       copyKey: "modalStartCopy",
       buttonKey: "startButton",
-      params: {}
+      params: {},
+      setup: false
     };
 
     function translate(key, params = {}) {
@@ -2188,6 +2310,7 @@
       modalTitle.textContent = translate(modalContent.titleKey, modalContent.params);
       modalCopy.textContent = translate(modalContent.copyKey, modalContent.params);
       modalButton.textContent = translate(modalContent.buttonKey, modalContent.params);
+      playerSetup.hidden = !modalContent.setup;
     }
 
     function applyPhaseText() {
@@ -2268,25 +2391,39 @@
 
     function updateOverlayPromptLabel() {
       const isReveal = phase === "reveal";
+      const instruction = document.createElement("span");
       const title = document.createElement("strong");
       const detail = document.createElement("span");
 
+      instruction.className = "overlay-prompt-instruction";
       title.className = "overlay-prompt-title";
       detail.className = "overlay-prompt-detail";
 
-      title.textContent = translate(isReveal ? "checkTitle" : "promptsTitle");
-      detail.textContent = translate(isReveal ? "checkTask" : "promptsTask");
+      instruction.textContent = translate(isReveal ? "playerCheckFor" : "playerPromptsFor");
+      title.textContent = currentPlayerName || translate("playerOnePlaceholder");
+      detail.textContent = translate(isReveal ? "playerCheckTask" : "playerPromptsTask");
 
-      overlayPromptLabel.replaceChildren(title, detail);
+      overlayPromptLabel.replaceChildren(instruction, title, detail);
+    }
+
+    function shakeOverlayTimer(seconds) {
+      if (lastOverlayTimerSecond === seconds) {
+        return;
+      }
+      lastOverlayTimerSecond = seconds;
+      overlayClock.classList.remove("timer-shake");
+      void overlayClock.offsetWidth;
+      overlayClock.classList.add("timer-shake");
     }
 
     function setPhase(nextPhase) {
       phase = nextPhase;
       const canDraw = phase === "draw";
+      const hasActiveStage = phase === "preview" || phase === "draw" || phase === "reveal";
       canvasFrame.classList.toggle("locked", !canDraw);
       doneButton.disabled = !canDraw;
-      stageStrip.hidden = true;
-      boardPanel.classList.remove("stage-active");
+      stageStrip.hidden = !hasActiveStage;
+      boardPanel.classList.toggle("stage-active", hasActiveStage);
       cardOverlay.classList.toggle("show", phase === "preview" || phase === "reveal");
       cardOverlay.classList.toggle("reveal", phase === "reveal");
       applyPhaseText();
@@ -2294,6 +2431,10 @@
 
       if (phase !== "draw") {
         stopScratchSound();
+      }
+      if (phase !== "preview") {
+        lastOverlayTimerSecond = null;
+        overlayClock.classList.remove("timer-shake");
       }
       if (phase !== "preview" && phase !== "reveal") {
         clearScheduledCardPops();
@@ -2312,13 +2453,17 @@
 
     function updateMeters() {
       stageNumber.textContent = stage;
+      currentPlayerName = playerNames[(stage - 1) % playerNames.length] || translate("playerOnePlaceholder");
+      playerNumber.textContent = currentPlayerName;
       updateOverlayPromptLabel();
       cardCount.textContent = stageCards.length || currentCardTarget();
       bestStage.textContent = best;
     }
 
     function currentCardTarget() {
-      return Math.min(STARTING_CARD_COUNT + stage - 1, cardKeys.length);
+      const activePlayerCount = Math.max(playerNames.length, 1);
+      const completedPlayerRounds = Math.floor((stage - 1) / activePlayerCount);
+      return Math.min(STARTING_CARD_COUNT + completedPlayerRounds, cardKeys.length);
     }
 
     function shuffle(list) {
@@ -2475,8 +2620,8 @@
       });
     }
 
-    function openModal(titleKey, copyKey, buttonKey, params = {}) {
-      modalContent = { titleKey, copyKey, buttonKey, params };
+    function openModal(titleKey, copyKey, buttonKey, params = {}, setup = false) {
+      modalContent = { titleKey, copyKey, buttonKey, params, setup };
       applyModalContent();
       overlay.classList.add("show");
       updateMeters();
@@ -2490,6 +2635,13 @@
       resumeAudio();
       timerToken += 1;
       clearTimeout(revealAdvanceTimer);
+      playerNames = Array.from(playerNameInputs)
+        .map((input) => input.value.trim())
+        .filter(Boolean)
+        .slice(0, 3);
+      if (!playerNames.length) {
+        playerNames = [translate("playerOnePlaceholder")];
+      }
       best = Math.max(best, 0);
       stage = 1;
       stageCards = [];
@@ -2497,6 +2649,13 @@
       pixels = makeBlankPixels();
       renderCanvas();
       beginStage();
+    }
+
+    function showPlayerSetup() {
+      cancelAnimationFrame(timerFrame);
+      timerToken += 1;
+      setPhase("idle");
+      openModal("modalSetupTitle", "modalSetupCopy", "startButton", {}, true);
     }
 
     function beginStage() {
@@ -2519,6 +2678,7 @@
       updateRevealCompletion();
       setCheckCopy("checkMemorize");
       previewEndAt = performance.now() + PREVIEW_SECONDS * 1000;
+      lastOverlayTimerSecond = PREVIEW_SECONDS;
       setPhase("preview");
       scheduleCardPops(stageCards.length);
       tickTimer(stageTimerToken);
@@ -2533,6 +2693,9 @@
       const seconds = Math.ceil(remaining / 1000);
       timerNumber.textContent = String(seconds).padStart(2, "0");
       overlayTimerNumber.textContent = String(seconds).padStart(2, "0");
+      if (seconds > 0) {
+        shakeOverlayTimer(seconds);
+      }
       const scale = remaining / (PREVIEW_SECONDS * 1000);
       timebarFill.style.transform = `scaleX(${scale})`;
       overlayTimebarFill.style.transform = `scaleX(${scale})`;
@@ -2597,7 +2760,7 @@
       clearTimeout(revealAdvanceTimer);
       playNegativeSound();
       setPhase("idle");
-      openModal("modalGameOverTitle", "modalGameOverCopy", "newRunButton", { stage, best });
+      openModal("modalGameOverTitle", "modalGameOverCopy", "newRunButton", { stage, best, player: currentPlayerName });
     }
 
     function renderCanvas() {
@@ -2809,8 +2972,14 @@
     overlayNextTurnButton.addEventListener("click", markCorrect);
     overlayCorrectButton.addEventListener("click", markCorrect);
     overlayMissedButton.addEventListener("click", markMissed);
-    newRunButton.addEventListener("click", startRun);
-    modalButton.addEventListener("click", startRun);
+    newRunButton.addEventListener("click", showPlayerSetup);
+    modalButton.addEventListener("click", () => {
+      if (modalContent.setup) {
+        startRun();
+        return;
+      }
+      showPlayerSetup();
+    });
     langButtons.forEach((button) => {
       button.addEventListener("click", () => setLanguage(button.dataset.lang));
     });
