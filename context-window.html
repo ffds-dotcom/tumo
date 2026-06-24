@@ -159,10 +159,13 @@
       position: absolute;
       left: 0;
       top: 0;
-      width: 102px;
-      height: 132px;
+      width: 112px;
+      height: 142px;
       background: #fffef8;
-      padding: 10px 9px 9px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
       transition:
         transform 0.55s cubic-bezier(0.34, 1.08, 0.64, 1),
         filter 0.45s ease,
@@ -186,20 +189,29 @@
       text-transform: uppercase;
       letter-spacing: 0.07em;
       padding-bottom: 5px;
-      margin-bottom: 5px;
       border-bottom: 1px solid #eee;
     }
     .user .paper-role { color: #222; }
     .ai   .paper-role { color: #999; }
 
-    .paper-body {
-      font-size: 8px;
-      line-height: 1.6;
-      color: #333;
+    .paper-visual {
+      flex: 1;
       overflow: hidden;
-      display: -webkit-box;
-      -webkit-line-clamp: 7;
-      -webkit-box-orient: vertical;
+      display: grid;
+      place-items: center;
+      border-radius: 6px;
+      background: #f7f2e6;
+      padding: 17px;
+    }
+
+    .user .paper-visual { background: #eef5ff; }
+    .ai .paper-visual { background: #fff4ce; }
+
+    .paper-visual img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
     }
 
     /* ── Caption ─────────────────────────────────────────── */
@@ -259,8 +271,8 @@
 <div class="hint" id="hint"></div>
 
 <script>
-  const PAPER_W   = 102;
-  const PAPER_H   = 132;
+  const PAPER_W   = 112;
+  const PAPER_H   = 142;
   const DESK_LEFT = 185;  // x where desk starts
   const DESK_W    = 715;  // 900 - 185
   const DESK_TOP  = 22;
@@ -268,26 +280,26 @@
   const PAD       = 22;
 
   const conversation = [
-    { role: 'user', text: 'How do I make a variable in Python?' },
-    { role: 'ai',   text: 'Use = to assign: x = 5 or name = "Alice".' },
-    { role: 'user', text: 'Can I change it later?' },
-    { role: 'ai',   text: 'Yes — just reassign it: x = 10. Variables can hold any value.' },
-    { role: 'user', text: 'What about lists?' },
-    { role: 'ai',   text: 'Lists use brackets: fruits = ["apple", "banana", "mango"].' },
-    { role: 'user', text: 'How do I add to a list?' },
-    { role: 'ai',   text: 'Use .append(): fruits.append("grape") adds to the end.' },
-    { role: 'user', text: "What's a for loop?" },
-    { role: 'ai',   text: 'for item in fruits: runs the block once per item.' },
-    { role: 'user', text: 'How do I print each one?' },
-    { role: 'ai',   text: 'Put print(item) inside the loop, indented 4 spaces.' },
-    { role: 'user', text: 'Why does indentation matter?' },
-    { role: 'ai',   text: 'Python uses indentation instead of brackets to define blocks.' },
-    { role: 'user', text: "What's a function?" },
-    { role: 'ai',   text: 'def greet(name): return "Hello " + name — a reusable block.' },
-    { role: 'user', text: 'Can functions call each other?' },
-    { role: 'ai',   text: 'Yes — that is how bigger programs are built up.' },
-    { role: 'user', text: 'What is recursion?' },
-    { role: 'ai',   text: 'A function that calls itself. It must have a stopping condition.' },
+    { role: 'user', icon: 'file-question', alt: 'Question about making a variable' },
+    { role: 'ai',   icon: 'package', alt: 'A box representing a variable that stores a value' },
+    { role: 'user', icon: 'refresh-cw', alt: 'Question about changing a stored value' },
+    { role: 'ai',   icon: 'replace', alt: 'One value replaced by another' },
+    { role: 'user', icon: 'shapes', alt: 'Question about grouping many items' },
+    { role: 'ai',   icon: 'list', alt: 'Items arranged in one list' },
+    { role: 'user', icon: 'circle-plus', alt: 'Question about adding another item' },
+    { role: 'ai',   icon: 'list-plus', alt: 'New item added to a list' },
+    { role: 'user', icon: 'repeat', alt: 'Question about repeating an action' },
+    { role: 'ai',   icon: 'rotate-cw', alt: 'Repeated steps in a loop' },
+    { role: 'user', icon: 'printer', alt: 'Question about printing each item' },
+    { role: 'ai',   icon: 'printer-check', alt: 'Printed output confirmed' },
+    { role: 'user', icon: 'indent-increase', alt: 'Question about indentation' },
+    { role: 'ai',   icon: 'align-start-horizontal', alt: 'Indented lines grouped inside a block' },
+    { role: 'user', icon: 'braces', alt: 'Question about a function' },
+    { role: 'ai',   icon: 'function-square', alt: 'Reusable function block' },
+    { role: 'user', icon: 'network', alt: 'Question about functions calling each other' },
+    { role: 'ai',   icon: 'workflow', alt: 'Connected steps working together' },
+    { role: 'user', icon: 'refresh-ccw', alt: 'Question about recursion' },
+    { role: 'ai',   icon: 'octagon-x', alt: 'A clear stop point for recursion' },
   ];
 
   const paperEls = new Map();
@@ -299,15 +311,36 @@
   const addBtn    = document.getElementById('addBtn');
   const hint      = document.getElementById('hint');
 
+  const ICON_BASE = 'https://api.iconify.design/lucide:';
+  const ROLE_COLORS = {
+    user: '2563eb',
+    ai: 'c8a550'
+  };
+
   /* Deterministic pseudo-random (so positions are stable per message index) */
   function rng(seed, k) {
     const v = Math.sin(seed * k + 1.618) * 43758.5453;
     return v - Math.floor(v);
   }
 
+  function iconUrl(icon, role) {
+    const color = ROLE_COLORS[role] || ROLE_COLORS.user;
+    return `${ICON_BASE}${icon}.svg?color=%23${color}&width=96&height=96&stroke-width=1.8`;
+  }
+
+  function escapeHtml(text) {
+    return text.replace(/[&<>"']/g, (ch) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    }[ch]));
+  }
+
   function getTarget(idx, inWindow, windowPos, winSize) {
     if (inWindow) {
-      const spacing = 80;
+      const spacing = 88;
       const totalW  = (winSize - 1) * spacing + PAPER_W;
       const startX  = DESK_LEFT + (DESK_W - totalW) / 2;
       const x       = startX + windowPos * spacing;
@@ -346,9 +379,10 @@
       if (isNew) {
         el = document.createElement('div');
         el.className = `paper ${msg.role}`;
+        el.setAttribute('aria-label', `${msg.role === 'user' ? 'You' : 'AI'}: ${msg.alt}`);
         el.innerHTML =
           `<div class="paper-role">${msg.role === 'user' ? 'You' : 'AI'}</div>` +
-          `<div class="paper-body">${msg.text}</div>`;
+          `<div class="paper-visual"><img src="${iconUrl(msg.icon, msg.role)}" alt="${escapeHtml(msg.alt)}"></div>`;
 
         /* Start off-screen right (no transition), then slide in */
         el.style.transition = 'none';

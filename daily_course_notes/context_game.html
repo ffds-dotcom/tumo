@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Context Window Game</title>
+  <link rel="icon" href="data:," />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --ink: #17211a;
+      --dirt: #b87a42;
+      --accent: #0f766e;
+      --accent-soft: #e6f4f1;
+      --line: rgba(52, 70, 45, 0.18);
+    }
+
+    body {
+      min-height: 100vh;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 20% 18%, rgba(255, 255, 255, 0.22), transparent 22%),
+        linear-gradient(135deg, #9bd072 0%, #6fb257 45%, #5b9d4b 100%);
+      user-select: none;
+    }
+
+    .game {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 0;
+    }
+
+    .language-flags {
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      z-index: 30;
+      display: flex;
+      gap: 6px;
+      padding: 5px;
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+    }
+
+    .language-flags button {
+      width: 36px;
+      height: 32px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      background: transparent;
+      font-size: 20px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .language-flags button:hover,
+    .language-flags button.active {
+      background: var(--accent-soft);
+      border-color: #9dd8cf;
+    }
+
+    .map {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      min-width: 0;
+      border-radius: 0;
+      overflow: hidden;
+      border: 0;
+      box-shadow: none;
+      background:
+        linear-gradient(45deg, rgba(255, 255, 255, 0.05) 25%, transparent 25% 75%, rgba(255, 255, 255, 0.05) 75%),
+        linear-gradient(45deg, rgba(31, 86, 36, 0.08) 25%, transparent 25% 75%, rgba(31, 86, 36, 0.08) 75%),
+        radial-gradient(circle at 75% 20%, rgba(59, 143, 168, 0.26), transparent 16%),
+        linear-gradient(135deg, #88c968 0%, #6aaa55 52%, #559246 100%);
+      background-position: 0 0, 18px 18px, 0 0, 0 0;
+      background-size: 36px 36px, 36px 36px, auto, auto;
+    }
+
+    .map::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 14% 74%, rgba(255, 255, 255, 0.12), transparent 8%),
+        radial-gradient(circle at 92% 32%, rgba(255, 255, 255, 0.12), transparent 10%),
+        radial-gradient(circle at 62% 88%, rgba(255, 255, 255, 0.1), transparent 9%);
+    }
+
+    .paths {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .path-shadow,
+    .path-main,
+    .path-ridge {
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .path-shadow {
+      stroke: rgba(77, 47, 23, 0.18);
+      stroke-width: 42;
+    }
+
+    .path-main {
+      stroke: var(--dirt);
+      stroke-width: 30;
+    }
+
+    .path-ridge {
+      stroke: rgba(255, 218, 160, 0.42);
+      stroke-width: 8;
+      stroke-dasharray: 4 28;
+    }
+
+    .map-layer,
+    .box-layer {
+      position: absolute;
+      inset: 0;
+    }
+
+    .map-layer {
+      z-index: 3;
+    }
+
+    .box-layer {
+      z-index: 6;
+      pointer-events: none;
+    }
+
+    .node {
+      position: absolute;
+      left: calc(var(--x) * 0.1%);
+      top: calc(var(--y) * 0.15625%);
+      width: 24px;
+      height: 24px;
+      transform: translate(-50%, -50%) rotate(45deg);
+      border: 0;
+      background: #d8aa63;
+      box-shadow: none;
+    }
+
+    .node.center {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      border: 3px solid rgba(70, 44, 23, 0.58);
+      border-color: rgba(70, 44, 23, 0.58);
+      background:
+        radial-gradient(circle at 35% 28%, #ffe3a4, #d89646 58%, #a96d32 100%);
+      box-shadow: 0 8px 0 rgba(86, 54, 26, 0.24);
+    }
+
+    .node.center::after {
+      content: attr(data-start-label);
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0;
+      color: #4a2e16;
+    }
+
+    .house {
+      position: absolute;
+      left: calc(var(--x) * 0.1%);
+      top: calc(var(--y) * 0.15625%);
+      width: 74px;
+      height: 68px;
+      transform: translate(-50%, -62%);
+      filter: drop-shadow(0 12px 9px rgba(43, 54, 31, 0.24));
+    }
+
+    .house .roof {
+      position: absolute;
+      left: 7px;
+      top: 0;
+      width: 60px;
+      height: 34px;
+      background: var(--roof);
+      clip-path: polygon(50% 0, 100% 70%, 88% 100%, 12% 100%, 0 70%);
+      border: 2px solid rgba(34, 31, 28, 0.2);
+    }
+
+    .house .front {
+      position: absolute;
+      left: 14px;
+      top: 29px;
+      width: 46px;
+      height: 36px;
+      background: #f4dfb7;
+      border: 2px solid rgba(72, 55, 35, 0.28);
+    }
+
+    .house .side {
+      position: absolute;
+      left: 52px;
+      top: 34px;
+      width: 15px;
+      height: 31px;
+      background: #dfc391;
+      transform: skewY(-24deg);
+      border-right: 2px solid rgba(72, 55, 35, 0.18);
+      border-bottom: 2px solid rgba(72, 55, 35, 0.18);
+    }
+
+    .house .door {
+      position: absolute;
+      left: 31px;
+      top: 45px;
+      width: 12px;
+      height: 20px;
+      background: #6f4729;
+      border-radius: 6px 6px 0 0;
+    }
+
+    .house .label {
+      position: absolute;
+      left: 50%;
+      top: 72px;
+      transform: translateX(-50%);
+      padding: 4px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(51, 69, 42, 0.22);
+      background: rgba(255, 255, 248, 0.88);
+      color: #21301f;
+      font-size: 12px;
+      font-weight: 750;
+      line-height: 1;
+      white-space: nowrap;
+      box-shadow: 0 5px 14px rgba(31, 43, 25, 0.14);
+    }
+
+    .delivery-check {
+      position: absolute;
+      right: 0;
+      top: 22px;
+      z-index: 4;
+      width: 24px;
+      height: 24px;
+      display: grid;
+      place-items: center;
+      border: 2px solid rgba(255, 255, 255, 0.9);
+      border-radius: 50%;
+      background: #16a34a;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 900;
+      line-height: 1;
+      box-shadow: 0 6px 12px rgba(22, 101, 52, 0.34);
+    }
+
+    .delivery-check::before {
+      content: "✓";
+    }
+
+    .player {
+      position: absolute;
+      left: calc(var(--x) * 0.1%);
+      top: calc(var(--y) * 0.15625%);
+      width: 42px;
+      height: 54px;
+      z-index: 7;
+      transform: translate(-50%, -84%);
+      filter: drop-shadow(0 9px 5px rgba(28, 36, 22, 0.24));
+      transition: left var(--walk-duration, 0.76s) ease, top var(--walk-duration, 0.76s) ease, filter 0.18s ease;
+    }
+
+    .player.can-drop {
+      filter:
+        drop-shadow(0 9px 5px rgba(28, 36, 22, 0.24))
+        drop-shadow(0 0 12px rgba(255, 246, 143, 0.78));
+    }
+
+    .player.drop-target::before,
+    .player.drop-target::after,
+    .player.can-drop::before,
+    .player.can-drop::after {
+      filter: brightness(1.12);
+    }
+
+    .player.walking {
+      animation: bob 0.22s ease-in-out infinite;
+    }
+
+    @keyframes bob {
+      50% {
+        transform: translate(-50%, calc(-84% - 3px));
+      }
+    }
+
+    .player::before {
+      content: "";
+      position: absolute;
+      left: 12px;
+      top: 0;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #f2c99d;
+      border: 2px solid rgba(57, 38, 21, 0.22);
+    }
+
+    .player::after {
+      content: "";
+      position: absolute;
+      left: 8px;
+      top: 17px;
+      width: 26px;
+      height: 32px;
+      border-radius: 14px 14px 8px 8px;
+      background: linear-gradient(180deg, #334155 0%, #1d4ed8 100%);
+      border: 2px solid rgba(18, 27, 46, 0.26);
+    }
+
+    .held-stack {
+      position: absolute;
+      left: 50%;
+      bottom: 41px;
+      z-index: 3;
+      display: flex;
+      flex-direction: column-reverse;
+      align-items: center;
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+
+    .box {
+      position: absolute;
+      left: calc(var(--x) * 0.1%);
+      top: calc(var(--y) * 0.15625%);
+      width: 44px;
+      height: 34px;
+      transform: translate(-50%, -50%);
+      border: 2px solid rgba(72, 45, 18, 0.5);
+      border-radius: 5px;
+      background:
+        linear-gradient(90deg, transparent 45%, rgba(94, 55, 20, 0.28) 45% 55%, transparent 55%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.34) 0%, rgba(0, 0, 0, 0.16) 100%),
+        var(--box-color);
+      box-shadow: 0 8px 0 rgba(74, 45, 19, 0.22);
+      cursor: grab;
+      pointer-events: auto;
+      touch-action: none;
+    }
+
+    .box::before {
+      content: "";
+      position: absolute;
+      inset: 8px 0 auto;
+      height: 2px;
+      background: rgba(82, 45, 16, 0.24);
+    }
+
+    .box::after {
+      content: "";
+      position: absolute;
+      inset: 3px;
+      border-radius: 3px;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      pointer-events: none;
+    }
+
+    .box.dragging {
+      z-index: 20;
+      cursor: grabbing;
+      box-shadow: 0 16px 18px rgba(42, 35, 22, 0.22);
+    }
+
+    .held-stack .box {
+      position: relative;
+      left: auto;
+      top: auto;
+      width: 40px;
+      height: 30px;
+      margin-top: -5px;
+      transform: none;
+      cursor: default;
+      pointer-events: none;
+      box-shadow: 0 4px 0 rgba(74, 45, 19, 0.18);
+    }
+
+    .hud {
+      position: absolute;
+      left: 150px;
+      top: 18px;
+      z-index: 9;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border: 1px solid rgba(52, 70, 45, 0.18);
+      border-radius: 8px;
+      background: rgba(255, 255, 248, 0.88);
+      box-shadow: 0 10px 28px rgba(31, 43, 25, 0.14);
+      font-size: 14px;
+      font-weight: 750;
+    }
+
+    .hud strong {
+      min-width: 20px;
+      height: 20px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 50%;
+      background: #244127;
+      color: #fff;
+      font-size: 12px;
+    }
+
+    .hint {
+      position: absolute;
+      right: 18px;
+      top: 18px;
+      z-index: 9;
+      max-width: 230px;
+      padding: 9px 12px;
+      border: 1px solid rgba(52, 70, 45, 0.18);
+      border-radius: 8px;
+      background: rgba(255, 255, 248, 0.88);
+      box-shadow: 0 10px 28px rgba(31, 43, 25, 0.14);
+      color: #34442f;
+      font-size: 14px;
+      line-height: 1.35;
+      font-weight: 700;
+    }
+
+    .controls {
+      position: absolute;
+      left: 50%;
+      top: 18px;
+      z-index: 9;
+      display: flex;
+      gap: 8px;
+      transform: translateX(-50%);
+      padding: 5px;
+      border: 1px solid rgba(52, 70, 45, 0.18);
+      border-radius: 8px;
+      background: rgba(255, 255, 248, 0.88);
+      box-shadow: 0 10px 28px rgba(31, 43, 25, 0.14);
+    }
+
+    .controls button {
+      min-height: 36px;
+      padding: 0 12px;
+      border: 1px solid rgba(53, 76, 44, 0.24);
+      border-radius: 7px;
+      background: #244127;
+      color: #fff;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .controls button:hover {
+      background: #315d2e;
+    }
+
+    .controls button:disabled {
+      cursor: not-allowed;
+      opacity: 0.48;
+    }
+
+    .fatigue {
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      z-index: 9;
+      width: min(520px, calc(100% - 180px));
+      transform: translateX(-50%);
+      padding: 9px 12px;
+      border: 1px solid rgba(52, 70, 45, 0.18);
+      border-radius: 8px;
+      background: rgba(255, 255, 248, 0.9);
+      box-shadow: 0 10px 28px rgba(31, 43, 25, 0.14);
+    }
+
+    .fatigue-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 7px;
+      color: #34442f;
+      font-size: 13px;
+      font-weight: 850;
+      letter-spacing: 0.02em;
+    }
+
+    .fatigue-track {
+      height: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(67, 79, 50, 0.2);
+      border-radius: 999px;
+      background: rgba(36, 65, 39, 0.14);
+    }
+
+    .fatigue-fill {
+      width: var(--fatigue, 0%);
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #22c55e 0%, #facc15 58%, #ef4444 100%);
+      transition: width 0.24s ease;
+    }
+
+    @media (max-width: 640px) {
+      body {
+        overflow: auto;
+      }
+
+      .game {
+        min-height: 100vh;
+      }
+
+      .house {
+        width: 58px;
+        height: 54px;
+      }
+
+      .house .roof {
+        left: 5px;
+        width: 48px;
+        height: 28px;
+      }
+
+      .house .front {
+        left: 11px;
+        top: 24px;
+        width: 36px;
+        height: 28px;
+      }
+
+      .house .side {
+        left: 42px;
+        top: 28px;
+        width: 12px;
+        height: 24px;
+      }
+
+      .house .door {
+        left: 24px;
+        top: 37px;
+        width: 10px;
+        height: 15px;
+      }
+
+      .house .label {
+        top: 58px;
+        font-size: 10px;
+      }
+
+      .delivery-check {
+        top: 18px;
+        width: 20px;
+        height: 20px;
+        font-size: 13px;
+      }
+
+      .box {
+        width: 40px;
+        height: 32px;
+      }
+
+      .hud,
+      .hint,
+      .controls {
+        top: auto;
+        bottom: 74px;
+        font-size: 12px;
+      }
+
+      .hint {
+        right: 12px;
+        max-width: 175px;
+      }
+
+      .hud {
+        left: 12px;
+      }
+
+      .controls {
+        left: 50%;
+      }
+
+      .fatigue {
+        left: 12px;
+        right: 12px;
+        bottom: 0;
+        width: auto;
+        transform: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="language-flags" aria-label="Language selector">
+    <button type="button" class="active" data-lang="en" aria-label="English">🇬🇧</button>
+    <button type="button" data-lang="hy" aria-label="Armenian">🇦🇲</button>
+    <button type="button" data-lang="ru" aria-label="Russian">🇷🇺</button>
+  </div>
+
+  <main class="game">
+    <section class="map" id="map" aria-label="Village map with draggable boxes" data-i18n-aria="mapAria">
+      <svg class="paths" viewBox="0 0 1000 640" preserveAspectRatio="none" aria-hidden="true">
+        <g id="pathLayer"></g>
+      </svg>
+      <div class="map-layer" id="mapLayer"></div>
+      <div class="box-layer" id="boxLayer"></div>
+      <div class="player" id="player" style="--x: 500; --y: 320;" aria-label="Character" data-i18n-aria="playerAria">
+        <div class="held-stack" id="heldStack"></div>
+      </div>
+      <div class="hud"><span data-i18n="carrying">Carrying</span> <strong id="boxCount">0</strong> <span id="boxWord">boxes</span></div>
+      <div class="controls" aria-label="Box controls" data-i18n-aria="controlsAria">
+        <button type="button" id="deliverButton" data-i18n="deliver">Deliver</button>
+        <button type="button" id="removeTopButton" data-i18n="removeTop">Remove top box</button>
+      </div>
+      <div class="hint" data-i18n="hint">Drag boxes onto the character. Every dropped box stacks above them.</div>
+      <div class="fatigue" aria-label="Fatigue" data-i18n-aria="fatigueAria">
+        <div class="fatigue-head">
+          <span data-i18n="fatigue">Fatigue</span>
+          <strong id="fatigueValue">0%</strong>
+        </div>
+        <div class="fatigue-track">
+          <div class="fatigue-fill" id="fatigueFill"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const translations = {
+      en: {
+        mapAria: "Village map with draggable boxes",
+        playerAria: "Character",
+        controlsAria: "Box controls",
+        fatigueAria: "Fatigue meter",
+        start: "START",
+        carrying: "Carrying",
+        deliver: "Deliver",
+        removeTop: "Remove top box",
+        fatigue: "Fatigue",
+        boxesOne: "box",
+        boxesFew: "boxes",
+        boxesMany: "boxes",
+        hint: "Drag boxes onto the character. Every dropped box stacks above them.",
+        boxLabel: "Box",
+        center: "Center",
+        crossing: "Crossing",
+        houses: {
+          red: "Red",
+          orange: "Orange",
+          yellow: "Yellow",
+          lime: "Lime",
+          green: "Green",
+          teal: "Teal",
+          cyan: "Cyan",
+          blue: "Blue",
+          indigo: "Indigo",
+          violet: "Violet",
+          pink: "Pink",
+          coral: "Coral"
+        }
+      },
+      hy: {
+        mapAria: "Գյուղի քարտեզ՝ քաշելու արկղերով",
+        playerAria: "Կերպար",
+        controlsAria: "Արկղերի կառավարում",
+        fatigueAria: "Հոգնածության ցուցիչ",
+        start: "ՍԿԻԶԲ",
+        carrying: "Կրում է",
+        deliver: "Տանել",
+        removeTop: "Հանել վերևինը",
+        fatigue: "Հոգնածություն",
+        boxesOne: "արկղ",
+        boxesFew: "արկղ",
+        boxesMany: "արկղ",
+        hint: "Քաշիր արկղերը կերպարի վրա։ Յուրաքանչյուր արկղ կդասավորվի վերևում։",
+        boxLabel: "Արկղ",
+        center: "Կենտրոն",
+        crossing: "Խաչմերուկ",
+        houses: {
+          red: "Կարմիր",
+          orange: "Նարնջագույն",
+          yellow: "Դեղին",
+          lime: "Լայմ",
+          green: "Կանաչ",
+          teal: "Փիրուզագույն",
+          cyan: "Երկնագույն",
+          blue: "Կապույտ",
+          indigo: "Ինդիգո",
+          violet: "Մանուշակագույն",
+          pink: "Վարդագույն",
+          coral: "Կորալ"
+        }
+      },
+      ru: {
+        mapAria: "Карта деревни с перетаскиваемыми коробками",
+        playerAria: "Персонаж",
+        controlsAria: "Управление коробками",
+        fatigueAria: "Индикатор усталости",
+        start: "СТАРТ",
+        carrying: "Несет",
+        deliver: "Доставить",
+        removeTop: "Убрать верхнюю",
+        fatigue: "Усталость",
+        boxesOne: "коробку",
+        boxesFew: "коробки",
+        boxesMany: "коробок",
+        hint: "Перетащи коробки на персонажа. Каждая коробка складывается сверху.",
+        boxLabel: "Коробка",
+        center: "Центр",
+        crossing: "Перекресток",
+        houses: {
+          red: "Красный",
+          orange: "Оранжевый",
+          yellow: "Желтый",
+          lime: "Лаймовый",
+          green: "Зеленый",
+          teal: "Бирюзовый",
+          cyan: "Голубой",
+          blue: "Синий",
+          indigo: "Индиго",
+          violet: "Фиолетовый",
+          pink: "Розовый",
+          coral: "Коралловый"
+        }
+      }
+    };
+
+    const nodes = {
+      center: { label: "Center", x: 500, y: 320, type: "center" },
+      north: { label: "North Crossing", x: 500, y: 190, type: "crossing" },
+      northeast: { label: "Northeast Crossing", x: 660, y: 230, type: "crossing" },
+      east: { label: "East Crossing", x: 740, y: 320, type: "crossing" },
+      southeast: { label: "Southeast Crossing", x: 660, y: 430, type: "crossing" },
+      south: { label: "South Crossing", x: 500, y: 455, type: "crossing" },
+      southwest: { label: "Southwest Crossing", x: 340, y: 430, type: "crossing" },
+      west: { label: "West Crossing", x: 260, y: 320, type: "crossing" },
+      northwest: { label: "Northwest Crossing", x: 340, y: 230, type: "crossing" },
+      red: { label: "Red House", x: 225, y: 150, type: "house", roof: "#dc2626" },
+      orange: { label: "Orange House", x: 500, y: 82, type: "house", roof: "#f97316" },
+      yellow: { label: "Yellow House", x: 775, y: 150, type: "house", roof: "#facc15" },
+      lime: { label: "Lime House", x: 845, y: 255, type: "house", roof: "#84cc16" },
+      green: { label: "Green House", x: 885, y: 370, type: "house", roof: "#16a34a" },
+      teal: { label: "Teal House", x: 745, y: 520, type: "house", roof: "#0f766e" },
+      cyan: { label: "Cyan House", x: 590, y: 565, type: "house", roof: "#06b6d4" },
+      blue: { label: "Blue House", x: 410, y: 565, type: "house", roof: "#2563eb" },
+      indigo: { label: "Indigo House", x: 255, y: 520, type: "house", roof: "#4f46e5" },
+      violet: { label: "Violet House", x: 115, y: 370, type: "house", roof: "#7c3aed" },
+      pink: { label: "Pink House", x: 155, y: 255, type: "house", roof: "#ec4899" },
+      coral: { label: "Coral House", x: 330, y: 100, type: "house", roof: "#fb7185" }
+    };
+
+    const edges = [
+      ["center", "north"], ["center", "northeast"], ["center", "east"], ["center", "southeast"],
+      ["center", "south"], ["center", "southwest"], ["center", "west"], ["center", "northwest"],
+      ["north", "northeast"], ["northeast", "east"], ["east", "southeast"], ["southeast", "south"],
+      ["south", "southwest"], ["southwest", "west"], ["west", "northwest"], ["northwest", "north"],
+      ["northwest", "red"], ["north", "orange"], ["northeast", "yellow"], ["east", "lime"],
+      ["east", "green"], ["southeast", "teal"], ["southeast", "cyan"], ["south", "blue"],
+      ["southwest", "indigo"], ["west", "violet"], ["west", "pink"], ["northwest", "coral"],
+      ["north", "coral"], ["northeast", "lime"], ["south", "cyan"], ["southwest", "blue"]
+    ];
+
+    const boxHouseOrder = [
+      "red", "orange", "yellow", "lime", "green", "teal",
+      "cyan", "blue", "indigo", "violet", "pink", "coral"
+    ];
+
+    const BASE_BRANCH_MS = 760;
+    const EXTRA_BRANCH_MS_PER_BOX_SQUARED = 260;
+    const FATIGUE_PER_BOX_SQUARED = 2;
+
+    const boxSlots = boxHouseOrder.map((houseId, index) => ({
+      houseId,
+      x: 962,
+      y: 112 + index * 39
+    }));
+
+    const pathLayer = document.querySelector("#pathLayer");
+    const mapLayer = document.querySelector("#mapLayer");
+    const boxLayer = document.querySelector("#boxLayer");
+    const player = document.querySelector("#player");
+    const heldStack = document.querySelector("#heldStack");
+    const boxCount = document.querySelector("#boxCount");
+    const boxWord = document.querySelector("#boxWord");
+    const deliverButton = document.querySelector("#deliverButton");
+    const removeTopButton = document.querySelector("#removeTopButton");
+    const fatigueValueText = document.querySelector("#fatigueValue");
+    const fatigueFill = document.querySelector("#fatigueFill");
+    const langButtons = document.querySelectorAll(".language-flags button");
+    const translatable = document.querySelectorAll("[data-i18n]");
+    const ariaTranslatable = document.querySelectorAll("[data-i18n-aria]");
+
+    const graph = edges.reduce((acc, [from, to]) => {
+      acc[from] = acc[from] || [];
+      acc[to] = acc[to] || [];
+      acc[from].push(to);
+      acc[to].push(from);
+      return acc;
+    }, {});
+
+    let draggedBox = null;
+    let dragOffsetX = 0;
+    let dragOffsetY = 0;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let heldCount = 0;
+    let currentLang = "en";
+    let currentNode = "center";
+    let moving = false;
+    let delivering = false;
+    let fatigue = 0;
+    const deliveredHouses = new Set();
+
+    function drawPaths() {
+      const roadShape = edges.map(([from, to]) => {
+        const a = nodes[from];
+        const b = nodes[to];
+        return `M ${a.x} ${a.y} L ${b.x} ${b.y}`;
+      }).join("");
+
+      pathLayer.innerHTML = `
+        <path class="path-shadow" d="${roadShape}"></path>
+        <path class="path-main" d="${roadShape}"></path>
+        <path class="path-ridge" d="${roadShape}"></path>
+      `;
+    }
+
+    function drawMapItems() {
+      const t = translations[currentLang] || translations.en;
+
+      mapLayer.innerHTML = Object.entries(nodes).map(([id, node]) => {
+        if (node.type === "house") {
+          const houseLabel = t.houses[id] || translations.en.houses[id] || node.label;
+          const deliveryCheck = deliveredHouses.has(id) ? `<div class="delivery-check" aria-hidden="true"></div>` : "";
+
+          return `
+            <div class="house" data-node="${id}" style="--x: ${node.x}; --y: ${node.y}; --roof: ${node.roof};" aria-label="${houseLabel}">
+              <div class="roof"></div>
+              <div class="side"></div>
+              <div class="front"></div>
+              <div class="door"></div>
+              ${deliveryCheck}
+              <div class="label">${houseLabel}</div>
+            </div>
+          `;
+        }
+
+        const nodeLabel = node.type === "center" ? t.center : `${node.label.split(" ")[0]} ${t.crossing}`;
+        const startLabel = node.type === "center" ? `data-start-label="${t.start}"` : "";
+        return `<div class="node ${node.type}" data-node="${id}" style="--x: ${node.x}; --y: ${node.y};" aria-label="${nodeLabel}" ${startLabel}></div>`;
+      }).join("");
+    }
+
+    function drawBoxes() {
+      const t = translations[currentLang] || translations.en;
+
+      boxLayer.innerHTML = boxSlots.map(({ houseId, x, y }, index) => (
+        `<div class="box" data-box="${index + 1}" data-house="${houseId}" style="--x: ${x}; --y: ${y}; --box-color: ${nodes[houseId].roof};" aria-label="${t.boxLabel} ${index + 1}, ${t.houses[houseId]}"></div>`
+      )).join("");
+    }
+
+    function resetBoxToSlot(box) {
+      const slot = boxSlots.find((item) => item.houseId === box.dataset.house);
+      if (!slot) return;
+
+      box.style.left = "";
+      box.style.top = "";
+      box.style.setProperty("--x", slot.x);
+      box.style.setProperty("--y", slot.y);
+      box.style.setProperty("--box-color", nodes[slot.houseId].roof);
+    }
+
+    function updateBoxLabels() {
+      const t = translations[currentLang] || translations.en;
+
+      document.querySelectorAll(".box").forEach((box) => {
+        const houseName = t.houses[box.dataset.house] || translations.en.houses[box.dataset.house];
+        box.setAttribute("aria-label", `${t.boxLabel} ${box.dataset.box}, ${houseName}`);
+      });
+    }
+
+    function boxWordForCount(count) {
+      const t = translations[currentLang] || translations.en;
+
+      if (currentLang === "ru") {
+        const mod10 = count % 10;
+        const mod100 = count % 100;
+        if (mod10 === 1 && mod100 !== 11) return t.boxesOne;
+        if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return t.boxesFew;
+        return t.boxesMany;
+      }
+
+      return count === 1 ? t.boxesOne : t.boxesMany;
+    }
+
+    function updateBoxCounter() {
+      boxCount.textContent = heldCount;
+      boxWord.textContent = boxWordForCount(heldCount);
+      updateControls();
+    }
+
+    function updateControls() {
+      const disabled = heldCount === 0 || moving || delivering;
+      deliverButton.disabled = disabled;
+      removeTopButton.disabled = disabled;
+    }
+
+    function updateFatigueMeter() {
+      const value = Math.round(fatigue);
+      fatigueValueText.textContent = `${value}%`;
+      fatigueFill.style.setProperty("--fatigue", `${value}%`);
+    }
+
+    function addFatigueForBranch() {
+      fatigue = Math.min(100, fatigue + heldCount * heldCount * FATIGUE_PER_BOX_SQUARED);
+      updateFatigueMeter();
+    }
+
+    function setLanguage(lang) {
+      const t = translations[lang] || translations.en;
+      currentLang = translations[lang] ? lang : "en";
+      document.documentElement.lang = currentLang;
+
+      langButtons.forEach((button) => {
+        button.classList.toggle("active", button.dataset.lang === currentLang);
+      });
+
+      translatable.forEach((node) => {
+        const key = node.dataset.i18n;
+        node.textContent = t[key] || translations.en[key] || node.textContent;
+      });
+
+      ariaTranslatable.forEach((node) => {
+        const key = node.dataset.i18nAria;
+        node.setAttribute("aria-label", t[key] || translations.en[key] || node.getAttribute("aria-label"));
+      });
+
+      drawMapItems();
+      updateBoxLabels();
+      updateBoxCounter();
+    }
+
+    function placeBoxAtPointer(box, event) {
+      const mapRect = boxLayer.getBoundingClientRect();
+      const x = event.clientX - mapRect.left - dragOffsetX;
+      const y = event.clientY - mapRect.top - dragOffsetY;
+
+      box.style.left = `${x}px`;
+      box.style.top = `${y}px`;
+      box.style.setProperty("--x", 0);
+      box.style.setProperty("--y", 0);
+    }
+
+    function pointIsInRect(event, rect, padding = 0) {
+      return (
+        event.clientX >= rect.left - padding &&
+        event.clientX <= rect.right + padding &&
+        event.clientY >= rect.top - padding &&
+        event.clientY <= rect.bottom + padding
+      );
+    }
+
+    function isOverStackTarget(event) {
+      const playerRect = player.getBoundingClientRect();
+      const stackRect = heldStack.getBoundingClientRect();
+      const extraReach = 18;
+      const hasStack = heldStack.children.length > 0 && stackRect.width > 0 && stackRect.height > 0;
+
+      return pointIsInRect(event, playerRect, extraReach) || (hasStack && pointIsInRect(event, stackRect, extraReach));
+    }
+
+    function topHeldBox() {
+      return heldStack.lastElementChild;
+    }
+
+    function removeTopBox(force = false) {
+      const box = topHeldBox();
+      if (!box || (!force && (moving || delivering))) return null;
+
+      box.remove();
+      heldCount = Math.max(0, heldCount - 1);
+      updateBoxCounter();
+      return box;
+    }
+
+    function stackBox(box) {
+      const boxColor = box.style.getPropertyValue("--box-color");
+
+      box.classList.remove("dragging");
+      box.removeAttribute("style");
+      box.style.setProperty("--box-color", boxColor || nodes[box.dataset.house].roof);
+      box.dataset.held = "true";
+      heldStack.appendChild(box);
+      heldCount += 1;
+      updateBoxCounter();
+    }
+
+    function shortestPath(start, target) {
+      if (start === target) return [start];
+
+      const queue = [[start]];
+      const visited = new Set([start]);
+
+      while (queue.length) {
+        const path = queue.shift();
+        const last = path[path.length - 1];
+
+        for (const neighbor of graph[last] || []) {
+          if (visited.has(neighbor)) continue;
+
+          const nextPath = [...path, neighbor];
+          if (neighbor === target) return nextPath;
+
+          visited.add(neighbor);
+          queue.push(nextPath);
+        }
+      }
+
+      return null;
+    }
+
+    function updatePlayerPosition(nodeId) {
+      const node = nodes[nodeId];
+      player.style.setProperty("--x", node.x);
+      player.style.setProperty("--y", node.y);
+    }
+
+    function wait(ms) {
+      return new Promise((resolve) => window.setTimeout(resolve, ms));
+    }
+
+    function branchDurationForLoad() {
+      return BASE_BRANCH_MS + heldCount * heldCount * EXTRA_BRANCH_MS_PER_BOX_SQUARED;
+    }
+
+    function setWalkTiming(durationMs) {
+      const seconds = `${durationMs / 1000}s`;
+      player.style.setProperty("--walk-duration", seconds);
+    }
+
+    async function moveAlong(path) {
+      moving = true;
+      updateControls();
+      player.classList.add("walking");
+
+      for (const nodeId of path.slice(1)) {
+        const branchDuration = branchDurationForLoad();
+        setWalkTiming(branchDuration);
+        addFatigueForBranch();
+        currentNode = nodeId;
+        updatePlayerPosition(nodeId);
+        await wait(branchDuration + 80);
+      }
+
+      player.classList.remove("walking");
+      moving = false;
+      updateControls();
+    }
+
+    async function deliverBoxes() {
+      if (!topHeldBox() || moving || delivering) return;
+
+      delivering = true;
+      updateControls();
+
+      while (topHeldBox()) {
+        const box = topHeldBox();
+        const target = box.dataset.house;
+        const path = shortestPath(currentNode, target);
+        if (!path) break;
+
+        await moveAlong(path);
+        deliveredHouses.add(target);
+        drawMapItems();
+        removeTopBox(true);
+      }
+
+      delivering = false;
+      updateControls();
+    }
+
+    function setPlayerCanDrop(isActive) {
+      player.classList.toggle("can-drop", isActive || Boolean(draggedBox));
+    }
+
+    function onPointerDown(event) {
+      const box = event.target.closest(".box");
+      if (!box || box.dataset.held === "true" || moving || delivering) return;
+
+      const boxRect = box.getBoundingClientRect();
+      draggedBox = box;
+      dragOffsetX = event.clientX - boxRect.left - boxRect.width / 2;
+      dragOffsetY = event.clientY - boxRect.top - boxRect.height / 2;
+      dragStartX = event.clientX;
+      dragStartY = event.clientY;
+
+      box.classList.add("dragging");
+      box.setPointerCapture(event.pointerId);
+      setPlayerCanDrop(true);
+      placeBoxAtPointer(box, event);
+    }
+
+    function onPointerMove(event) {
+      if (!draggedBox) return;
+
+      placeBoxAtPointer(draggedBox, event);
+      player.classList.toggle("drop-target", isOverStackTarget(event));
+      setPlayerCanDrop(true);
+    }
+
+    function onPointerUp(event) {
+      if (!draggedBox) return;
+
+      const clickDistance = Math.hypot(event.clientX - dragStartX, event.clientY - dragStartY);
+
+      if (clickDistance < 6 || isOverStackTarget(event)) {
+        stackBox(draggedBox);
+      } else {
+        draggedBox.classList.remove("dragging");
+        resetBoxToSlot(draggedBox);
+      }
+
+      player.classList.remove("drop-target");
+      draggedBox = null;
+      setPlayerCanDrop(false);
+    }
+
+    drawPaths();
+    drawMapItems();
+    drawBoxes();
+    setLanguage("en");
+    updateFatigueMeter();
+
+    boxLayer.addEventListener("pointerdown", onPointerDown);
+    boxLayer.addEventListener("pointermove", onPointerMove);
+    boxLayer.addEventListener("pointerup", onPointerUp);
+    boxLayer.addEventListener("pointercancel", onPointerUp);
+    boxLayer.addEventListener("mouseover", (event) => {
+      const box = event.target.closest(".box");
+      if (box && box.dataset.held !== "true") setPlayerCanDrop(true);
+    });
+    boxLayer.addEventListener("mouseout", (event) => {
+      const box = event.target.closest(".box");
+      if (!box || box.dataset.held === "true" || draggedBox) return;
+      if (!box.contains(event.relatedTarget)) setPlayerCanDrop(false);
+    });
+
+    langButtons.forEach((button) => {
+      button.addEventListener("click", () => setLanguage(button.dataset.lang));
+    });
+    deliverButton.addEventListener("click", deliverBoxes);
+    removeTopButton.addEventListener("click", removeTopBox);
+  </script>
+</body>
+</html>

@@ -1,0 +1,2616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Context Overload</title>
+  <link rel="icon" href="data:," />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --ink: #1f2418;
+      --paper: #fff7dc;
+      --paper-dark: #edd78c;
+      --green: #3f7e45;
+      --green-dark: #245c3b;
+      --blue: #6eb6d9;
+      --red: #c84637;
+      --gold: #e8ac3e;
+      --soil: #7b4f2f;
+      --shadow: rgba(33, 38, 25, 0.25);
+      --line: rgba(40, 55, 34, 0.18);
+      --cell-size: 2px;
+    }
+
+    html,
+    body {
+      min-height: 100%;
+    }
+
+    body {
+      height: 100vh;
+      min-height: 100vh;
+      overflow: hidden;
+      color: var(--ink);
+      font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+        linear-gradient(180deg, #77bde4 0 34%, #8fd06b 34% 100%);
+      background-size: 24px 24px, 24px 24px, auto;
+    }
+
+    button,
+    canvas {
+      font: inherit;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    button {
+      border: 0;
+      color: inherit;
+    }
+
+    .language-flags {
+      display: flex;
+      gap: 6px;
+      width: max-content;
+      padding: 5px;
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+    }
+
+    .language-flags button {
+      width: 36px;
+      height: 32px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      background: transparent;
+      font-size: 20px;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .language-flags button:hover,
+    .language-flags button.active {
+      background: rgba(230, 244, 241, 0.96);
+      border-color: #9dd8cf;
+    }
+
+    .app {
+      height: 100vh;
+      min-height: 0;
+      position: relative;
+      isolation: isolate;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: 0;
+      overflow: hidden;
+      padding: 0;
+    }
+
+    .app::before,
+    .app::after {
+      content: "";
+      position: fixed;
+      left: 0;
+      right: 0;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .app::before {
+      bottom: 0;
+      height: 118px;
+      background:
+        linear-gradient(90deg, transparent 0 8px, rgba(75, 52, 33, 0.16) 8px 10px, transparent 10px 20px),
+        linear-gradient(180deg, rgba(54, 88, 43, 0) 0, rgba(54, 88, 43, 0.15) 100%),
+        #5ea755;
+      background-size: 20px 20px, auto, auto;
+      border-top: 4px solid rgba(36, 92, 59, 0.28);
+    }
+
+    .app::after {
+      top: 80px;
+      height: 170px;
+      background:
+        linear-gradient(135deg, transparent 0 48%, rgba(55, 117, 79, 0.28) 48% 52%, transparent 52%),
+        linear-gradient(45deg, transparent 0 48%, rgba(55, 117, 79, 0.22) 48% 52%, transparent 52%);
+      background-size: 86px 86px;
+      opacity: 0.55;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      display: grid;
+      grid-template-columns: auto minmax(220px, 1fr) auto auto;
+      align-items: center;
+      gap: 12px;
+      max-width: 1440px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 10px;
+      border: 3px solid #26381d;
+      background: rgba(255, 247, 220, 0.92);
+      box-shadow: 0 8px 0 rgba(31, 36, 24, 0.18);
+    }
+
+    .brand {
+      min-width: 0;
+    }
+
+    h1 {
+      font-size: clamp(22px, 3vw, 40px);
+      line-height: 0.95;
+      letter-spacing: 0;
+      text-transform: uppercase;
+      text-shadow: 3px 3px 0 #f0c34d;
+    }
+
+    .subtitle {
+      margin-top: 5px;
+      color: #4f613c;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .meters {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(82px, 1fr));
+      gap: 6px;
+    }
+
+    .meter {
+      min-height: 48px;
+      padding: 6px 8px;
+      border: 2px solid #394629;
+      background: #f7e6a2;
+      box-shadow: inset -4px -4px 0 rgba(112, 79, 42, 0.12);
+    }
+
+    .meter span {
+      display: block;
+      color: #5b683b;
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .meter strong {
+      display: block;
+      margin-top: 2px;
+      font-size: 20px;
+      line-height: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .primary-button,
+    .action-button {
+      min-height: 44px;
+      padding: 0 18px;
+      border: 3px solid #26381d;
+      background: var(--gold);
+      box-shadow: 0 5px 0 #8d6426;
+      color: #211b12;
+      font-size: 13px;
+      font-weight: 950;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    .primary-button:hover,
+    .action-button:hover {
+      filter: brightness(1.06);
+      transform: translateY(-1px);
+    }
+
+    .primary-button:active,
+    .action-button:active {
+      transform: translateY(3px);
+      box-shadow: 0 2px 0 #8d6426;
+    }
+
+    .primary-button:disabled,
+    .action-button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      filter: grayscale(0.4);
+      transform: none;
+    }
+
+    .game-shell {
+      display: grid;
+      grid-template-columns: minmax(420px, 1fr);
+      align-items: stretch;
+      gap: 0;
+      max-width: none;
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      margin: 0;
+    }
+
+    .panel,
+    .board-panel {
+      border: 3px solid #26381d;
+      background: rgba(255, 247, 220, 0.94);
+      box-shadow: 0 8px 0 rgba(31, 36, 24, 0.18);
+    }
+
+    .panel {
+      padding: 10px;
+    }
+
+    .stage-strip {
+      display: grid;
+      grid-template-columns: minmax(150px, 190px) minmax(280px, 1fr) minmax(220px, 290px);
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .timer-panel {
+      position: relative;
+      overflow: hidden;
+      min-height: 98px;
+      display: grid;
+      place-items: center;
+      border: 3px solid #26381d;
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.13) 0 2px, transparent 2px 10px),
+        #d84938;
+      color: #fff7dc;
+      text-align: center;
+      box-shadow: inset -8px -8px 0 rgba(76, 34, 25, 0.28);
+    }
+
+    .timer-number {
+      font-size: clamp(36px, 5vw, 58px);
+      font-weight: 950;
+      line-height: 0.82;
+      text-shadow: 5px 5px 0 rgba(59, 25, 22, 0.45);
+    }
+
+    .phase-label {
+      margin-top: 10px;
+      font-size: 13px;
+      font-weight: 950;
+      text-transform: uppercase;
+    }
+
+    .timebar {
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      height: 12px;
+      border: 2px solid rgba(31, 36, 24, 0.55);
+      background: rgba(255, 247, 220, 0.32);
+    }
+
+    .timebar-fill {
+      width: 100%;
+      height: 100%;
+      background: #fff7dc;
+      transform-origin: left center;
+      transition: transform 0.1s linear;
+    }
+
+    .deck-head,
+    .check-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+      font-size: 12px;
+      font-weight: 950;
+      text-transform: uppercase;
+    }
+
+    .pill {
+      min-width: 36px;
+      padding: 4px 7px;
+      border: 2px solid #26381d;
+      background: #89c76c;
+      text-align: center;
+    }
+
+    .card-list {
+      display: flex;
+      gap: 8px;
+      max-height: 86px;
+      overflow: auto;
+      padding: 2px 3px 6px 0;
+    }
+
+    .card {
+      position: relative;
+      flex: 0 0 min(230px, 72vw);
+      min-height: 62px;
+      padding: 10px 10px 10px 44px;
+      border: 3px solid #26381d;
+      background:
+        linear-gradient(90deg, rgba(38, 56, 29, 0.08) 0 8px, transparent 8px),
+        #fff8de;
+      box-shadow: 4px 4px 0 rgba(112, 79, 42, 0.22);
+      font-size: 12px;
+      font-weight: 850;
+      line-height: 1.25;
+    }
+
+    .card::before {
+      content: attr(data-index);
+      position: absolute;
+      left: 8px;
+      top: 8px;
+      width: 24px;
+      height: 24px;
+      display: grid;
+      place-items: center;
+      border: 2px solid #26381d;
+      background: #e9b646;
+      color: #26381d;
+      font-size: 12px;
+      font-weight: 950;
+    }
+
+    .card.hidden {
+      min-height: 62px;
+      background:
+        linear-gradient(90deg, transparent 0 12px, rgba(255, 247, 220, 0.25) 12px 16px, transparent 16px 28px),
+        linear-gradient(0deg, transparent 0 12px, rgba(255, 247, 220, 0.18) 12px 16px, transparent 16px 28px),
+        #2b5e42;
+      color: transparent;
+      overflow: hidden;
+    }
+
+    .card.hidden::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 42px;
+      height: 30px;
+      transform: translate(-50%, -50%);
+      background:
+        linear-gradient(45deg, transparent 0 47%, #fff7dc 47% 53%, transparent 53%),
+        linear-gradient(135deg, transparent 0 47%, #fff7dc 47% 53%, transparent 53%),
+        linear-gradient(#e9b646 0 0) 9px 14px / 24px 12px no-repeat;
+      image-rendering: pixelated;
+    }
+
+    .card-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 24;
+      display: none;
+      padding: 0;
+      background: rgba(24, 30, 19, 0.28);
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .card-overlay.show {
+      display: block;
+      animation: overlay-fade-in 160ms ease-out both;
+    }
+
+    .card-table {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      max-height: none;
+      display: block;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+      pointer-events: none;
+    }
+
+    .overlay-status {
+      position: absolute;
+      inset: 0;
+      display: block;
+      pointer-events: none;
+    }
+
+    .overlay-clock,
+    .overlay-player {
+      min-width: 118px;
+      padding: 10px 12px;
+      border: 3px solid #26381d;
+      text-align: center;
+    }
+
+    .overlay-clock {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: #d84938;
+      color: #fff7dc;
+      box-shadow: inset -6px -6px 0 rgba(76, 34, 25, 0.28);
+      animation: panel-pop-in 280ms cubic-bezier(0.2, 0.9, 0.25, 1.12) both;
+      pointer-events: auto;
+    }
+
+    .overlay-player {
+      position: absolute;
+      top: 126px;
+      left: 50%;
+      translate: -50% 0;
+      background: #f7e6a2;
+      color: var(--ink);
+      box-shadow: inset -5px -5px 0 rgba(112, 79, 42, 0.12);
+      animation: panel-pop-in 280ms 80ms cubic-bezier(0.2, 0.9, 0.25, 1.12) both;
+      min-width: 210px;
+      pointer-events: auto;
+    }
+
+    .overlay-timer {
+      font-size: clamp(34px, 6vw, 62px);
+      font-weight: 950;
+      line-height: 0.85;
+      text-shadow: 4px 4px 0 rgba(59, 25, 22, 0.45);
+    }
+
+    .overlay-phase {
+      margin-top: 5px;
+      font-size: 12px;
+      font-weight: 950;
+      text-transform: uppercase;
+    }
+
+    .overlay-player span {
+      display: block;
+      color: #5b683b;
+      font-size: 10px;
+      font-weight: 950;
+      text-transform: uppercase;
+    }
+
+    .overlay-player strong {
+      display: block;
+      margin-top: 2px;
+      max-width: 260px;
+      overflow-wrap: break-word;
+      font-size: 18px;
+      line-height: 1.12;
+    }
+
+    .overlay-timebar {
+      display: none;
+      height: 16px;
+      border: 3px solid #26381d;
+      background: rgba(216, 73, 56, 0.22);
+      animation: bar-pop-in 260ms 120ms ease-out both;
+      overflow: hidden;
+    }
+
+    .overlay-timebar-fill {
+      width: 100%;
+      height: 100%;
+      background: #d84938;
+      transform-origin: left center;
+      transition: transform 0.1s linear;
+    }
+
+    .preview-card-list {
+      position: absolute;
+      inset: 0;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      align-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      overflow: auto;
+      padding: 170px 24px 92px;
+      pointer-events: none;
+    }
+
+    .instruction-card {
+      --card-delay: 0ms;
+      --card-tilt: 0deg;
+      position: relative;
+      flex: 0 1 190px;
+      min-height: 240px;
+      display: grid;
+      align-content: center;
+      padding: 54px 18px 18px;
+      border: 4px solid #26381d;
+      background:
+        linear-gradient(90deg, rgba(38, 56, 29, 0.08) 0 8px, transparent 8px),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.65), transparent 44%),
+        #fff8de;
+      box-shadow:
+        8px 8px 0 rgba(76, 52, 28, 0.28),
+        inset -8px -8px 0 rgba(112, 79, 42, 0.11);
+      color: #26381d;
+      font-size: 18px;
+      font-weight: 950;
+      line-height: 1.24;
+      text-align: center;
+      transform: translateY(0) scale(1) rotate(var(--card-tilt));
+      transform-origin: center 86%;
+      animation: card-pop-in 430ms cubic-bezier(0.15, 0.9, 0.2, 1.2) both;
+      animation-delay: var(--card-delay);
+      will-change: transform, opacity;
+      pointer-events: auto;
+    }
+
+    .instruction-card::before {
+      content: attr(data-index);
+      position: absolute;
+      left: 14px;
+      top: 14px;
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border: 3px solid #26381d;
+      background: #e9b646;
+      color: #26381d;
+      font-size: 14px;
+      font-weight: 950;
+    }
+
+    .instruction-card.has-questionnaire {
+      padding-top: 80px;
+    }
+
+    .card-prompt-text {
+      display: block;
+    }
+
+    .card-question-controls {
+      position: absolute;
+      top: 12px;
+      left: 58px;
+      right: 12px;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .card-choice-button {
+      height: 32px;
+      border: 3px solid #26381d;
+      color: #1f2418;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 950;
+      cursor: pointer;
+      box-shadow: inset -3px -3px 0 rgba(38, 56, 29, 0.16);
+    }
+
+    .card-choice-button:focus-visible {
+      outline: 3px solid #f0d96b;
+      outline-offset: 2px;
+    }
+
+    .card-choice-yes {
+      background: #8ccd65;
+    }
+
+    .card-choice-yes.is-selected {
+      background: #5fa845;
+      color: #fffdf1;
+    }
+
+    .card-choice-no {
+      background: #d87968;
+    }
+
+    .instruction-card:nth-child(3n + 1) {
+      --card-tilt: -2deg;
+    }
+
+    .instruction-card:nth-child(3n + 2) {
+      --card-tilt: 1.4deg;
+    }
+
+    .instruction-card:nth-child(3n) {
+      --card-tilt: 2.2deg;
+    }
+
+    .overlay-actions {
+      display: none;
+      grid-template-columns: repeat(2, minmax(120px, 1fr));
+      gap: 10px;
+    }
+
+    .overlay-go {
+      position: absolute;
+      top: 112px;
+      left: 10px;
+      z-index: 2;
+      min-width: 98px;
+      pointer-events: auto;
+      transform-origin: center;
+      animation: go-wobble 1.15s ease-in-out infinite;
+    }
+
+    .card-overlay.reveal .overlay-actions {
+      display: none;
+    }
+
+    .card-overlay.reveal .overlay-actions .action-button {
+      animation: action-pop-in 260ms ease-out both;
+    }
+
+    .card-overlay.reveal .overlay-actions .action-button:nth-child(2) {
+      animation-delay: 70ms;
+    }
+
+    .card-overlay.reveal .overlay-timebar {
+      display: none;
+    }
+
+    .card-overlay.reveal .overlay-clock {
+      display: none;
+    }
+
+    .card-overlay.reveal .overlay-go {
+      display: none;
+    }
+
+    .card-overlay.reveal .preview-card-list {
+      padding: 154px 24px 72px;
+    }
+
+    .card-overlay.reveal .instruction-card {
+      cursor: default;
+    }
+
+    .card-overlay.reveal .instruction-card.card-correct {
+      border-color: #2f6f3f;
+      background:
+        linear-gradient(90deg, rgba(47, 111, 63, 0.12) 0 8px, transparent 8px),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.7), transparent 44%),
+        #f0ffe4;
+      box-shadow:
+        8px 8px 0 rgba(47, 111, 63, 0.28),
+        inset -8px -8px 0 rgba(47, 111, 63, 0.11);
+    }
+
+    .card-overlay.reveal .instruction-card.card-correct::after {
+      content: "OK";
+      position: absolute;
+      right: 12px;
+      top: 14px;
+      padding: 3px 7px;
+      border: 3px solid #26381d;
+      background: #8ccd65;
+      color: #1f2418;
+      font-size: 13px;
+      font-weight: 950;
+    }
+
+    .card-overlay.reveal .instruction-card.has-questionnaire.card-correct::after {
+      content: none;
+    }
+
+    @keyframes overlay-fade-in {
+      from {
+        background: rgba(24, 30, 19, 0);
+      }
+      to {
+        background: rgba(24, 30, 19, 0.38);
+      }
+    }
+
+    @keyframes table-pop-in {
+      from {
+        opacity: 0;
+        transform: translateY(18px) scale(0.96);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes panel-pop-in {
+      from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.92);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes bar-pop-in {
+      from {
+        opacity: 0;
+        transform: scaleX(0.78);
+      }
+      to {
+        opacity: 1;
+        transform: scaleX(1);
+      }
+    }
+
+    @keyframes card-pop-in {
+      0% {
+        opacity: 0;
+        transform: translateY(64px) scale(0.68) rotate(calc(var(--card-tilt) - 10deg));
+      }
+      70% {
+        opacity: 1;
+        transform: translateY(-10px) scale(1.05) rotate(calc(var(--card-tilt) + 2deg));
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1) rotate(var(--card-tilt));
+      }
+    }
+
+    @keyframes go-wobble {
+      0%,
+      100% {
+        transform: translateY(0) rotate(0deg) scale(1);
+      }
+      20% {
+        transform: translateY(-2px) rotate(-2deg) scale(1.03);
+      }
+      40% {
+        transform: translateY(1px) rotate(2deg) scale(1.03);
+      }
+      60% {
+        transform: translateY(-1px) rotate(-1deg) scale(1.02);
+      }
+      80% {
+        transform: translateY(0) rotate(1deg) scale(1);
+      }
+    }
+
+    @keyframes action-pop-in {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .card-overlay.show,
+      .card-table,
+      .overlay-clock,
+      .overlay-player,
+      .overlay-timebar,
+      .instruction-card,
+      .overlay-go,
+      .card-overlay.reveal .overlay-actions .action-button {
+        animation: none;
+      }
+    }
+
+    .board-panel {
+      min-width: 0;
+      min-height: 0;
+      height: 100%;
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: minmax(0, 1fr);
+      padding: 0;
+      position: relative;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .board-panel.stage-active {
+      grid-template-rows: minmax(0, 1fr);
+    }
+
+    .memory-panel,
+    .compact-check {
+      min-width: 0;
+      padding: 10px;
+      border: 3px solid #26381d;
+      background: #fff7dc;
+      box-shadow: inset -5px -5px 0 rgba(112, 79, 42, 0.09);
+    }
+
+    .board-head {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      z-index: 8;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      margin: 0;
+      pointer-events: none;
+    }
+
+    .board-head > * {
+      pointer-events: auto;
+    }
+
+    .canvas-frame {
+      position: relative;
+      container-type: size;
+      display: block;
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      overflow: hidden;
+      border: 0;
+      background:
+        linear-gradient(180deg, rgba(110, 182, 217, 0.9) 0 47%, rgba(137, 199, 108, 0.88) 47% 100%),
+        #8fd06b;
+      box-shadow: none;
+    }
+
+    #pixelCanvas {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      width: 100%;
+      height: 100%;
+      display: block;
+      image-rendering: pixelated;
+      cursor: crosshair;
+      touch-action: none;
+    }
+
+    .canvas-lock {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      display: none;
+      place-items: center;
+      padding: 24px;
+      background: rgba(31, 36, 24, 0.42);
+      color: #fff7dc;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 950;
+      text-transform: uppercase;
+      text-shadow: 3px 3px 0 rgba(31, 36, 24, 0.45);
+      pointer-events: none;
+    }
+
+    .canvas-frame.locked .canvas-lock {
+      display: grid;
+    }
+
+    .tool-dock {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      z-index: 8;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 10px;
+      margin: 0;
+      padding: 6px;
+      border: 3px solid #26381d;
+      background: rgba(255, 247, 220, 0.84);
+      box-shadow: 0 6px 0 rgba(31, 36, 24, 0.18);
+    }
+
+    .tool-group,
+    .swatches {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .icon-button,
+    .swatch {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      border: 3px solid #26381d;
+      background: #fff7dc;
+      box-shadow: 0 4px 0 rgba(38, 56, 29, 0.3);
+      cursor: pointer;
+    }
+
+    .icon-button svg {
+      width: 23px;
+      height: 23px;
+      stroke: #26381d;
+      stroke-width: 2.4;
+      stroke-linecap: square;
+      stroke-linejoin: miter;
+      fill: none;
+    }
+
+    .icon-button.active {
+      background: #e9b646;
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 rgba(38, 56, 29, 0.3);
+    }
+
+    .icon-button:disabled {
+      opacity: 0.42;
+      cursor: not-allowed;
+    }
+
+    .swatch {
+      background: var(--swatch);
+    }
+
+    .swatch.active {
+      background: var(--swatch);
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 rgba(38, 56, 29, 0.3);
+      outline: 4px solid #fff7dc;
+      outline-offset: -8px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+    }
+
+    .check-copy {
+      min-height: 74px;
+      color: #4f613c;
+      font-size: 13px;
+      font-weight: 850;
+      line-height: 1.35;
+    }
+
+    .compact-check .check-copy {
+      min-height: 38px;
+    }
+
+    .reveal-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .success-button {
+      background: #7fc95f;
+      box-shadow: 0 5px 0 #3f7e45;
+    }
+
+    .miss-button {
+      background: #e0715f;
+      box-shadow: 0 5px 0 #91392f;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: none;
+      place-items: center;
+      padding: 18px;
+      background: rgba(24, 30, 19, 0.64);
+    }
+
+    .overlay.show {
+      display: grid;
+    }
+
+    .modal {
+      width: min(560px, 100%);
+      border: 4px solid #26381d;
+      background: #fff7dc;
+      box-shadow: 0 12px 0 rgba(31, 36, 24, 0.28);
+      padding: 22px;
+      text-align: center;
+    }
+
+    .modal h2 {
+      margin-bottom: 10px;
+      font-size: clamp(28px, 7vw, 54px);
+      line-height: 0.95;
+      text-transform: uppercase;
+      text-shadow: 4px 4px 0 #e9b646;
+    }
+
+    .modal p {
+      max-width: 450px;
+      margin: 0 auto 18px;
+      color: #4f613c;
+      font-size: 14px;
+      font-weight: 850;
+      line-height: 1.45;
+    }
+
+    .player-setup {
+      display: grid;
+      gap: 10px;
+      max-width: 340px;
+      margin: 18px auto 4px;
+      text-align: left;
+    }
+
+    .player-setup label {
+      color: #4f613c;
+      font-size: 11px;
+      font-weight: 950;
+      text-transform: uppercase;
+    }
+
+    .player-setup input {
+      width: 100%;
+      height: 44px;
+      border: 3px solid #26381d;
+      background: #fffdf1;
+      color: var(--ink);
+      font: inherit;
+      font-size: 16px;
+      font-weight: 950;
+      text-align: left;
+      padding: 0 12px;
+      text-transform: uppercase;
+    }
+
+    .player-name-fields {
+      display: grid;
+      gap: 8px;
+    }
+
+    @media (max-width: 1080px) {
+      .topbar {
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        gap: 8px;
+      }
+
+      .card-overlay {
+        padding: 0;
+      }
+
+      .card-table {
+        max-height: none;
+      }
+
+      .meters {
+        grid-column: 1 / -1;
+      }
+
+      .game-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .stage-strip {
+        grid-template-columns: 170px minmax(280px, 1fr);
+      }
+
+      .compact-check {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .app {
+        gap: 0;
+        padding: 0;
+      }
+
+      .card-overlay {
+        padding: 0;
+      }
+
+      .card-table {
+        max-height: none;
+        gap: 0;
+        padding: 0;
+      }
+
+      .overlay-status {
+        display: block;
+      }
+
+      .overlay-clock,
+      .overlay-player {
+        min-width: 0;
+        padding: 7px 8px;
+      }
+
+      .overlay-clock {
+        top: 6px;
+        left: 6px;
+      }
+
+      .overlay-go {
+        top: 76px;
+        left: 6px;
+        min-width: 70px;
+        padding: 0 8px;
+      }
+
+      .overlay-player {
+        top: 124px;
+        min-width: 190px;
+      }
+
+      .overlay-player strong {
+        max-width: 220px;
+        font-size: 13px;
+      }
+
+      .overlay-timer {
+        font-size: 32px;
+      }
+
+      .overlay-phase {
+        font-size: 10px;
+      }
+
+      .preview-card-list {
+        gap: 10px;
+        padding: 174px 8px 78px;
+      }
+
+      .card-overlay.reveal .preview-card-list {
+        padding: 126px 8px 48px;
+      }
+
+      .instruction-card {
+        flex-basis: min(155px, 44vw);
+        min-height: 188px;
+        padding: 46px 12px 14px;
+        font-size: 13px;
+        box-shadow: 5px 5px 0 rgba(76, 52, 28, 0.28);
+      }
+
+      .topbar {
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 6px;
+        padding: 6px;
+      }
+
+      h1 {
+        font-size: 20px;
+        text-shadow: 2px 2px 0 #f0c34d;
+      }
+
+      .subtitle {
+        margin-top: 3px;
+        font-size: 10px;
+      }
+
+      .meters {
+        grid-column: 1 / -1;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      #newRunButton {
+        grid-column: 1 / -1;
+      }
+
+      .game-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .stage-strip {
+        grid-template-columns: 96px minmax(0, 1fr);
+        gap: 6px;
+        margin-bottom: 6px;
+      }
+
+      .timer-panel {
+        min-height: 76px;
+      }
+
+      .timer-number {
+        font-size: 34px;
+      }
+
+      .phase-label {
+        margin-top: 6px;
+        font-size: 11px;
+      }
+
+      .timebar {
+        left: 6px;
+        right: 6px;
+        bottom: 6px;
+        height: 8px;
+      }
+
+      .memory-panel,
+      .compact-check {
+        padding: 6px;
+      }
+
+      .compact-check {
+        grid-column: 1 / -1;
+      }
+
+      .card-list {
+        max-height: 56px;
+      }
+
+      .card {
+        flex-basis: min(190px, 66vw);
+        min-height: 48px;
+        padding: 7px 7px 7px 35px;
+        font-size: 10px;
+      }
+
+      .card::before {
+        left: 6px;
+        top: 6px;
+        width: 20px;
+        height: 20px;
+        font-size: 10px;
+      }
+
+      .check-copy {
+        min-height: 0;
+        font-size: 11px;
+      }
+
+      .reveal-actions {
+        margin-top: 6px;
+      }
+
+      .board-panel {
+        padding: 0;
+      }
+
+      .board-head {
+        top: 8px;
+        left: 8px;
+        right: 8px;
+        margin: 0;
+      }
+
+      .tool-dock {
+        grid-template-columns: 1fr;
+        gap: 6px;
+        left: 8px;
+        right: 8px;
+        bottom: 8px;
+        margin: 0;
+        padding: 5px;
+      }
+
+      .tool-group,
+      .swatches {
+        justify-content: center;
+        gap: 4px;
+      }
+
+      .icon-button,
+      .swatch {
+        width: 30px;
+        height: 30px;
+        border-width: 2px;
+      }
+
+      .icon-button svg {
+        width: 19px;
+        height: 19px;
+      }
+
+      .board-head {
+        align-items: stretch;
+        flex-direction: row;
+      }
+
+      .primary-button,
+      .action-button {
+        min-height: 36px;
+        padding: 0 12px;
+        font-size: 11px;
+      }
+
+      .meter {
+        min-height: 38px;
+        padding: 4px 6px;
+      }
+
+      .meter strong {
+        font-size: 16px;
+      }
+
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="language-flags" aria-label="Language selector">
+        <button type="button" class="active" data-lang="en" aria-label="English">🇬🇧</button>
+        <button type="button" data-lang="hy" aria-label="Armenian">🇦🇲</button>
+        <button type="button" data-lang="ru" aria-label="Russian">🇷🇺</button>
+      </div>
+      <div class="brand">
+        <h1>Context Overload</h1>
+        <div class="subtitle" data-i18n="subtitle">Pixel village memory cards "a game to make humans feel what its like to hold too much context"</div>
+      </div>
+      <div class="meters" aria-label="Run status">
+        <div class="meter">
+          <span data-i18n="stageLabel">Stage</span>
+          <strong id="stageNumber">1</strong>
+        </div>
+        <div class="meter">
+          <span data-i18n="playerLabel">Player</span>
+          <strong id="playerNumber">1</strong>
+        </div>
+        <div class="meter">
+          <span data-i18n="cardsLabel">Cards</span>
+          <strong id="cardCount">1</strong>
+        </div>
+        <div class="meter">
+          <span data-i18n="bestLabel">Best</span>
+          <strong id="bestStage">0</strong>
+        </div>
+      </div>
+      <button class="primary-button" id="newRunButton" type="button" data-i18n="newRunButton">New Run</button>
+    </header>
+
+    <main class="game-shell">
+      <section class="board-panel">
+        <div class="stage-strip" id="stageStrip" hidden>
+          <div class="timer-panel" aria-live="polite">
+            <div>
+              <div class="timer-number" id="timerNumber">10</div>
+              <div class="phase-label" id="phaseLabel">Ready</div>
+            </div>
+            <div class="timebar" aria-hidden="true">
+              <div class="timebar-fill" id="timebarFill"></div>
+            </div>
+          </div>
+          <div class="memory-panel" aria-label="Memory cards" data-i18n-aria="memoryCardsAria">
+            <div class="deck-head">
+              <span data-i18n="cardsLabel">Cards</span>
+              <span class="pill" id="visibleCount">0</span>
+            </div>
+            <div class="card-list" id="cardList" aria-live="polite"></div>
+          </div>
+          <div class="compact-check" aria-label="Self check" data-i18n-aria="selfCheckAria">
+            <div class="check-head">
+              <span data-i18n="selfCheckTitle">Self Check</span>
+              <span class="pill" id="runState">Idle</span>
+            </div>
+            <div class="check-copy" id="checkCopy">
+              Start a run to see the first village card. After the timer, draw from memory.
+            </div>
+            <div class="reveal-actions" id="revealActions" hidden>
+              <button class="action-button success-button" id="correctButton" type="button" data-i18n="correctButton">Correct</button>
+              <button class="action-button miss-button" id="missedButton" type="button" data-i18n="missedButton">Missed</button>
+            </div>
+          </div>
+        </div>
+        <div class="board-head">
+          <button class="action-button" id="doneButton" type="button" disabled data-i18n="doneButton">Done</button>
+        </div>
+        <div class="canvas-frame locked" id="canvasFrame">
+          <canvas id="pixelCanvas" width="1024" height="672" aria-label="Pixel drawing canvas" data-i18n-aria="pixelCanvasAria"></canvas>
+          <div class="canvas-lock" id="canvasLock">Cards first</div>
+        </div>
+        <div class="tool-dock" aria-label="Drawing tools" data-i18n-aria="drawingToolsAria">
+          <div class="tool-group">
+            <button class="icon-button active" type="button" data-tool="pencil" title="Pencil" aria-label="Pencil" data-i18n-title="pencilTool" data-i18n-aria="pencilTool">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 19h4l10-10-4-4L5 15v4z"></path>
+                <path d="M13 7l4 4"></path>
+              </svg>
+            </button>
+            <button class="icon-button" type="button" data-tool="eraser" title="Eraser" aria-label="Eraser" data-i18n-title="eraserTool" data-i18n-aria="eraserTool">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 15l8-8 8 8-5 5H9l-5-5z"></path>
+                <path d="M9 20h11"></path>
+              </svg>
+            </button>
+          </div>
+          <div class="swatches" id="swatches" aria-label="Colors" data-i18n-aria="colorsAria"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="card-overlay" id="cardOverlay" aria-label="Instruction cards" data-i18n-aria="memoryCardsAria">
+    <div class="card-table">
+      <div class="overlay-status">
+        <div class="overlay-clock" aria-live="polite">
+          <div class="overlay-timer" id="overlayTimerNumber">15</div>
+          <div class="overlay-phase" id="overlayPhaseLabel">Memorize</div>
+        </div>
+        <div class="overlay-timebar" aria-hidden="true">
+          <div class="overlay-timebar-fill" id="overlayTimebarFill"></div>
+        </div>
+        <div class="overlay-player">
+          <strong id="overlayPlayerNumber">1</strong>
+        </div>
+      </div>
+      <div class="preview-card-list" id="previewCardList" aria-live="polite"></div>
+      <div class="overlay-actions" id="overlayActions">
+        <button class="action-button success-button" id="overlayCorrectButton" type="button" data-i18n="correctButton">Correct</button>
+        <button class="action-button miss-button" id="overlayMissedButton" type="button" data-i18n="missedButton">Missed</button>
+      </div>
+      <button class="action-button overlay-go" id="overlayGoButton" type="button" data-i18n="timerGo">GO</button>
+    </div>
+  </div>
+
+  <div class="overlay show" id="overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal">
+      <h2 id="modalTitle">Context Overload</h2>
+      <p id="modalCopy">
+        Memorize village drawing cards for 15 seconds, then recreate them as pixel art.
+      </p>
+      <div class="player-setup" id="playerSetup">
+        <label data-i18n="playerNamesLabel">Player names</label>
+        <div class="player-name-fields">
+          <input class="player-name-input" type="text" maxlength="14" value="Player 1" data-default-name="Player 1" data-i18n-placeholder="playerOnePlaceholder" placeholder="Player 1" />
+          <input class="player-name-input" type="text" maxlength="14" value="Player 2" data-default-name="Player 2" data-i18n-placeholder="playerTwoPlaceholder" placeholder="Player 2" />
+          <input class="player-name-input" type="text" maxlength="14" data-default-name="Player 3" data-i18n-placeholder="playerThreePlaceholder" placeholder="Player 3" />
+        </div>
+      </div>
+      <button class="primary-button" id="modalButton" type="button">Start</button>
+    </div>
+  </div>
+
+  <script>
+    const GRID_COLS = 512;
+    const GRID_ROWS = 336;
+    const CELL_SIZE = 2;
+    const BRUSH_SIZE = 4;
+    const PREVIEW_SECONDS = 15;
+
+    const cardKeys = [
+      "cardPig",
+      "cardPinkPig",
+      "cardHouse",
+      "cardSmoke",
+      "cardFence",
+      "cardWell",
+      "cardPath",
+      "cardChicken",
+      "cardCow",
+      "cardHaystack",
+      "cardScarecrow",
+      "cardPond",
+      "cardDucks",
+      "cardTree",
+      "cardApples",
+      "cardCart",
+      "cardFarmerHat",
+      "cardBarnDoor",
+      "cardMarketStall",
+      "cardFruitStall",
+      "cardWindmill",
+      "cardSheep",
+      "cardWhiteSheep",
+      "cardGoat",
+      "cardStoneBridge",
+      "cardRiver",
+      "cardFlowers",
+      "cardBeehive",
+      "cardDog",
+      "cardCat",
+      "cardLantern",
+      "cardMailbox",
+      "cardPumpkins",
+      "cardClouds",
+      "cardSun",
+      "cardMoon",
+      "cardFirewood",
+      "cardBucket",
+      "cardMushrooms",
+      "cardBell",
+      "cardGate",
+      "cardCarrots",
+      "cardCrow",
+      "cardWheat",
+      "cardBoat",
+      "cardTower",
+      "cardBakery",
+      "cardBread",
+      "cardFootprints",
+      "cardFlag"
+    ];
+
+    const counterCardKeys = new Set([
+      "cardHaystack",
+      "cardScarecrow",
+      "cardTower",
+      "cardBakery",
+      "cardFootprints"
+    ]);
+
+    const cardPrerequisites = {
+      cardPinkPig: ["cardPig"],
+      cardHaystack: ["cardFence"],
+      cardScarecrow: ["cardClouds"],
+      cardWhiteSheep: ["cardSheep"],
+      cardTower: ["cardTree"],
+      cardBakery: ["cardCart"],
+      cardFootprints: ["cardPath"]
+    };
+
+    const translations = {
+      en: {
+        subtitle: "Pixel village memory cards \"a game to make humans feel what its like to hold too much context\"",
+        stageLabel: "Stage",
+        playerLabel: "Player",
+        playerPromptsLabel: "{player}'s Prompts",
+        playerCheckLabel: "Did {player} do these prompts?",
+        cardsLabel: "Cards",
+        bestLabel: "Best",
+        nextLabel: "Next",
+        deckLabel: "Deck",
+        newRunButton: "New Run",
+        playerNamesLabel: "Player names",
+        playerOnePlaceholder: "Player 1",
+        playerTwoPlaceholder: "Player 2",
+        playerThreePlaceholder: "Player 3",
+        startButton: "Start",
+        doneButton: "Done",
+        correctButton: "Correct",
+        missedButton: "Missed",
+        yesButton: "YES",
+        noButton: "NO",
+        canvasTitle: "Village Canvas",
+        selfCheckTitle: "Self Check",
+        phaseReady: "Ready",
+        phaseMemorize: "Memorize",
+        phaseDraw: "Draw",
+        phaseReveal: "Reveal",
+        stateIdle: "Idle",
+        stateWatch: "Watch",
+        stateDraw: "Draw",
+        stateCheck: "Check",
+        timerGo: "GO",
+        timerOk: "OK",
+        cardsFirst: "Cards first",
+        hiddenCard: "Hidden card",
+        checkStart: "Start a run to see the first village card. After the timer, draw from memory.",
+        checkMemorize: "Memorize every card before the timer runs out.",
+        checkDraw: "Cards are hidden. Draw the village from memory.",
+        checkReveal: "Compare your drawing with the revealed cards.",
+        modalStartTitle: "Context Overload",
+        modalStartCopy: "Memorize village drawing cards for 15 seconds, then recreate them as pixel art.",
+        modalSetupTitle: "Players",
+        modalSetupCopy: "Add up to 3 player names. Non-empty names will take turns.",
+        modalVictoryTitle: "Village Complete",
+        modalVictoryCopy: "You survived all 50 memory cards and finished the whole deck.",
+        modalGameOverTitle: "Game Over",
+        modalGameOverCopy: "{player} is out of the game. The run ended on stage {stage}. Your best cleared stage is {best}.",
+        memoryCardsAria: "Memory cards",
+        pixelCanvasAria: "Pixel drawing canvas",
+        drawingToolsAria: "Drawing tools",
+        colorsAria: "Colors",
+        selfCheckAria: "Self check",
+        pencilTool: "Pencil",
+        eraserTool: "Eraser",
+        fillTool: "Fill",
+        colorLabel: "Color {color}",
+        cards: {
+          cardPig: "Draw a pig.",
+          cardPinkPig: "If there is a pig, color it pink.",
+          cardHouse: "Draw a small red-roof house.",
+          cardSmoke: "Draw smoke.",
+          cardFence: "Draw a wooden fence.",
+          cardWell: "Draw a village well.",
+          cardPath: "Draw a path from left to right.",
+          cardChicken: "Draw a chicken.",
+          cardCow: "Draw a cow with black spots.",
+          cardHaystack: "If there is a fence, remove one piece.",
+          cardScarecrow: "If there is a cloud, remove one cloud.",
+          cardPond: "Draw a blue pond.",
+          cardDucks: "Draw ducks.",
+          cardTree: "Draw a tall tree.",
+          cardApples: "Draw apples.",
+          cardCart: "Draw a cart with two wheels.",
+          cardFarmerHat: "Draw a farmer hat.",
+          cardBarnDoor: "Draw a door.",
+          cardMarketStall: "Draw a table.",
+          cardFruitStall: "Draw fruit.",
+          cardWindmill: "Draw a windmill.",
+          cardSheep: "Draw a sheep.",
+          cardWhiteSheep: "If there is a sheep, make it white.",
+          cardGoat: "Draw a goat.",
+          cardStoneBridge: "Draw a stone bridge.",
+          cardRiver: "Draw a river.",
+          cardFlowers: "Draw flowers.",
+          cardBeehive: "Draw ants.",
+          cardDog: "Draw a dog.",
+          cardCat: "Draw a cat.",
+          cardLantern: "Draw birds in the sky.",
+          cardMailbox: "Draw a mailbox.",
+          cardPumpkins: "Draw a pumpkin.",
+          cardClouds: "Draw three clouds.",
+          cardSun: "Draw the sun in a corner.",
+          cardMoon: "Draw a moon.",
+          cardFirewood: "Draw a stack of firewood.",
+          cardBucket: "Draw a water bucket.",
+          cardMushrooms: "Draw a mushroom patch.",
+          cardBell: "Draw a bell.",
+          cardGate: "Draw a gate.",
+          cardCarrots: "Draw carrots.",
+          cardCrow: "Draw a crow.",
+          cardWheat: "Draw a yellow wheat field.",
+          cardBoat: "Draw a small boat.",
+          cardTower: "If there is a tree, remove the tree.",
+          cardBakery: "If there is a cart, remove one wheel.",
+          cardBread: "Draw bread.",
+          cardFootprints: "If there is a path, remove part of the path.",
+          cardFlag: "Draw a flag."
+        }
+      },
+      hy: {
+        subtitle: "Փիքսելային գյուղի հիշողության քարտեր «խաղ, որ մարդիկ զգան, թե ինչ է չափազանց շատ համատեքստ պահելը»",
+        stageLabel: "Փուլ",
+        playerLabel: "Խաղացող",
+        playerPromptsLabel: "{player}-ի հուշումները",
+        playerCheckLabel: "{player}-ը կատարե՞ց այս հուշումները",
+        cardsLabel: "Քարտեր",
+        bestLabel: "Լավագույն",
+        nextLabel: "Հաջորդ",
+        deckLabel: "Կապոց",
+        newRunButton: "Նոր խաղ",
+        playerNamesLabel: "Խաղացողների անունները",
+        playerOnePlaceholder: "Խաղացող 1",
+        playerTwoPlaceholder: "Խաղացող 2",
+        playerThreePlaceholder: "Խաղացող 3",
+        startButton: "Սկսել",
+        doneButton: "Պատրաստ է",
+        correctButton: "Ճիշտ է",
+        missedButton: "Չստացվեց",
+        yesButton: "ԱՅՈ",
+        noButton: "ՈՉ",
+        canvasTitle: "Գյուղի կտավ",
+        selfCheckTitle: "Ինքնաստուգում",
+        phaseReady: "Պատրաստ",
+        phaseMemorize: "Հիշիր",
+        phaseDraw: "Նկարիր",
+        phaseReveal: "Բացում",
+        stateIdle: "Սպասում",
+        stateWatch: "Նայիր",
+        stateDraw: "Նկարիր",
+        stateCheck: "Ստուգիր",
+        timerGo: "ԳՆԱ",
+        timerOk: "OK",
+        cardsFirst: "Սկզբում քարտերը",
+        hiddenCard: "Թաքնված քարտ",
+        checkStart: "Սկսիր խաղը, որ տեսնես առաջին գյուղական քարտը։ Ժամաչափից հետո նկարիր հիշողությամբ։",
+        checkMemorize: "Հիշիր բոլոր քարտերը մինչ ժամանակը կավարտվի։",
+        checkDraw: "Քարտերը թաքնված են։ Նկարիր գյուղը հիշողությամբ։",
+        checkReveal: "Համեմատիր նկարածդ բացված քարտերի հետ։",
+        modalStartTitle: "Context Overload",
+        modalStartCopy: "15 վայրկյան հիշիր գյուղի նկարչական քարտերը, հետո վերարտադրիր դրանք փիքսելային նկարով։",
+        modalSetupTitle: "Խաղացողներ",
+        modalSetupCopy: "Ավելացրու մինչև 3 խաղացողի անուն։ Դատարկ չթողնված անունները կխաղան հերթով։",
+        modalVictoryTitle: "Գյուղը ավարտված է",
+        modalVictoryCopy: "Դու հաղթահարեցիր բոլոր 50 հիշողության քարտերը և ավարտեցիր ամբողջ կապոցը։",
+        modalGameOverTitle: "Խաղն ավարտվեց",
+        modalGameOverCopy: "{player}-ը դուրս է խաղից։ Խաղը ավարտվեց {stage}-րդ փուլում։ Քո լավագույն հաղթահարած փուլը {best}-ն է։",
+        memoryCardsAria: "Հիշողության քարտեր",
+        pixelCanvasAria: "Փիքսելային նկարչական կտավ",
+        drawingToolsAria: "Նկարչական գործիքներ",
+        colorsAria: "Գույներ",
+        selfCheckAria: "Ինքնաստուգում",
+        pencilTool: "Մատիտ",
+        eraserTool: "Ռետին",
+        fillTool: "Լցնել",
+        colorLabel: "Գույն {color}",
+        cards: {
+          cardPig: "Նկարիր խոզ։",
+          cardPinkPig: "Եթե խոզ կա, գունավորիր այն վարդագույն։",
+          cardHouse: "Նկարիր փոքրիկ կարմիր տանիքով տուն։",
+          cardSmoke: "Նկարիր ծուխ։",
+          cardFence: "Նկարիր փայտե ցանկապատ։",
+          cardWell: "Նկարիր գյուղական ջրհոր։",
+          cardPath: "Նկարիր արահետ ձախից աջ։",
+          cardChicken: "Նկարիր հավ։",
+          cardCow: "Նկարիր սև բծերով կով։",
+          cardHaystack: "Եթե ցանկապատ կա, ջնջիր մեկ մասը։",
+          cardScarecrow: "Եթե ամպ կա, ջնջիր մեկ ամպ։",
+          cardPond: "Նկարիր կապույտ լճակ։",
+          cardDucks: "Նկարիր բադեր։",
+          cardTree: "Նկարիր բարձր ծառ։",
+          cardApples: "Նկարիր խնձորներ։",
+          cardCart: "Նկարիր երկու անիվով սայլ։",
+          cardFarmerHat: "Նկարիր ֆերմերի գլխարկ։",
+          cardBarnDoor: "Նկարիր դուռ։",
+          cardMarketStall: "Նկարիր սեղան։",
+          cardFruitStall: "Նկարիր մրգեր։",
+          cardWindmill: "Նկարիր հողմաղաց։",
+          cardSheep: "Նկարիր ոչխար։",
+          cardWhiteSheep: "Եթե ոչխար կա, դարձրու այն սպիտակ։",
+          cardGoat: "Նկարիր այծ։",
+          cardStoneBridge: "Նկարիր քարե կամուրջ։",
+          cardRiver: "Նկարիր գետ։",
+          cardFlowers: "Նկարիր ծաղիկներ։",
+          cardBeehive: "Նկարիր մրջյուններ։",
+          cardDog: "Նկարիր շուն։",
+          cardCat: "Նկարիր կատու։",
+          cardLantern: "Նկարիր թռչուններ երկնքում։",
+          cardMailbox: "Նկարիր փոստարկղ։",
+          cardPumpkins: "Նկարիր դդում։",
+          cardClouds: "Նկարիր երեք ամպ։",
+          cardSun: "Նկարիր արևը մի անկյունում։",
+          cardMoon: "Նկարիր լուսին։",
+          cardFirewood: "Նկարիր վառելափայտի կույտ։",
+          cardBucket: "Նկարիր ջրի դույլ։",
+          cardMushrooms: "Նկարիր սնկերի խումբ։",
+          cardBell: "Նկարիր զանգ։",
+          cardGate: "Նկարիր դարպաս։",
+          cardCarrots: "Նկարիր գազարներ։",
+          cardCrow: "Նկարիր ագռավ։",
+          cardWheat: "Նկարիր դեղին ցորենի դաշտ։",
+          cardBoat: "Նկարիր փոքր նավակ։",
+          cardTower: "Եթե ծառ կա, ջնջիր ծառը։",
+          cardBakery: "Եթե սայլ կա, ջնջիր մեկ անիվ։",
+          cardBread: "Նկարիր հաց։",
+          cardFootprints: "Եթե արահետ կա, ջնջիր արահետի մի մասը։",
+          cardFlag: "Նկարիր դրոշ։"
+        }
+      },
+      ru: {
+        subtitle: "Пиксельные карты памяти про деревню «игра, чтобы люди почувствовали, каково держать слишком много контекста»",
+        stageLabel: "Этап",
+        playerLabel: "Игрок",
+        playerPromptsLabel: "Подсказки {player}",
+        playerCheckLabel: "{player} выполнил(а) эти подсказки?",
+        cardsLabel: "Карты",
+        bestLabel: "Рекорд",
+        nextLabel: "Дальше",
+        deckLabel: "Колода",
+        newRunButton: "Новая игра",
+        playerNamesLabel: "Имена игроков",
+        playerOnePlaceholder: "Игрок 1",
+        playerTwoPlaceholder: "Игрок 2",
+        playerThreePlaceholder: "Игрок 3",
+        startButton: "Старт",
+        doneButton: "Готово",
+        correctButton: "Верно",
+        missedButton: "Ошибка",
+        yesButton: "ДА",
+        noButton: "НЕТ",
+        canvasTitle: "Деревенский холст",
+        selfCheckTitle: "Самопроверка",
+        phaseReady: "Готово",
+        phaseMemorize: "Запомни",
+        phaseDraw: "Рисуй",
+        phaseReveal: "Открыто",
+        stateIdle: "Ждем",
+        stateWatch: "Смотри",
+        stateDraw: "Рисуй",
+        stateCheck: "Проверь",
+        timerGo: "РИС",
+        timerOk: "OK",
+        cardsFirst: "Сначала карты",
+        hiddenCard: "Скрытая карта",
+        checkStart: "Начни игру, чтобы увидеть первую деревенскую карту. После таймера рисуй по памяти.",
+        checkMemorize: "Запомни все карты до конца таймера.",
+        checkDraw: "Карты скрыты. Нарисуй деревню по памяти.",
+        checkReveal: "Сравни свой рисунок с открытыми картами.",
+        modalStartTitle: "Context Overload",
+        modalStartCopy: "Запомни деревенские карты для рисования за 15 секунд, потом воссоздай их пиксель-артом.",
+        modalSetupTitle: "Игроки",
+        modalSetupCopy: "Добавь до 3 имен игроков. Непустые имена будут играть по очереди.",
+        modalVictoryTitle: "Деревня готова",
+        modalVictoryCopy: "Ты прошел все 50 карт памяти и закончил всю колоду.",
+        modalGameOverTitle: "Игра окончена",
+        modalGameOverCopy: "{player} выходит из игры. Игра закончилась на этапе {stage}. Твой лучший пройденный этап: {best}.",
+        memoryCardsAria: "Карты памяти",
+        pixelCanvasAria: "Пиксельный холст",
+        drawingToolsAria: "Инструменты рисования",
+        colorsAria: "Цвета",
+        selfCheckAria: "Самопроверка",
+        pencilTool: "Карандаш",
+        eraserTool: "Ластик",
+        fillTool: "Заливка",
+        colorLabel: "Цвет {color}",
+        cards: {
+          cardPig: "Нарисуй свинью.",
+          cardPinkPig: "Если есть свинья, раскрась ее розовым.",
+          cardHouse: "Нарисуй маленький дом с красной крышей.",
+          cardSmoke: "Нарисуй дым.",
+          cardFence: "Нарисуй деревянный забор.",
+          cardWell: "Нарисуй деревенский колодец.",
+          cardPath: "Нарисуй тропинку слева направо.",
+          cardChicken: "Нарисуй курицу.",
+          cardCow: "Нарисуй корову с черными пятнами.",
+          cardHaystack: "Если есть забор, сотри одну часть.",
+          cardScarecrow: "Если есть облако, сотри одно облако.",
+          cardPond: "Нарисуй синий пруд.",
+          cardDucks: "Нарисуй уток.",
+          cardTree: "Нарисуй высокое дерево.",
+          cardApples: "Нарисуй яблоки.",
+          cardCart: "Нарисуй тележку с двумя колесами.",
+          cardFarmerHat: "Нарисуй фермерскую шляпу.",
+          cardBarnDoor: "Нарисуй дверь.",
+          cardMarketStall: "Нарисуй стол.",
+          cardFruitStall: "Нарисуй фрукты.",
+          cardWindmill: "Нарисуй мельницу.",
+          cardSheep: "Нарисуй овцу.",
+          cardWhiteSheep: "Если есть овца, сделай ее белой.",
+          cardGoat: "Нарисуй козу.",
+          cardStoneBridge: "Нарисуй каменный мост.",
+          cardRiver: "Нарисуй реку.",
+          cardFlowers: "Нарисуй цветы.",
+          cardBeehive: "Нарисуй муравьев.",
+          cardDog: "Нарисуй собаку.",
+          cardCat: "Нарисуй кошку.",
+          cardLantern: "Нарисуй птиц в небе.",
+          cardMailbox: "Нарисуй почтовый ящик.",
+          cardPumpkins: "Нарисуй тыкву.",
+          cardClouds: "Нарисуй три облака.",
+          cardSun: "Нарисуй солнце в углу.",
+          cardMoon: "Нарисуй луну.",
+          cardFirewood: "Нарисуй стопку дров.",
+          cardBucket: "Нарисуй ведро с водой.",
+          cardMushrooms: "Нарисуй грибную полянку.",
+          cardBell: "Нарисуй колокол.",
+          cardGate: "Нарисуй калитку.",
+          cardCarrots: "Нарисуй морковь.",
+          cardCrow: "Нарисуй ворону.",
+          cardWheat: "Нарисуй желтое пшеничное поле.",
+          cardBoat: "Нарисуй маленькую лодку.",
+          cardTower: "Если есть дерево, сотри дерево.",
+          cardBakery: "Если есть тележка, сотри одно колесо.",
+          cardBread: "Нарисуй хлеб.",
+          cardFootprints: "Если есть тропинка, сотри часть тропинки.",
+          cardFlag: "Нарисуй флаг."
+        }
+      }
+    };
+
+    const palette = [
+      "#2f2418",
+      "#704f2a",
+      "#f3d9a4",
+      "#cf3e34",
+      "#e4933a",
+      "#f6d55c",
+      "#5fb05f",
+      "#2c7f7b",
+      "#7dbde8",
+      "#f2a3bc",
+      "#f7f1df",
+      "#3f4a5a"
+    ];
+
+    const canvas = document.getElementById("pixelCanvas");
+    const ctx = canvas.getContext("2d");
+    const cardList = document.getElementById("cardList");
+    const timerNumber = document.getElementById("timerNumber");
+    const phaseLabel = document.getElementById("phaseLabel");
+    const timebarFill = document.getElementById("timebarFill");
+    const stageNumber = document.getElementById("stageNumber");
+    const playerNumber = document.getElementById("playerNumber");
+    const cardCount = document.getElementById("cardCount");
+    const bestStage = document.getElementById("bestStage");
+    const visibleCount = document.getElementById("visibleCount");
+    const runState = document.getElementById("runState");
+    const checkCopy = document.getElementById("checkCopy");
+    const revealActions = document.getElementById("revealActions");
+    const doneButton = document.getElementById("doneButton");
+    const correctButton = document.getElementById("correctButton");
+    const missedButton = document.getElementById("missedButton");
+    const newRunButton = document.getElementById("newRunButton");
+    const boardPanel = document.querySelector(".board-panel");
+    const modalButton = document.getElementById("modalButton");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalCopy = document.getElementById("modalCopy");
+    const playerSetup = document.getElementById("playerSetup");
+    const playerNameInputs = document.querySelectorAll(".player-name-input");
+    const overlay = document.getElementById("overlay");
+    const swatches = document.getElementById("swatches");
+    const canvasFrame = document.getElementById("canvasFrame");
+    const canvasLock = document.getElementById("canvasLock");
+    const stageStrip = document.getElementById("stageStrip");
+    const cardOverlay = document.getElementById("cardOverlay");
+    const previewCardList = document.getElementById("previewCardList");
+    const overlayTimerNumber = document.getElementById("overlayTimerNumber");
+    const overlayPhaseLabel = document.getElementById("overlayPhaseLabel");
+    const overlayTimebarFill = document.getElementById("overlayTimebarFill");
+    const overlayPlayerNumber = document.getElementById("overlayPlayerNumber");
+    const overlayGoButton = document.getElementById("overlayGoButton");
+    const overlayCorrectButton = document.getElementById("overlayCorrectButton");
+    const overlayMissedButton = document.getElementById("overlayMissedButton");
+    const langButtons = document.querySelectorAll(".language-flags button");
+    const translatable = document.querySelectorAll("[data-i18n]");
+    const ariaTranslatable = document.querySelectorAll("[data-i18n-aria]");
+    const titleTranslatable = document.querySelectorAll("[data-i18n-title]");
+    const placeholderTranslatable = document.querySelectorAll("[data-i18n-placeholder]");
+
+    let phase = "idle";
+    let stage = 1;
+    let best = 0;
+    let playerNames = ["Player 1", "Player 2"];
+    let currentPlayerName = "Player 1";
+    let stageCards = [];
+    let drawPile = [];
+    let drawnCardKeys = new Set();
+    let cardsVisible = false;
+    let previewEndAt = 0;
+    let timerFrame = 0;
+    let timerToken = 0;
+    let activeTool = "pencil";
+    let activeColor = palette[0];
+    let isDrawing = false;
+    let lastPaintCell = null;
+    let pixels = makeBlankPixels();
+    let selectedRevealCards = new Set();
+    let revealAdvanceTimer = 0;
+    let currentLang = "en";
+    let checkCopyKey = "checkStart";
+    let checkCopyParams = {};
+    let modalContent = {
+      titleKey: "modalSetupTitle",
+      copyKey: "modalSetupCopy",
+      buttonKey: "startButton",
+      params: {},
+      setup: true
+    };
+
+    function translate(key, params = {}) {
+      const text = translations[currentLang]?.[key] ?? translations.en[key] ?? key;
+      return String(text).replace(/\{(\w+)\}/g, (_, name) => params[name] ?? "");
+    }
+
+    function translateCard(cardKey) {
+      return translations[currentLang]?.cards?.[cardKey] ?? translations.en.cards[cardKey] ?? cardKey;
+    }
+
+    function setCheckCopy(key, params = {}) {
+      checkCopyKey = key;
+      checkCopyParams = params;
+      checkCopy.textContent = translate(checkCopyKey, checkCopyParams);
+    }
+
+    function applyModalContent() {
+      modalTitle.textContent = translate(modalContent.titleKey, modalContent.params);
+      modalCopy.textContent = translate(modalContent.copyKey, modalContent.params);
+      modalButton.textContent = translate(modalContent.buttonKey, modalContent.params);
+      playerSetup.hidden = !modalContent.setup;
+    }
+
+    function applyPhaseText() {
+      if (phase === "preview") {
+        canvasLock.textContent = translate("cardsFirst");
+        runState.textContent = translate("stateWatch");
+        phaseLabel.textContent = translate("phaseMemorize");
+        overlayPhaseLabel.textContent = translate("phaseMemorize");
+      } else if (phase === "draw") {
+        canvasLock.textContent = "";
+        runState.textContent = translate("stateDraw");
+        phaseLabel.textContent = translate("phaseDraw");
+        timerNumber.textContent = translate("timerGo");
+        overlayPhaseLabel.textContent = translate("phaseDraw");
+      } else if (phase === "reveal") {
+        canvasLock.textContent = translate("stateCheck");
+        runState.textContent = translate("stateCheck");
+        phaseLabel.textContent = translate("phaseReveal");
+        timerNumber.textContent = translate("timerOk");
+        overlayTimerNumber.textContent = translate("timerOk");
+        overlayPhaseLabel.textContent = translate("phaseReveal");
+      } else {
+        canvasLock.textContent = translate("cardsFirst");
+        runState.textContent = translate("stateIdle");
+        phaseLabel.textContent = translate("phaseReady");
+        timerNumber.textContent = String(PREVIEW_SECONDS);
+        overlayTimerNumber.textContent = String(PREVIEW_SECONDS);
+        overlayPhaseLabel.textContent = translate("phaseReady");
+      }
+    }
+
+    function updateSwatchLabels() {
+      document.querySelectorAll(".swatch").forEach((button) => {
+        button.setAttribute("aria-label", translate("colorLabel", { color: button.dataset.color }));
+      });
+    }
+
+    function setLanguage(lang) {
+      currentLang = translations[lang] ? lang : "en";
+      document.documentElement.lang = currentLang;
+
+      langButtons.forEach((button) => {
+        button.classList.toggle("active", button.dataset.lang === currentLang);
+      });
+
+      translatable.forEach((node) => {
+        node.textContent = translate(node.dataset.i18n);
+      });
+
+      ariaTranslatable.forEach((node) => {
+        node.setAttribute("aria-label", translate(node.dataset.i18nAria));
+      });
+
+      titleTranslatable.forEach((node) => {
+        const label = translate(node.dataset.i18nTitle);
+        node.setAttribute("title", label);
+        node.setAttribute("aria-label", label);
+      });
+
+      placeholderTranslatable.forEach((node) => {
+        node.setAttribute("placeholder", translate(node.dataset.i18nPlaceholder));
+      });
+
+      updateSwatchLabels();
+      updateMeters();
+      applyPhaseText();
+      setCheckCopy(checkCopyKey, checkCopyParams);
+      applyModalContent();
+      if (stageCards.length) {
+        renderCards(cardsVisible);
+        renderOverlayCards();
+      }
+    }
+
+    function makeBlankPixels() {
+      return Array.from({ length: GRID_ROWS }, () => Array(GRID_COLS).fill(null));
+    }
+
+    function updateOverlayPlayerLabel() {
+      const labelKey = phase === "reveal" ? "playerCheckLabel" : "playerPromptsLabel";
+      overlayPlayerNumber.textContent = translate(labelKey, { player: currentPlayerName });
+    }
+
+    function setPhase(nextPhase) {
+      phase = nextPhase;
+      const canDraw = phase === "draw";
+      canvasFrame.classList.toggle("locked", !canDraw);
+      doneButton.disabled = !canDraw;
+      stageStrip.hidden = true;
+      boardPanel.classList.remove("stage-active");
+      cardOverlay.classList.toggle("show", phase === "preview" || phase === "reveal");
+      cardOverlay.classList.toggle("reveal", phase === "reveal");
+      applyPhaseText();
+      updateOverlayPlayerLabel();
+
+      if (phase === "draw") {
+        timebarFill.style.transform = "scaleX(0)";
+        overlayTimebarFill.style.transform = "scaleX(0)";
+      } else if (phase !== "preview") {
+        timebarFill.style.transform = "scaleX(1)";
+        overlayTimebarFill.style.transform = "scaleX(1)";
+      }
+    }
+
+    function updateMeters() {
+      stageNumber.textContent = stage;
+      currentPlayerName = playerNames[(stage - 1) % playerNames.length] || translate("playerOnePlaceholder");
+      playerNumber.textContent = currentPlayerName;
+      updateOverlayPlayerLabel();
+      cardCount.textContent = stageCards.length || Math.min(stage, cardKeys.length);
+      bestStage.textContent = best;
+    }
+
+    function shuffle(list) {
+      const result = list.slice();
+      for (let i = result.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [result[i], result[j]] = [result[j], result[i]];
+      }
+      return result;
+    }
+
+    function resetDrawPile() {
+      drawPile = shuffle(cardKeys);
+      drawnCardKeys = new Set();
+    }
+
+    function canDrawFromPile(cardKey, selectedSet) {
+      if (stage <= 5 && counterCardKeys.has(cardKey)) {
+        return false;
+      }
+
+      const prerequisites = cardPrerequisites[cardKey] || [];
+      return prerequisites.every((requiredKey) => drawnCardKeys.has(requiredKey) || selectedSet.has(requiredKey));
+    }
+
+    function takeNextCardFromPile(selectedSet) {
+      const cardIndex = drawPile.findIndex((cardKey) => canDrawFromPile(cardKey, selectedSet));
+      if (cardIndex === -1) {
+        return "";
+      }
+
+      const [cardKey] = drawPile.splice(cardIndex, 1);
+      drawnCardKeys.add(cardKey);
+      selectedSet.add(cardKey);
+      return cardKey;
+    }
+
+    function drawStageCards() {
+      const targetCount = Math.min(stage, drawPile.length);
+      const selected = [];
+      const selectedSet = new Set();
+
+      while (selected.length < targetCount) {
+        const nextCard = takeNextCardFromPile(selectedSet);
+        if (!nextCard) {
+          break;
+        }
+        selected.push(nextCard);
+      }
+
+      stageCards = selected;
+    }
+
+    function createCardElement(cardKey, index, className, showText = true, showQuestionnaire = false) {
+      const card = document.createElement("article");
+      card.className = className;
+      card.dataset.index = index + 1;
+      if (showQuestionnaire) {
+        card.classList.add("has-questionnaire");
+      }
+
+      const promptText = document.createElement("span");
+      promptText.className = "card-prompt-text";
+      promptText.textContent = showText ? translateCard(cardKey) : translate("hiddenCard");
+
+      if (showQuestionnaire) {
+        const controls = document.createElement("div");
+        controls.className = "card-question-controls";
+
+        const yesButton = document.createElement("button");
+        yesButton.className = "card-choice-button card-choice-yes";
+        yesButton.type = "button";
+        yesButton.textContent = translate("yesButton");
+        yesButton.setAttribute("aria-pressed", "false");
+        yesButton.addEventListener("click", (event) => {
+          event.stopPropagation();
+          confirmRevealCard(index);
+        });
+
+        const noButton = document.createElement("button");
+        noButton.className = "card-choice-button card-choice-no";
+        noButton.type = "button";
+        noButton.textContent = translate("noButton");
+        noButton.addEventListener("click", (event) => {
+          event.stopPropagation();
+          markMissed();
+        });
+
+        controls.append(yesButton, noButton);
+        card.append(controls, promptText);
+      } else {
+        card.append(promptText);
+      }
+
+      if (className.includes("instruction-card")) {
+        card.style.setProperty("--card-delay", `${Math.min(index * 70, 700)}ms`);
+        syncRevealCardState(card, index);
+      }
+      return card;
+    }
+
+    function syncRevealCardState(card, index) {
+      const isCorrect = selectedRevealCards.has(index);
+      card.classList.toggle("card-correct", isCorrect);
+      const yesButton = card.querySelector(".card-choice-yes");
+      if (yesButton) {
+        yesButton.classList.toggle("is-selected", isCorrect);
+        yesButton.setAttribute("aria-pressed", isCorrect ? "true" : "false");
+      }
+    }
+
+    function syncRevealCardStates() {
+      document.querySelectorAll(".instruction-card").forEach((card, index) => {
+        syncRevealCardState(card, index);
+      });
+    }
+
+    function confirmRevealCard(index) {
+      if (phase !== "reveal") {
+        return;
+      }
+
+      clearTimeout(revealAdvanceTimer);
+      selectedRevealCards.add(index);
+      syncRevealCardStates();
+
+      if (selectedRevealCards.size === stageCards.length) {
+        revealAdvanceTimer = setTimeout(() => {
+          if (phase === "reveal" && selectedRevealCards.size === stageCards.length) {
+            markCorrect();
+          }
+        }, 420);
+      }
+    }
+
+    function renderCards(showText) {
+      cardsVisible = showText;
+      visibleCount.textContent = showText ? stageCards.length : 0;
+      cardList.innerHTML = "";
+      stageCards.forEach((cardKey, index) => {
+        cardList.appendChild(createCardElement(cardKey, index, "card" + (showText ? "" : " hidden"), showText));
+      });
+    }
+
+    function renderOverlayCards(showQuestionnaire = phase === "reveal") {
+      previewCardList.innerHTML = "";
+      stageCards.forEach((cardKey, index) => {
+        previewCardList.appendChild(createCardElement(cardKey, index, "instruction-card", true, showQuestionnaire));
+      });
+    }
+
+    function openModal(titleKey, copyKey, buttonKey, params = {}, setup = false) {
+      modalContent = { titleKey, copyKey, buttonKey, params, setup };
+      applyModalContent();
+      overlay.classList.add("show");
+      updateMeters();
+    }
+
+    function closeModal() {
+      overlay.classList.remove("show");
+    }
+
+    function startRun() {
+      timerToken += 1;
+      clearTimeout(revealAdvanceTimer);
+      playerNames = Array.from(playerNameInputs)
+        .map((input, index) => input.value.trim() || (index === 0 ? translate("playerOnePlaceholder") : ""))
+        .filter(Boolean)
+        .slice(0, 3);
+      if (!playerNames.length) {
+        playerNames = [translate("playerOnePlaceholder")];
+      }
+      best = Math.max(best, 0);
+      stage = 1;
+      stageCards = [];
+      resetDrawPile();
+      pixels = makeBlankPixels();
+      renderCanvas();
+      beginStage();
+    }
+
+    function showPlayerSetup() {
+      cancelAnimationFrame(timerFrame);
+      timerToken += 1;
+      setPhase("idle");
+      openModal("modalSetupTitle", "modalSetupCopy", "startButton", {}, true);
+    }
+
+    function beginStage() {
+      cancelAnimationFrame(timerFrame);
+      timerToken += 1;
+      const stageTimerToken = timerToken;
+      clearTimeout(revealAdvanceTimer);
+      closeModal();
+      selectedRevealCards = new Set();
+      drawStageCards();
+      updateMeters();
+      if (!stageCards.length) {
+        setPhase("idle");
+        openModal("modalVictoryTitle", "modalVictoryCopy", "newRunButton");
+        return;
+      }
+      renderCards(true);
+      renderOverlayCards(false);
+      revealActions.hidden = true;
+      setCheckCopy("checkMemorize");
+      previewEndAt = performance.now() + PREVIEW_SECONDS * 1000;
+      setPhase("preview");
+      tickTimer(stageTimerToken);
+    }
+
+    function tickTimer(activeTimerToken) {
+      if (phase !== "preview" || activeTimerToken !== timerToken) {
+        return;
+      }
+
+      const remaining = Math.max(0, previewEndAt - performance.now());
+      const seconds = Math.ceil(remaining / 1000);
+      timerNumber.textContent = String(seconds).padStart(2, "0");
+      overlayTimerNumber.textContent = String(seconds).padStart(2, "0");
+      const scale = remaining / (PREVIEW_SECONDS * 1000);
+      timebarFill.style.transform = `scaleX(${scale})`;
+      overlayTimebarFill.style.transform = `scaleX(${scale})`;
+
+      if (remaining <= 0) {
+        hideCardsForDrawing();
+        return;
+      }
+
+      timerFrame = requestAnimationFrame(() => tickTimer(activeTimerToken));
+    }
+
+    function hideCardsForDrawing() {
+      cancelAnimationFrame(timerFrame);
+      timerToken += 1;
+      renderCards(false);
+      setCheckCopy("checkDraw");
+      setPhase("draw");
+    }
+
+    function skipPreview() {
+      if (phase !== "preview") {
+        return;
+      }
+      hideCardsForDrawing();
+    }
+
+    function finishDrawing() {
+      if (phase !== "draw") {
+        return;
+      }
+      selectedRevealCards = new Set();
+      renderCards(true);
+      renderOverlayCards(true);
+      revealActions.hidden = true;
+      setCheckCopy("checkReveal");
+      setPhase("reveal");
+    }
+
+    function markCorrect() {
+      if (phase !== "reveal") {
+        return;
+      }
+      clearTimeout(revealAdvanceTimer);
+      best = Math.max(best, stage);
+      if (!drawPile.length) {
+        setPhase("idle");
+        openModal("modalVictoryTitle", "modalVictoryCopy", "newRunButton");
+        return;
+      }
+      stage += 1;
+      beginStage();
+    }
+
+    function markMissed() {
+      if (phase !== "reveal") {
+        return;
+      }
+      clearTimeout(revealAdvanceTimer);
+      setPhase("idle");
+      openModal("modalGameOverTitle", "modalGameOverCopy", "newRunButton", { stage, best, player: currentPlayerName });
+    }
+
+    function renderCanvas() {
+      canvas.width = GRID_COLS * CELL_SIZE;
+      canvas.height = GRID_ROWS * CELL_SIZE;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let row = 0; row < GRID_ROWS; row += 1) {
+        for (let col = 0; col < GRID_COLS; col += 1) {
+          const color = pixels[row][col];
+          if (color) {
+            ctx.fillStyle = color;
+            ctx.fillRect(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+          }
+        }
+      }
+
+      ctx.strokeStyle = "rgba(31, 36, 24, 0.08)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let col = 0; col <= GRID_COLS; col += 1) {
+        const x = col * CELL_SIZE + 0.5;
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+      }
+      for (let row = 0; row <= GRID_ROWS; row += 1) {
+        const y = row * CELL_SIZE + 0.5;
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+      }
+      ctx.stroke();
+    }
+
+    function cellFromPointer(event) {
+      const rect = canvas.getBoundingClientRect();
+      const col = Math.floor((event.clientX - rect.left) / rect.width * GRID_COLS);
+      const row = Math.floor((event.clientY - rect.top) / rect.height * GRID_ROWS);
+
+      return {
+        col: Math.max(0, Math.min(GRID_COLS - 1, col)),
+        row: Math.max(0, Math.min(GRID_ROWS - 1, row))
+      };
+    }
+
+    function stampBrush(col, row, color) {
+      const startCol = col - Math.floor(BRUSH_SIZE / 2) + 1;
+      const startRow = row - Math.floor(BRUSH_SIZE / 2) + 1;
+      let changed = false;
+
+      for (let y = 0; y < BRUSH_SIZE; y += 1) {
+        for (let x = 0; x < BRUSH_SIZE; x += 1) {
+          const paintCol = startCol + x;
+          const paintRow = startRow + y;
+          if (paintCol < 0 || paintRow < 0 || paintCol >= GRID_COLS || paintRow >= GRID_ROWS) {
+            continue;
+          }
+          if (pixels[paintRow][paintCol] !== color) {
+            pixels[paintRow][paintCol] = color;
+            changed = true;
+          }
+        }
+      }
+
+      return changed;
+    }
+
+    function paintCell(col, row, shouldRender = true) {
+      const nextColor = activeTool === "eraser" ? null : activeColor;
+      const key = `${activeTool}:${col},${row}:${nextColor}`;
+      if (lastPaintCell === key) {
+        return;
+      }
+      lastPaintCell = key;
+
+      if (stampBrush(col, row, nextColor) && shouldRender) {
+        renderCanvas();
+      }
+    }
+
+    function paintLine(fromCell, toCell) {
+      const deltaCol = toCell.col - fromCell.col;
+      const deltaRow = toCell.row - fromCell.row;
+      const steps = Math.max(Math.abs(deltaCol), Math.abs(deltaRow), 1);
+
+      for (let step = 1; step <= steps; step += 1) {
+        const col = Math.round(fromCell.col + (deltaCol * step) / steps);
+        const row = Math.round(fromCell.row + (deltaRow * step) / steps);
+        paintCell(col, row, false);
+      }
+
+      renderCanvas();
+    }
+
+    function fillFrom(col, row) {
+      const target = pixels[row][col];
+      const replacement = activeTool === "eraser" ? null : activeColor;
+      if (target === replacement) {
+        return;
+      }
+
+      const stack = [[col, row]];
+      const seen = new Set();
+
+      while (stack.length) {
+        const [x, y] = stack.pop();
+        const key = `${x},${y}`;
+        if (seen.has(key)) {
+          continue;
+        }
+        seen.add(key);
+        if (x < 0 || y < 0 || x >= GRID_COLS || y >= GRID_ROWS) {
+          continue;
+        }
+        if (pixels[y][x] !== target) {
+          continue;
+        }
+        pixels[y][x] = replacement;
+        stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
+      }
+
+      renderCanvas();
+    }
+
+    function handlePointerDown(event) {
+      if (phase !== "draw") {
+        return;
+      }
+      event.preventDefault();
+      canvas.setPointerCapture(event.pointerId);
+      const { col, row } = cellFromPointer(event);
+      lastPaintCell = null;
+
+      if (activeTool === "fill") {
+        fillFrom(col, row);
+        return;
+      }
+
+      isDrawing = true;
+      lastPaintCell = null;
+      paintCell(col, row);
+      lastPaintCell = { col, row };
+    }
+
+    function handlePointerMove(event) {
+      if (!isDrawing || phase !== "draw") {
+        return;
+      }
+      event.preventDefault();
+      const nextCell = cellFromPointer(event);
+      paintLine(lastPaintCell || nextCell, nextCell);
+      lastPaintCell = nextCell;
+    }
+
+    function stopDrawing(event) {
+      if (event && canvas.hasPointerCapture(event.pointerId)) {
+        canvas.releasePointerCapture(event.pointerId);
+      }
+      isDrawing = false;
+      lastPaintCell = null;
+    }
+
+    function setTool(tool) {
+      activeTool = tool;
+      document.querySelectorAll("[data-tool]").forEach((button) => {
+        button.classList.toggle("active", button.dataset.tool === tool);
+      });
+    }
+
+    function setColor(color) {
+      activeColor = color;
+      document.querySelectorAll(".swatch").forEach((button) => {
+        button.classList.toggle("active", button.dataset.color === color);
+      });
+      if (activeTool === "eraser") {
+        setTool("pencil");
+      }
+    }
+
+    function buildSwatches() {
+      palette.forEach((color, index) => {
+        const button = document.createElement("button");
+        button.className = "swatch" + (index === 0 ? " active" : "");
+        button.type = "button";
+        button.dataset.color = color;
+        button.style.setProperty("--swatch", color);
+        button.title = color;
+        button.setAttribute("aria-label", translate("colorLabel", { color }));
+        button.addEventListener("click", () => setColor(color));
+        swatches.appendChild(button);
+      });
+    }
+
+    document.querySelectorAll("[data-tool]").forEach((button) => {
+      button.addEventListener("click", () => setTool(button.dataset.tool));
+    });
+
+    canvas.addEventListener("pointerdown", handlePointerDown);
+    canvas.addEventListener("pointermove", handlePointerMove);
+    canvas.addEventListener("pointerup", stopDrawing);
+    canvas.addEventListener("pointercancel", stopDrawing);
+    canvas.addEventListener("pointerleave", stopDrawing);
+    doneButton.addEventListener("click", finishDrawing);
+    correctButton.addEventListener("click", markCorrect);
+    missedButton.addEventListener("click", markMissed);
+    overlayGoButton.addEventListener("click", skipPreview);
+    overlayCorrectButton.addEventListener("click", markCorrect);
+    overlayMissedButton.addEventListener("click", markMissed);
+    newRunButton.addEventListener("click", showPlayerSetup);
+    modalButton.addEventListener("click", () => {
+      if (modalContent.setup) {
+        startRun();
+        return;
+      }
+      showPlayerSetup();
+    });
+    langButtons.forEach((button) => {
+      button.addEventListener("click", () => setLanguage(button.dataset.lang));
+    });
+
+    buildSwatches();
+    updateMeters();
+    setPhase("idle");
+    setCheckCopy("checkStart");
+    setLanguage("en");
+    renderCanvas();
+  </script>
+</body>
+</html>

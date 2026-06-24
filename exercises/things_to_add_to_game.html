@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Platformer Requirements</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    min-height: 100%;
+    overflow: auto;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f7f7f5;
+    color: #111;
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .page {
+    min-height: calc(100vh - 20px);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-shrink: 0;
+  }
+
+  .header-copy {
+    min-width: 0;
+  }
+
+  .header h1 {
+    font-size: 18px;
+    line-height: 1.1;
+    font-weight: 800;
+  }
+
+  .header p {
+    max-width: 760px;
+    color: #555;
+    font-size: 12px;
+    line-height: 1.35;
+    position: relative;
+  }
+
+  .header strong {
+    color: #111;
+    font-weight: 700;
+  }
+
+  .must-do {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .help-wrap {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+
+  .help-tip {
+    width: 18px;
+    height: 18px;
+    border: 1px solid #cbd5d1;
+    border-radius: 50%;
+    background: #fff;
+    color: #333;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1;
+    cursor: help;
+  }
+
+  .help-tip:hover,
+  .help-tip:focus {
+    background: #eef7f5;
+    border-color: #99d4cc;
+    outline: none;
+  }
+
+  .tooltip-panel {
+    display: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    z-index: 30;
+    width: min(430px, calc(100vw - 32px));
+    padding: 10px 12px;
+    background: #111;
+    color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.2);
+    font-size: 12px;
+    line-height: 1.35;
+    text-decoration: none;
+  }
+
+  .help-wrap:hover .tooltip-panel,
+  .help-wrap:focus-within .tooltip-panel {
+    display: block;
+  }
+
+  .tooltip-panel .tip-line {
+    display: block;
+    position: relative;
+    padding-left: 12px;
+  }
+
+  .tooltip-panel .tip-line + .tip-line {
+    margin-top: 6px;
+  }
+
+  .tooltip-panel .tip-line::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+  }
+
+  .language-flags {
+    display: flex;
+    gap: 6px;
+    padding: 5px;
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid #e5e5e2;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+    flex-shrink: 0;
+  }
+
+  .language-flags button {
+    width: 36px;
+    height: 32px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: transparent;
+    font-size: 20px;
+    cursor: pointer;
+    line-height: 1;
+  }
+
+  .language-flags button:hover,
+  .language-flags button.active {
+    background: #eef7f5;
+    border-color: #99d4cc;
+  }
+
+  .grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-auto-rows: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .card {
+    background: #fff;
+    border: 1px solid #e5e5e2;
+    border-radius: 8px;
+    padding: 10px 11px;
+  }
+
+  .card h3 {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .card h3 .icon { font-size: 13px; }
+
+  .req-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .req-list li {
+    display: flex;
+    gap: 7px;
+    font-size: 11px;
+    line-height: 1.35;
+  }
+
+  html[lang="hy"] .req-list li,
+  html[lang="ru"] .req-list li {
+    font-size: 10.5px;
+    line-height: 1.3;
+  }
+
+  .req-num {
+    font-size: 10px;
+    font-weight: 600;
+    color: #ccc;
+    min-width: 18px;
+    padding-top: 1px;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+  }
+
+  .req-body strong {
+    color: #111;
+    font-weight: 600;
+  }
+
+  .req-body span {
+    color: #666;
+  }
+
+  .idea-note {
+    flex-shrink: 0;
+    padding: 24px 28px;
+    background: #ecfdf5;
+    border: 2px solid #16a34a;
+    border-radius: 8px;
+    box-shadow: 0 14px 32px rgba(22, 163, 74, 0.12);
+  }
+
+  .idea-note h2 {
+    color: #14532d;
+    font-size: 28px;
+    line-height: 1.05;
+    font-weight: 800;
+    margin-bottom: 10px;
+  }
+
+  .idea-note p {
+    max-width: 900px;
+    color: #17412a;
+    font-size: 17px;
+    line-height: 1.45;
+    font-weight: 500;
+  }
+
+  .cat-core     h3 { color: #374151; }
+  .cat-world    h3 { color: #0284c7; }
+  .cat-goal     h3 { color: #059669; }
+  .cat-drawing  h3 { color: #0891b2; }
+  .cat-movement h3 { color: #2563eb; }
+  .cat-platforms h3{ color: #7c3aed; }
+  .cat-scoring  h3 { color: #d97706; }
+  .cat-hazards  h3 { color: #dc2626; }
+  .cat-progress h3 { color: #16a34a; }
+  .cat-audio    h3 { color: #db2777; }
+  .cat-polish   h3 { color: #ea580c; }
+  .cat-ux       h3 { color: #4f46e5; }
+
+  @media (max-width: 700px) {
+    .header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+    }
+
+    .grid {
+      grid-auto-rows: auto;
+    }
+
+    .idea-note h2 {
+      font-size: 22px;
+    }
+
+    .idea-note p { font-size: 14px; }
+    .header h1 { font-size: 16px; }
+    .header p { font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="header">
+    <div class="header-copy">
+      <h1 data-i18n="pageTitle">Platformer Requirements</h1>
+      <p><strong data-i18n="noteLead">You do not need to complete all of these.</strong> <strong class="must-do" data-i18n="noteMust">But you must add requirements to your game one at a time.</strong><span class="help-wrap"><button class="help-tip" type="button" aria-label="Why one at a time?" aria-describedby="one-at-a-time-tip">?</button><span class="tooltip-panel" id="one-at-a-time-tip" role="tooltip"><span class="tip-line" data-i18n="tipOne">AI agents do best with one clear task at a time.</span><span class="tip-line" data-i18n="tipTwo">Small changes are easier to test and fix.</span><span class="tip-line" data-i18n="tipThree">Later, you may use several agents at once. If each agent changes 10 things, it becomes too hard to track what happened.</span></span></span> <span data-i18n="noteText">When you add a requirement to git, include the requirement number in the commit message.</span></p>
+    </div>
+    <div class="language-flags" aria-label="Language selector">
+      <button type="button" class="active" data-lang="en" aria-label="English">🇬🇧</button>
+      <button type="button" data-lang="hy" aria-label="Armenian">🇦🇲</button>
+      <button type="button" data-lang="ru" aria-label="Russian">🇷🇺</button>
+    </div>
+  </header>
+
+  <div class="grid">
+
+    <!-- Character & Physics -->
+    <div class="card cat-core">
+      <h3><span class="icon">🧍</span> <span class="cat-title">Character & Physics</span></h3>
+      <ul class="req-list">
+        <li><span class="req-num">1</span><div class="req-body"><strong>Stick figure</strong> <span>— head, eye, smile, body, arms, legs drawn on canvas</span></div></li>
+        <li><span class="req-num">2</span><div class="req-body"><strong>Horizontal movement</strong> <span>— arrow keys and WASD move left / right</span></div></li>
+        <li><span class="req-num">3</span><div class="req-body"><strong>Jump</strong> <span>— Space / W / ↑ launches player upward</span></div></li>
+        <li><span class="req-num">4</span><div class="req-body"><strong>Gravity</strong> <span>— constant downward acceleration each frame</span></div></li>
+        <li><span class="req-num">5</span><div class="req-body"><strong>Horizontal friction</strong> <span>— velocity decays when no key is held</span></div></li>
+        <li><span class="req-num">6</span><div class="req-body"><strong>Faces direction</strong> <span>— character mirrors toward last movement direction</span></div></li>
+        <li><span class="req-num">7</span><div class="req-body"><strong>Walk animation</strong> <span>— sine-wave limb swing while moving on ground</span></div></li>
+        <li><span class="req-num">8</span><div class="req-body"><strong>Air pose</strong> <span>— static limbs when not grounded</span></div></li>
+        <li><span class="req-num">9</span><div class="req-body"><strong>Edge clamp</strong> <span>— player cannot leave left or right canvas edge</span></div></li>
+        <li><span class="req-num">10</span><div class="req-body"><strong>Respawn</strong> <span>— restart at bottom when falling off world</span></div></li>
+      </ul>
+    </div>
+
+    <!-- World & Camera -->
+    <div class="card cat-world">
+      <h3><span class="icon">🌍</span> <span class="cat-title">World & Camera</span></h3>
+      <ul class="req-list">
+        <li><span class="req-num">11</span><div class="req-body"><strong>Tall world</strong> <span>— world is 10 viewport heights tall</span></div></li>
+        <li><span class="req-num">12</span><div class="req-body"><strong>Scrolling camera</strong> <span>— camera follows player vertically</span></div></li>
+        <li><span class="req-num">13</span><div class="req-body"><strong>Camera offset</strong> <span>— player centered at 65% from top so you can see above</span></div></li>
+        <li><span class="req-num">14</span><div class="req-body"><strong>World floor</strong> <span>— solid ground at the bottom; no infinite fall</span></div></li>
+        <li><span class="req-num">15</span><div class="req-body"><strong>Guide lines</strong> <span>— subtle horizontal lines marking each screen boundary</span></div></li>
+        <li><span class="req-num">16</span><div class="req-body"><strong>Responsive canvas</strong> <span>— fills window and rescales on resize</span></div></li>
+        <li><span class="req-num">17</span><div class="req-body"><strong>Staircase layout</strong> <span>— pre-generated zigzag platform path from bottom to top</span></div></li>
+        <li><span class="req-num">18</span><div class="req-body"><strong>Platform collision</strong> <span>— top-surface only; land on top, pass through sides</span></div></li>
+      </ul>
+    </div>
+
+    <!-- Goal -->
+    <div class="card cat-goal">
+      <h3><span class="icon">🚪</span> <span class="cat-title">Goal</span></h3>
+      <ul class="req-list">
+        <li><span class="req-num">19</span><div class="req-body"><strong>Door</strong> <span>— exit door drawn at the top of the world</span></div></li>
+        <li><span class="req-num">20</span><div class="req-body"><strong>Win detection</strong> <span>— trigger win when player overlaps the door</span></div></li>
+        <li><span class="req-num">21</span><div class="req-body"><strong>Door feedback</strong> <span>— door color changes on win (yellow → green)</span></div></li>
+        <li><span class="req-num">22</span><div class="req-body"><strong>Win message</strong> <span>— "door reached" text appears on screen</span></div></li>
+      </ul>
+    </div>
+
+    <!-- Drawing Tools -->
+    <div class="card cat-drawing">
+      <h3><span class="icon">✏️</span> <span class="cat-title">Drawing Tools</span></h3>
+      <ul class="req-list">
+        <li><span class="req-num">23</span><div class="req-body"><strong>Draw platforms</strong> <span>— click and drag to place a platform anywhere</span></div></li>
+        <li><span class="req-num">24</span><div class="req-body"><strong>Minimum length</strong> <span>— ignore draws shorter than a threshold</span></div></li>
+        <li><span class="req-num">25</span><div class="req-body"><strong>Draft preview</strong> <span>— dashed line shows platform before releasing</span></div></li>
+        <li><span class="req-num">26</span><div class="req-body"><strong>Persist until respawn</strong> <span>— drawn platforms survive until player dies</span></div></li>
+        <li><span class="req-num">27</span><div class="req-body"><strong>Erase mode</strong> <span>— right-click drag deletes drawn platforms</span></div></li>
+        <li><span class="req-num">28</span><div class="req-body"><strong>Ink meter</strong> <span>— limited total platform length per life</span></div></li>
+        <li><span class="req-num">29</span><div class="req-body"><strong>Undo</strong> <span>— Ctrl+Z removes the last drawn platform</span></div></li>
+        <li><span class="req-num">30</span><div class="req-body"><strong>Color picker</strong> <span>— choose draw color (cosmetic)</span></div></li>
+        <li><span class="req-num">31</span><div class="req-body"><strong>Platform expiry</strong> <span>— drawn platforms vanish after 15 seconds</span></div></li>
+        <li><span class="req-num">32</span><div class="req-body"><strong>Draw limit</strong> <span>— cap total active drawn platforms (e.g. 5)</span></div></li>
+      </ul>
+    </div>
+
+    <!-- Movement Feel -->
+    <div class="card cat-movement">
+      <h3><span class="icon">🏃</span> <span class="cat-title">Movement Feel</span></h3>
+      <ul class="req-list">
+        <li><span class="req-num">33</span><div class="req-body"><strong>Coyote time</strong> <span>— jump window ~100ms after walking off an edge</span></div></li>
+        <li><span class="req-num">34</span><div class="req-body"><strong>Jump buffering</strong> <span>— queue a jump pressed just before landing</span></div></li>
+        <li><span class="req-num">35</span><div class="req-body"><strong>Variable jump height</strong> <span>— tap for short, hold for tall</span></div></li>
+        <li><span class="req-num">36</span><div class="req-body"><strong>Double jump</strong> <span>— second jump in air, consumed on use</span></div></li>
+        <li><span class="req-num">37</span><div class="req-body"><strong>Wall slide</strong> <span>— slow fall when pressing into a wall</span></div></li>
+        <li><span class="req-num">38</span><div class="req-body"><strong>Wall jump</strong> <span>— push off wall while sliding</span></div></li>
+        <li><span class="req-num">39</span><div class="req-body"><strong>Dash</strong> <span>— short horizontal burst with cooldown</span></div></li>
+        <li><span class="req-num">40</span><div class="req-body"><strong>Sprint</strong> <span>— hold Shift for higher ground speed</span></div></li>
+        <li><span class="req-num">41</span><div class="req-body"><strong>Crouch</strong> <span>— reduced hitbox, slide under gaps</span></div></li>
+      </ul>
+    </div>
+
+    <!-- Platform Variety -->
+    <div class="card cat-platforms">
+      <h3><span class="icon">🟫</span> <span class="cat-title">Platform Variety</span></h3>
+      <ul class="req-list">
+        <li><span class="req-num">42</span><div class="req-body"><strong>Moving platforms</strong> <span>— oscillate horizontally or vertically</span></div></li>
+        <li><span class="req-num">43</span><div class="req-body"><strong>Crumbling platforms</strong> <span>— collapse 1s after player lands</span></div></li>
+        <li><span class="req-num">44</span><div class="req-body"><strong>Bouncy platforms</strong> <span>— launch player to 2× jump height</span></div></li>
+        <li><span class="req-num">45</span><div class="req-body"><strong>Ice platforms</strong> <span>— near-zero friction, slow deceleration</span></div></li>
+        <li><span class="req-num">46</span><div class="req-body"><strong>One-way platforms</strong> <span>— jump through from below, land from above</span></div></li>
+        <li><span class="req-num">47</span><div class="req-body"><strong>Conveyor platforms</strong> <span>— drift player left or right while standing</span></div></li>
+        <li><span class="req-num">48</span><div class="req-body"><strong>Disappearing platforms</strong> <span>— visible 2s, hidden 1s, cycling</span></div></li>
+        <li><span class="req-num">49</span><div class="req-body"><strong>Shrinking platforms</strong> <span>— narrow over time after first touch</span></div></li>
+      </ul>
+    </div>
+
+    <!-- Collectibles & Scoring -->
+    <div class="card cat-scoring">
+      <h3><span class="icon">⭐</span> <span class="cat-title">Collectibles & Scoring</span></h3>
+      <ul class="req-list">
+        <li><span class="req-num">50</span><div class="req-body"><strong>Coins</strong> <span>— scattered along climb path, add to score</span></div></li>
+        <li><span class="req-num">51</span><div class="req-body"><strong>Score display</strong> <span>— running total shown in HUD</span></div></li>
+        <li><span class="req-num">52</span><div class="req-body"><strong>Combo multiplier</strong> <span>— 3 coins in a row multiplies score</span></div></li>
+        <li><span class="req-num">53</span><div class="req-body"><strong>Speedrun timer</strong> <span>— elapsed time displayed, resets on respawn</span></div></li>
+        <li><span class="req-num">54</span><div class="req-body"><strong>Best time</strong> <span>— personal best in localStorage, shown on win</span></div></li>
+        <li><span class="req-num">55</span><div class="req-body"><strong>Star rating</strong> <span>— 1–3 stars based on time and coins</span></div></li>
+        <li><span class="req-num">56</span><div class="req-body"><strong>Secret coin</strong> <span>— one off-path coin rewards exploration</span></div></li>
+      </ul>
+    </div>
+
+    <!-- Hazards & Enemies -->
+    <div class="card cat-hazards">
+      <h3><span class="icon">⚠️</span> <span class="cat-title">Hazards & Enemies</span></h3>
+      <ul class="req-list">
+        <li><span class="req-num">57</span><div class="req-body"><strong>Spikes</strong> <span>— static instant-death zones on platforms</span></div></li>
+        <li><span class="req-num">58</span><div class="req-body"><strong>Falling rocks</strong> <span>— drop from above on a timer, must be dodged</span></div></li>
+        <li><span class="req-num">59</span><div class="req-body"><strong>Patrol enemy</strong> <span>— walks back and forth, kills on touch</span></div></li>
+        <li><span class="req-num">60</span><div class="req-body"><strong>Projectile</strong> <span>— enemy throws objects player must jump over</span></div></li>
+        <li><span class="req-num">61</span><div class="req-body"><strong>Lava pit</strong> <span>— bottom of world becomes lava; instant death</span></div></li>
+        <li><span class="req-num">62</span><div class="req-body"><strong>Wind zone</strong> <span>— region that pushes player horizontally</span></div></li>
+      </ul>
+    </div>
+
+    <!-- Progression -->
+    <div class="card cat-progress">
+      <h3><span class="icon">🏁</span> <span class="cat-title">Progression</span></h3>
+      <ul class="req-list">
+        <li><span class="req-num">63</span><div class="req-body"><strong>Checkpoints</strong> <span>— flag mid-climb; respawn here instead of bottom</span></div></li>
+        <li><span class="req-num">64</span><div class="req-body"><strong>Lives counter</strong> <span>— 3 lives; game over screen after all lost</span></div></li>
+        <li><span class="req-num">65</span><div class="req-body"><strong>Multiple levels</strong> <span>— level select screen, each with a different layout</span></div></li>
+        <li><span class="req-num">66</span><div class="req-body"><strong>Difficulty modes</strong> <span>— Easy (more platforms), Hard (faster enemies)</span></div></li>
+        <li><span class="req-num">67</span><div class="req-body"><strong>Procedural layout</strong> <span>— randomize platform columns each run</span></div></li>
+        <li><span class="req-num">68</span><div class="req-body"><strong>Unlockable skins</strong> <span>— beat the level to unlock alt character looks</span></div></li>
+      </ul>
+    </div>
+
+    <!-- Audio -->
+    <div class="card cat-audio">
+      <h3><span class="icon">🔊</span> <span class="cat-title">Audio</span></h3>
+      <ul class="req-list">
+        <li><span class="req-num">69</span><div class="req-body"><strong>Jump sound</strong> <span>— short pop on takeoff</span></div></li>
+        <li><span class="req-num">70</span><div class="req-body"><strong>Land sound</strong> <span>— thud on landing</span></div></li>
+        <li><span class="req-num">71</span><div class="req-body"><strong>Coin sound</strong> <span>— chime on pickup</span></div></li>
+        <li><span class="req-num">72</span><div class="req-body"><strong>Win fanfare</strong> <span>— short melody on reaching the door</span></div></li>
+        <li><span class="req-num">73</span><div class="req-body"><strong>Background music</strong> <span>— looping ambient track</span></div></li>
+        <li><span class="req-num">74</span><div class="req-body"><strong>Mute toggle</strong> <span>— M key or button silences all audio</span></div></li>
+      </ul>
+    </div>
+
+    <!-- Juice & Polish -->
+    <div class="card cat-polish">
+      <h3><span class="icon">✨</span> <span class="cat-title">Juice & Polish</span></h3>
+      <ul class="req-list">
+        <li><span class="req-num">75</span><div class="req-body"><strong>Screen shake</strong> <span>— brief shake on landing from height</span></div></li>
+        <li><span class="req-num">76</span><div class="req-body"><strong>Dust particles</strong> <span>— puff on jump takeoff and landing</span></div></li>
+        <li><span class="req-num">77</span><div class="req-body"><strong>Squash & stretch</strong> <span>— squash on land, stretch on jump</span></div></li>
+        <li><span class="req-num">78</span><div class="req-body"><strong>Coin sparkle</strong> <span>— glow animation on coin collect</span></div></li>
+        <li><span class="req-num">79</span><div class="req-body"><strong>Win confetti</strong> <span>— particle burst when door is reached</span></div></li>
+        <li><span class="req-num">80</span><div class="req-body"><strong>Death flash</strong> <span>— red screen flash before respawn</span></div></li>
+        <li><span class="req-num">81</span><div class="req-body"><strong>Camera easing</strong> <span>— smooth interpolation instead of hard snap</span></div></li>
+        <li><span class="req-num">82</span><div class="req-body"><strong>Shadow</strong> <span>— faint ellipse under player showing height above platform</span></div></li>
+      </ul>
+    </div>
+
+    <!-- UI & UX -->
+    <div class="card cat-ux">
+      <h3><span class="icon">🖥️</span> <span class="cat-title">UI & UX</span></h3>
+      <ul class="req-list">
+        <li><span class="req-num">83</span><div class="req-body"><strong>Height meter</strong> <span>— live 0–1000m display in corner</span></div></li>
+        <li><span class="req-num">84</span><div class="req-body"><strong>Controls HUD</strong> <span>— keyboard and mouse hints shown at bottom</span></div></li>
+        <li><span class="req-num">85</span><div class="req-body"><strong>Touch support</strong> <span>— pointer events work on mobile</span></div></li>
+        <li><span class="req-num">86</span><div class="req-body"><strong>Pause menu</strong> <span>— Esc to pause; resume / restart / quit</span></div></li>
+        <li><span class="req-num">87</span><div class="req-body"><strong>Start screen</strong> <span>— title card with "press space to start"</span></div></li>
+        <li><span class="req-num">88</span><div class="req-body"><strong>Win screen</strong> <span>— overlay with time, coins, star rating, replay</span></div></li>
+        <li><span class="req-num">89</span><div class="req-body"><strong>Minimap</strong> <span>— sidebar showing full world with player dot</span></div></li>
+        <li><span class="req-num">90</span><div class="req-body"><strong>Mobile D-pad</strong> <span>— on-screen buttons for move and jump</span></div></li>
+        <li><span class="req-num">91</span><div class="req-body"><strong>Clear platforms button</strong> <span>— one-click wipe of all drawn platforms</span></div></li>
+        <li><span class="req-num">92</span><div class="req-body"><strong>Platform count</strong> <span>— HUD shows "3 / 5 platforms used"</span></div></li>
+      </ul>
+    </div>
+
+  </div>
+  <section class="idea-note">
+    <h2 data-i18n="ideaTitle">Add your own idea (Recommended!!)</h2>
+    <p data-i18n="ideaText">Make the game feel like yours. Add a simple idea: a new obstacle, power-up, sound, level, color, rule, or surprise. Write it as a new numbered requirement, build it one step at a time, and commit it with that number.</p>
+  </section>
+</div>
+<script>
+  const buttons = document.querySelectorAll(".language-flags button");
+  const i18nNodes = document.querySelectorAll("[data-i18n]");
+  const catTitles = Array.from(document.querySelectorAll(".cat-title"));
+  const reqItems = Array.from(document.querySelectorAll(".req-list li"));
+
+  const defaultTranslation = {
+    pageTitle: document.querySelector("[data-i18n='pageTitle']").textContent,
+    noteLead: document.querySelector("[data-i18n='noteLead']").textContent,
+    noteMust: document.querySelector("[data-i18n='noteMust']").textContent,
+    tipOne: document.querySelector("[data-i18n='tipOne']").textContent,
+    tipTwo: document.querySelector("[data-i18n='tipTwo']").textContent,
+    tipThree: document.querySelector("[data-i18n='tipThree']").textContent,
+    noteText: document.querySelector("[data-i18n='noteText']").textContent,
+    ideaTitle: document.querySelector("[data-i18n='ideaTitle']").textContent,
+    ideaText: document.querySelector("[data-i18n='ideaText']").textContent,
+    categories: catTitles.map((node) => node.textContent),
+    requirements: Object.fromEntries(reqItems.map((item) => {
+      const num = item.querySelector(".req-num").textContent.trim();
+      const title = item.querySelector(".req-body strong").textContent.trim();
+      const desc = item.querySelector(".req-body span").textContent.replace(/^—\s*/, "").trim();
+      return [num, [title, desc]];
+    }))
+  };
+
+  const translations = {
+    en: defaultTranslation,
+    hy: {
+      pageTitle: "Պլատֆորմեր խաղի պահանջներ",
+      noteLead: "Պետք չէ ավարտել այս բոլորը։",
+      noteMust: "Բայց պահանջները խաղիդ պետք է ավելացնես մեկ առ մեկ։",
+      tipOne: "AI գործակալները լավ են աշխատում, երբ միաժամանակ ունեն մեկ պարզ առաջադրանք։",
+      tipTwo: "Փոքր փոփոխությունները ավելի հեշտ է ստուգել և ուղղել։",
+      tipThree: "Հետո կարող ես միաժամանակ օգտագործել մի քանի գործակալ։ Եթե ամեն մեկը փոխի 10 բան, շատ դժվար կլինի հասկանալ՝ ինչ է կատարվում։",
+      noteText: "Երբ պահանջը ավելացնում ես git-ում, commit-ի հաղորդագրության մեջ նշիր պահանջի համարը։",
+      ideaTitle: "Ավելացրու քո գաղափարը (Խորհուրդ է տրվում!!)",
+      ideaText: "Թող խաղը զգացվի որպես քոնը։ Ավելացրու պարզ գաղափար՝ նոր խոչընդոտ, power-up, ձայն, մակարդակ, գույն, կանոն կամ անակնկալ։ Գրիր այն որպես նոր համարակալված պահանջ, կառուցիր մեկ քայլով, և commit արա այդ համարով։",
+      categories: [
+        "Կերպար և ֆիզիկա",
+        "Աշխարհ և տեսախցիկ",
+        "Նպատակ",
+        "Նկարչական գործիքներ",
+        "Շարժման զգացում",
+        "Հարթակների տեսակներ",
+        "Հավաքվողներ և միավորներ",
+        "Վտանգներ և թշնամիներ",
+        "Առաջընթաց",
+        "Ձայն",
+        "Էֆեկտներ և հղկում",
+        "UI և UX"
+      ],
+      requirements: {
+        1: ["Փայտիկ մարդուկ", "գլուխ, աչք, ժպիտ, մարմին, ձեռքեր ու ոտքեր canvas-ում"],
+        2: ["Հորիզոնական շարժում", "սլաքները և WASD-ը շարժում են ձախ/աջ"],
+        3: ["Ցատկ", "Space / W / ↑ բարձրացնում է խաղացողին"],
+        4: ["Ձգողականություն", "ամեն կադրին կա ներքև ուղղված արագացում"],
+        5: ["Հորիզոնական շփում", "արագությունը նվազում է, երբ կոճակ չի սեղմվում"],
+        6: ["Նայում է ուղղությամբ", "կերպարը շրջվում է վերջին շարժման ուղղությամբ"],
+        7: ["Քայլքի անիմացիա", "գետնի վրա շարժվելիս վերջույթները տատանվում են"],
+        8: ["Օդային դիրք", "օդում վերջույթները մնում են անշարժ"],
+        9: ["Եզրի սահմանափակում", "խաղացողը չի անցնում canvas-ի ձախ կամ աջ եզրը"],
+        10: ["Վերածնունդ", "աշխարհից ընկնելիս վերադառնում է ներքև"],
+        11: ["Բարձր աշխարհ", "աշխարհը 10 էկրանի բարձրություն ունի"],
+        12: ["Սահող տեսախցիկ", "տեսախցիկը ուղղահայաց հետևում է խաղացողին"],
+        13: ["Տեսախցիկի շեղում", "խաղացողը վերևից 65%-ում է, որ վերևը երևա"],
+        14: ["Աշխարհի հատակ", "ներքևում պինդ գետին կա, անվերջ անկում չկա"],
+        15: ["Ուղեցույց գծեր", "ամեն էկրանի սահմանը նշող թույլ հորիզոնական գծեր"],
+        16: ["Ռեսպոնսիվ canvas", "լցնում է պատուհանը և չափափոխման ժամանակ հարմարվում"],
+        17: ["Աստիճանաձև դասավորություն", "ներքևից վերև նախապես ստեղծված զիգզագ հարթակներ"],
+        18: ["Հարթակի բախում", "միայն վերևի մակերեսը. նստում ես վերևից, կողքով անցնում ես"],
+        19: ["Դուռ", "աշխարհի վերևում նկարված ելքի դուռ"],
+        20: ["Հաղթանակի ստուգում", "հաղթանակը սկսվում է, երբ խաղացողը դիպչում է դռանը"],
+        21: ["Դռան արձագանք", "հաղթելիս դուռը փոխում է գույնը՝ դեղինից կանաչ"],
+        22: ["Հաղթանակի հաղորդագրություն", "էկրանին երևում է «door reached» տեքստը"],
+        23: ["Հարթակ նկարել", "քաշիր մկնիկով՝ ցանկացած տեղ հարթակ դնելու համար"],
+        24: ["Նվազագույն երկարություն", "շատ կարճ գծերը անտեսվում են"],
+        25: ["Նախնական տեսք", "բաց թողնելուց առաջ կետագիծը ցույց է տալիս հարթակը"],
+        26: ["Պահպանել մինչև վերածնունդ", "նկարված հարթակները մնում են մինչև խաղացողի մահը"],
+        27: ["Ջնջման ռեժիմ", "աջ քլիքով քաշելը ջնջում է նկարված հարթակները"],
+        28: ["Թանաքի չափիչ", "մեկ կյանքի համար կա հարթակների սահմանափակ ընդհանուր երկարություն"],
+        29: ["Հետարկել", "Ctrl+Z-ը հանում է վերջին նկարված հարթակը"],
+        30: ["Գույնի ընտրիչ", "ընտրիր գծելու գույնը միայն տեսքի համար"],
+        31: ["Հարթակի ժամկետ", "նկարված հարթակները անհետանում են 15 վայրկյանից"],
+        32: ["Նկարման սահման", "սահմանափակիր ակտիվ նկարված հարթակները, օրինակ՝ 5"],
+        33: ["Coyote time", "եզրից իջնելուց հետո կա մոտ 100ms ցատկի պատուհան"],
+        34: ["Ցատկի բուֆեր", "վայրէջքից անմիջապես առաջ սեղմված ցատկը հերթագրվում է"],
+        35: ["Փոփոխվող ցատկ", "կարճ սեղմիր՝ կարճ, պահիր՝ բարձր ցատկ"],
+        36: ["Կրկնակի ցատկ", "օդում երկրորդ ցատկ, օգտագործվելուց հետո սպառվում է"],
+        37: ["Պատի սահք", "պատին սեղմվելիս անկումը դանդաղում է"],
+        38: ["Պատի ցատկ", "սահելիս պատից հրում և ցատկ"],
+        39: ["Dash", "կարճ հորիզոնական թռիչք՝ cooldown-ով"],
+        40: ["Վազք", "Shift պահիր՝ գետնի վրա ավելի արագ շարժվելու համար"],
+        41: ["Կքանիստ", "փոքր hitbox, սահում նեղ բացվածքների տակ"],
+        42: ["Շարժվող հարթակներ", "տատանվում են հորիզոնական կամ ուղղահայաց"],
+        43: ["Քանդվող հարթակներ", "խաղացողի կանգնելուց 1 վայրկյան հետո փլվում են"],
+        44: ["Ցատկեցնող հարթակներ", "խաղացողին նետում են սովորական ցատկից 2× բարձր"],
+        45: ["Սառցե հարթակներ", "գրեթե առանց շփման, դանդաղ կանգնում"],
+        46: ["Մեկ ուղղությամբ հարթակներ", "ներքևից անցնում ես, վերևից կանգնում ես"],
+        47: ["Կոնվեյեր հարթակներ", "կանգնած խաղացողին տանում են ձախ կամ աջ"],
+        48: ["Անհետացող հարթակներ", "2 վայրկյան երևում են, 1 վայրկյան թաքնվում"],
+        49: ["Փոքրացող հարթակներ", "առաջին դիպչելուց հետո ժամանակի հետ նեղանում են"],
+        50: ["Մետաղադրամներ", "ցրված են բարձրանալու ճանապարհին և միավոր են տալիս"],
+        51: ["Միավորների ցուցադրում", "HUD-ում երևում է ընթացիկ միավորը"],
+        52: ["Combo բազմապատկիչ", "իրար հետևից 3 մետաղադրամը բազմապատկում է միավորը"],
+        53: ["Speedrun ժամաչափ", "ցույց է տալիս անցած ժամանակը, վերածնվելիս զրոյանում է"],
+        54: ["Լավագույն ժամանակ", "անձնական ռեկորդը պահվում է localStorage-ում և երևում հաղթելիս"],
+        55: ["Աստղերի գնահատում", "1–3 աստղ՝ ըստ ժամանակի և մետաղադրամների"],
+        56: ["Գաղտնի մետաղադրամ", "մեկ կողային մետաղադրամը պարգևատրում է ուսումնասիրությունը"],
+        57: ["Փշեր", "հարթակների վրա անշարժ մահացու գոտիներ"],
+        58: ["Ընկնող քարեր", "ժամաչափով վերևից ընկնում են, պետք է խուսափել"],
+        59: ["Պահակ թշնամի", "քայլում է առաջ ու հետ, դիպչելիս սպանում է"],
+        60: ["Արկ", "թշնամին նետում է իրեր, որոնց վրայով պետք է ցատկել"],
+        61: ["Լավայի փոս", "աշխարհի ներքևը դառնում է լավա և անմիջապես սպանում"],
+        62: ["Քամու գոտի", "տարածք, որը խաղացողին հորիզոնական հրում է"],
+        63: ["Checkpoint-ներ", "միջնամասի դրոշ, վերածնունդը սկսվում է այստեղից"],
+        64: ["Կյանքերի հաշվիչ", "3 կյանք, բոլորից հետո game over էկրան"],
+        65: ["Մի քանի մակարդակ", "մակարդակի ընտրություն, ամեն մեկը տարբեր դասավորությամբ"],
+        66: ["Բարդության ռեժիմներ", "Easy՝ ավելի շատ հարթակներ, Hard՝ արագ թշնամիներ"],
+        67: ["Պրոցեդուրային դասավորություն", "ամեն խաղարկման ժամանակ հարթակների սյուները պատահականացվում են"],
+        68: ["Բացվող տեսքեր", "մակարդակը անցնելուց հետո բացվում են այլ կերպարներ"],
+        69: ["Ցատկի ձայն", "կարճ ձայն ցատկի սկզբում"],
+        70: ["Վայրէջքի ձայն", "թփթփոց վայրէջքի պահին"],
+        71: ["Մետաղադրամի ձայն", "զնգոց վերցնելու պահին"],
+        72: ["Հաղթանակի երաժշտություն", "կարճ մեղեդի դռանը հասնելիս"],
+        73: ["Ֆոնային երաժշտություն", "կրկնվող հանգիստ track"],
+        74: ["Լռեցման անջատիչ", "M կոճակ կամ կոճակ, որը լռեցնում է ամբողջ ձայնը"],
+        75: ["Էկրանի ցնցում", "կարճ ցնցում բարձրությունից վայրէջքի ժամանակ"],
+        76: ["Փոշու մասնիկներ", "փոշու ամպ ցատկի և վայրէջքի պահին"],
+        77: ["Squash & stretch", "վայրէջքին սեղմվում է, ցատկին ձգվում"],
+        78: ["Մետաղադրամի փայլ", "փայլող անիմացիա վերցնելիս"],
+        79: ["Հաղթանակի confetti", "մասնիկների պայթյուն, երբ դուռը հասնում ես"],
+        80: ["Մահվան փայլատակում", "կարմիր էկրանի փայլատակում վերածնվելուց առաջ"],
+        81: ["Տեսախցիկի մեղմացում", "կտրուկ թռիչքի փոխարեն սահուն անցում"],
+        82: ["Ստվեր", "խաղացողի տակ թույլ էլիպս, որը ցույց է տալիս բարձրությունը"],
+        83: ["Բարձրության չափիչ", "անկյունում կենդանի 0–1000m ցուցադրում"],
+        84: ["Կառավարման HUD", "ներքևում երևում են ստեղնաշարի և մկնիկի հուշումներ"],
+        85: ["Touch աջակցություն", "pointer events-ը աշխատում է mobile-ում"],
+        86: ["Pause menu", "Esc-ով դադար, շարունակել / restart / quit"],
+        87: ["Մեկնարկային էկրան", "վերնագիր՝ «press space to start»"],
+        88: ["Հաղթանակի էկրան", "overlay՝ ժամանակով, մետաղադրամներով, աստղերով, replay-ով"],
+        89: ["Minimap", "կողային քարտեզ՝ ամբողջ աշխարհով և խաղացողի կետով"],
+        90: ["Mobile D-pad", "էկրանի կոճակներ շարժման և ցատկի համար"],
+        91: ["Հարթակները մաքրելու կոճակ", "մեկ քլիքով ջնջում է բոլոր նկարված հարթակները"],
+        92: ["Հարթակների հաշվիչ", "HUD-ը ցույց է տալիս՝ «3 / 5 platforms used»"]
+      }
+    },
+    ru: {
+      pageTitle: "Требования к платформеру",
+      noteLead: "Не нужно выполнять все требования.",
+      noteMust: "Но требования нужно добавлять в игру по одному.",
+      tipOne: "AI-агентам проще работать с одной понятной задачей за раз.",
+      tipTwo: "Маленькие изменения легче проверить и исправить.",
+      tipThree: "Позже ты сможешь запускать несколько агентов сразу. Если каждый агент изменит 10 вещей, будет очень трудно понять, что происходит.",
+      noteText: "Когда добавляете требование в git, указывайте номер требования в сообщении коммита.",
+      ideaTitle: "Добавь свою идею (Рекомендуется!!)",
+      ideaText: "Сделай игру своей. Добавь простую идею: новое препятствие, power-up, звук, уровень, цвет, правило или сюрприз. Запиши это как новое требование с номером, сделай по шагам и сделай commit с этим номером.",
+      categories: [
+        "Персонаж и физика",
+        "Мир и камера",
+        "Цель",
+        "Инструменты рисования",
+        "Ощущение движения",
+        "Разные платформы",
+        "Предметы и счет",
+        "Опасности и враги",
+        "Прогресс",
+        "Звук",
+        "Эффекты и полировка",
+        "UI и UX"
+      ],
+      requirements: {
+        1: ["Человечек", "голова, глаз, улыбка, тело, руки и ноги нарисованы на canvas"],
+        2: ["Горизонтальное движение", "стрелки и WASD двигают влево / вправо"],
+        3: ["Прыжок", "Space / W / ↑ подбрасывает игрока вверх"],
+        4: ["Гравитация", "каждый кадр есть постоянное ускорение вниз"],
+        5: ["Горизонтальное трение", "скорость уменьшается, когда клавиша не нажата"],
+        6: ["Смотрит в сторону", "персонаж разворачивается к последнему направлению движения"],
+        7: ["Анимация ходьбы", "конечности качаются при движении по земле"],
+        8: ["Поза в воздухе", "конечности неподвижны, когда игрок не на земле"],
+        9: ["Ограничение краев", "игрок не выходит за левый или правый край canvas"],
+        10: ["Возрождение", "при падении за мир игрок возвращается вниз"],
+        11: ["Высокий мир", "мир высотой в 10 экранов"],
+        12: ["Прокрутка камеры", "камера вертикально следует за игроком"],
+        13: ["Смещение камеры", "игрок на 65% от верха, чтобы было видно пространство выше"],
+        14: ["Пол мира", "внизу твердая земля, без бесконечного падения"],
+        15: ["Линии-подсказки", "тонкие горизонтальные линии отмечают границы экранов"],
+        16: ["Адаптивный canvas", "заполняет окно и меняет размер при resize"],
+        17: ["Лестничная схема", "заранее созданный зигзаг платформ снизу вверх"],
+        18: ["Столкновение с платформой", "только верхняя поверхность: стоим сверху, боками проходим"],
+        19: ["Дверь", "выходная дверь нарисована наверху мира"],
+        20: ["Проверка победы", "победа срабатывает, когда игрок пересекает дверь"],
+        21: ["Отклик двери", "при победе дверь меняет цвет с желтого на зеленый"],
+        22: ["Сообщение победы", "на экране появляется текст «door reached»"],
+        23: ["Рисование платформ", "клик и перетаскивание ставят платформу где угодно"],
+        24: ["Минимальная длина", "слишком короткие линии игнорируются"],
+        25: ["Черновой просмотр", "пунктир показывает платформу до отпускания мыши"],
+        26: ["Сохранять до смерти", "нарисованные платформы живут до смерти игрока"],
+        27: ["Режим стирания", "перетаскивание правой кнопкой удаляет нарисованные платформы"],
+        28: ["Индикатор чернил", "ограниченная общая длина платформ на одну жизнь"],
+        29: ["Отмена", "Ctrl+Z удаляет последнюю нарисованную платформу"],
+        30: ["Выбор цвета", "выбор цвета рисования, только для вида"],
+        31: ["Срок платформы", "нарисованные платформы исчезают через 15 секунд"],
+        32: ["Лимит рисования", "ограничение активных платформ, например 5"],
+        33: ["Coyote time", "окно прыжка около 100ms после схода с края"],
+        34: ["Буфер прыжка", "прыжок перед приземлением ставится в очередь"],
+        35: ["Разная высота прыжка", "нажать коротко для низкого, держать для высокого"],
+        36: ["Двойной прыжок", "второй прыжок в воздухе, тратится после использования"],
+        37: ["Скольжение по стене", "падение замедляется при упоре в стену"],
+        38: ["Прыжок от стены", "отталкивание от стены во время скольжения"],
+        39: ["Dash", "короткий горизонтальный рывок с cooldown"],
+        40: ["Спринт", "держать Shift для большей скорости на земле"],
+        41: ["Приседание", "меньший hitbox, скольжение под низкими проходами"],
+        42: ["Движущиеся платформы", "колеблются горизонтально или вертикально"],
+        43: ["Ломающиеся платформы", "падают через 1 секунду после приземления игрока"],
+        44: ["Пружинящие платформы", "подбрасывают игрока на 2× высоту прыжка"],
+        45: ["Ледяные платформы", "почти нет трения, медленное торможение"],
+        46: ["Односторонние платформы", "снизу можно прыгнуть сквозь, сверху можно стоять"],
+        47: ["Конвейерные платформы", "двигают стоящего игрока влево или вправо"],
+        48: ["Исчезающие платформы", "видны 2 секунды, скрыты 1 секунду, по циклу"],
+        49: ["Сужающиеся платформы", "становятся уже после первого касания"],
+        50: ["Монеты", "разбросаны по пути подъема и дают очки"],
+        51: ["Показ счета", "текущие очки показаны в HUD"],
+        52: ["Комбо-множитель", "3 монеты подряд умножают счет"],
+        53: ["Speedrun-таймер", "показывает прошедшее время, сбрасывается при смерти"],
+        54: ["Лучшее время", "личный рекорд хранится в localStorage и показан при победе"],
+        55: ["Оценка звездами", "1–3 звезды по времени и монетам"],
+        56: ["Секретная монета", "одна монета вне пути награждает исследование"],
+        57: ["Шипы", "статичные зоны мгновенной смерти на платформах"],
+        58: ["Падающие камни", "падают сверху по таймеру, их нужно избегать"],
+        59: ["Патрульный враг", "ходит туда-сюда и убивает при касании"],
+        60: ["Снаряд", "враг бросает предметы, через которые нужно прыгать"],
+        61: ["Лавовая яма", "низ мира становится лавой и сразу убивает"],
+        62: ["Зона ветра", "область, которая толкает игрока по горизонтали"],
+        63: ["Чекпоинты", "флаг в середине подъема, возрождение начинается здесь"],
+        64: ["Счетчик жизней", "3 жизни, затем экран game over"],
+        65: ["Несколько уровней", "экран выбора уровней, каждый с другой схемой"],
+        66: ["Режимы сложности", "Easy: больше платформ, Hard: быстрее враги"],
+        67: ["Процедурная схема", "колонки платформ случайны при каждом запуске"],
+        68: ["Открываемые скины", "после прохождения открываются другие виды персонажа"],
+        69: ["Звук прыжка", "короткий звук при отталкивании"],
+        70: ["Звук приземления", "стук при приземлении"],
+        71: ["Звук монеты", "звон при подборе"],
+        72: ["Фанфара победы", "короткая мелодия при достижении двери"],
+        73: ["Фоновая музыка", "зацикленный спокойный трек"],
+        74: ["Выключатель звука", "клавиша M или кнопка отключает весь звук"],
+        75: ["Тряска экрана", "короткая тряска после падения с высоты"],
+        76: ["Частицы пыли", "облако при прыжке и приземлении"],
+        77: ["Squash & stretch", "сжатие при посадке, вытягивание при прыжке"],
+        78: ["Блеск монеты", "светящаяся анимация при подборе"],
+        79: ["Конфетти победы", "всплеск частиц при достижении двери"],
+        80: ["Вспышка смерти", "красная вспышка экрана перед возрождением"],
+        81: ["Сглаживание камеры", "плавная интерполяция вместо резкого скачка"],
+        82: ["Тень", "слабый эллипс под игроком показывает высоту над платформой"],
+        83: ["Измеритель высоты", "живой показ 0–1000m в углу"],
+        84: ["HUD управления", "подсказки клавиатуры и мыши показаны внизу"],
+        85: ["Поддержка touch", "pointer events работают на mobile"],
+        86: ["Меню паузы", "Esc для паузы: продолжить / restart / quit"],
+        87: ["Стартовый экран", "титульная карточка с «press space to start»"],
+        88: ["Экран победы", "overlay со временем, монетами, звездами и replay"],
+        89: ["Миникарта", "боковая карта всего мира с точкой игрока"],
+        90: ["Mobile D-pad", "экранные кнопки для движения и прыжка"],
+        91: ["Кнопка очистки платформ", "один клик удаляет все нарисованные платформы"],
+        92: ["Счетчик платформ", "HUD показывает «3 / 5 platforms used»"]
+      }
+    }
+  };
+
+  function setLanguage(lang) {
+    const selected = translations[lang] || translations.en;
+    document.documentElement.lang = lang;
+    document.title = selected.pageTitle;
+
+    buttons.forEach((button) => {
+      const isActive = button.dataset.lang === lang;
+      button.classList.toggle("active", isActive);
+      button.setAttribute("aria-pressed", String(isActive));
+    });
+
+    i18nNodes.forEach((node) => {
+      const key = node.dataset.i18n;
+      node.textContent = selected[key] ?? translations.en[key] ?? node.textContent;
+    });
+
+    catTitles.forEach((node, index) => {
+      node.textContent = selected.categories[index] ?? translations.en.categories[index];
+    });
+
+    reqItems.forEach((item) => {
+      const num = item.querySelector(".req-num").textContent.trim();
+      const entry = selected.requirements[num] ?? translations.en.requirements[num];
+      if (!entry) return;
+      item.querySelector(".req-body strong").textContent = entry[0];
+      item.querySelector(".req-body span").textContent = `— ${entry[1]}`;
+    });
+  }
+
+  buttons.forEach((button) => {
+    button.setAttribute("aria-pressed", String(button.classList.contains("active")));
+    button.addEventListener("click", () => setLanguage(button.dataset.lang));
+  });
+</script>
+</body>
+</html>

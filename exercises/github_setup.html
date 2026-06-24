@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GitHub Setup — Push Your Code</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink:          #161616;
+      --muted:        #666;
+      --soft:         #f6f7f8;
+      --line:         #e2e5e8;
+      --accent:       #0f766e;
+      --accent-soft:  #e6f4f1;
+      --warn:         #b45309;
+      --danger:       #b91c1c;
+      --blue:         #1d4ed8;
+      --fixed-h:      240px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(15,118,110,0.08), transparent 32%),
+        linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
+      line-height: 1.55;
+      min-height: 100vh;
+    }
+
+    /* ── Fixed terminal ──────────────────────────────────────── */
+    .fixed-terminal {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 20;
+      height: var(--fixed-h);
+      padding: 12px 28px;
+      background: rgba(255,255,255,0.96);
+      border-bottom: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(15,23,42,0.08);
+    }
+
+    .fixed-terminal .terminal-window {
+      display: flex;
+      flex-direction: column;
+      max-width: 1120px;
+      height: 100%;
+      margin: 0 auto;
+    }
+
+    .fixed-terminal .terminal-body { flex: 1; min-height: 0; overflow: auto; }
+
+    .terminal-window {
+      border: 1px solid #1f2937;
+      background: #111827;
+      color: #d1fae5;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 22px 55px rgba(17,24,39,0.24);
+    }
+
+    .terminal-bar {
+      display: flex;
+      gap: 6px;
+      padding: 9px 10px;
+      background: #1f2937;
+      border-bottom: 1px solid #374151;
+    }
+
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: #ef4444; }
+    .dot:nth-child(2) { background: #f59e0b; }
+    .dot:nth-child(3) { background: #22c55e; }
+
+    .terminal-title {
+      margin-left: auto;
+      color: #cbd5e1;
+      font: 12px/1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .terminal-body {
+      padding: 14px 18px;
+      font: 13.5px/1.65 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .terminal-body .prompt { color: #93c5fd; }
+    .terminal-body .cmd    { color: #d1fae5; }
+    .terminal-body .ok     { color: #4ade80; }
+    .terminal-body .dim    { color: #6b7280; }
+
+    /* ── Language flags ──────────────────────────────────────── */
+    .language-flags {
+      position: fixed;
+      top: calc(var(--fixed-h) + 14px);
+      left: 14px;
+      z-index: 15;
+      display: flex;
+      gap: 6px;
+      padding: 5px;
+      background: rgba(255,255,255,0.94);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(15,23,42,0.08);
+    }
+
+    .language-flags button {
+      width: 36px; height: 32px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      background: transparent;
+      font-size: 20px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .language-flags button:hover,
+    .language-flags button.active {
+      background: var(--accent-soft);
+      border-color: #9dd8cf;
+    }
+
+    /* ── Page ────────────────────────────────────────────────── */
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: calc(var(--fixed-h) + 76px) 28px 64px;
+    }
+
+    header {
+      padding-bottom: 26px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-size: clamp(30px, 5vw, 54px);
+      line-height: 0.98;
+      max-width: 760px;
+      margin-bottom: 18px;
+    }
+
+    .intro {
+      max-width: 720px;
+      color: #3d3d3d;
+      font-size: 17px;
+    }
+
+    /* ── Lesson strip ────────────────────────────────────────── */
+    .lesson-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap: 12px;
+      margin: 24px 0;
+    }
+
+    .note {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.82);
+      padding: 14px 16px;
+    }
+
+    .note strong {
+      display: block;
+      font-size: 13px;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    .note p { color: var(--muted); font-size: 14px; }
+
+    /* ── Layout ──────────────────────────────────────────────── */
+    .setup-layout {
+      display: grid;
+      grid-template-columns: 220px minmax(0,1fr);
+      gap: 24px;
+      align-items: start;
+      margin-top: 22px;
+    }
+
+    .setup-layout > * { min-width: 0; }
+
+    .setup-menu {
+      position: sticky;
+      top: calc(var(--fixed-h) + 72px);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .setup-menu h2 {
+      padding: 14px 16px;
+      font-size: 15px;
+      border-bottom: 1px solid var(--line);
+      background: var(--soft);
+    }
+
+    .setup-menu a {
+      display: block;
+      padding: 10px 16px;
+      color: #333;
+      font-size: 14px;
+      text-decoration: none;
+      border-bottom: 1px solid #f0f1f2;
+    }
+
+    .setup-menu a:hover { color: var(--accent); background: var(--accent-soft); }
+
+    /* ── Steps ───────────────────────────────────────────────── */
+    section {
+      scroll-margin-top: calc(var(--fixed-h) + 24px);
+      margin-bottom: 18px;
+    }
+
+    .section-heading {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    h2 { font-size: 22px; line-height: 1.2; }
+    .hint { color: var(--muted); font-size: 13px; }
+
+    .steps { display: grid; gap: 12px; }
+
+    .step {
+      display: grid;
+      grid-template-columns: 42px minmax(0,1fr);
+      gap: 14px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .step > * { min-width: 0; }
+
+    .step-number {
+      display: grid;
+      place-items: center;
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      color: #fff;
+      background: var(--accent);
+      font-weight: 800;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .step h3 { font-size: 17px; margin-bottom: 6px; }
+    .step p  { color: #3f3f46; margin-bottom: 10px; }
+    .step p:last-child { margin-bottom: 0; }
+
+    /* ── Callouts ────────────────────────────────────────────── */
+    .callout {
+      padding: 14px 16px;
+      border: 1px solid #bae6fd;
+      border-left: 4px solid var(--blue);
+      border-radius: 0 8px 8px 0;
+      background: #eff6ff;
+      color: #1e3a5f;
+      margin: 10px 0;
+      font-size: 14px;
+    }
+
+    .callout.warning {
+      border-color: #fed7aa;
+      border-left-color: var(--warn);
+      background: #fff7ed;
+      color: #513018;
+    }
+
+    .callout.danger {
+      border-color: #fecaca;
+      border-left-color: var(--danger);
+      background: #fef2f2;
+      color: #5f1616;
+    }
+
+    .callout strong { display: block; margin-bottom: 4px; }
+
+    /* ── Code ────────────────────────────────────────────────── */
+    code {
+      display: inline-block;
+      padding: 2px 7px;
+      color: #0f172a;
+      background: #eef2ff;
+      border: 1px solid #dbe3ff;
+      border-radius: 5px;
+      font: 13px/1.4 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      white-space: nowrap;
+      vertical-align: middle;
+    }
+
+    .command-block {
+      display: block;
+      width: 100%;
+      padding: 12px 14px;
+      margin: 8px 0;
+      color: #d1fae5;
+      background: #111827;
+      border: 1px solid #374151;
+      border-radius: 8px;
+      font: 13.5px/1.55 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      white-space: pre;
+      overflow-x: auto;
+      cursor: text;
+      user-select: all;
+    }
+
+    .command-block .dim { color: #6b7280; }
+    .command-block .hl  { color: #fde68a; font-weight: 700; }
+
+    /* username placeholder highlighting */
+    .ph {
+      color: #fde68a;
+      font-weight: 700;
+      font-style: normal;
+    }
+
+    /* ── Step-5 token path ───────────────────────────────────── */
+    .path-steps {
+      display: grid;
+      gap: 4px;
+      margin: 8px 0;
+      padding: 10px 14px;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .path-steps span::before { content: "→ "; color: var(--accent); font-weight: 700; }
+
+    /* ── Checklist ───────────────────────────────────────────── */
+    .checklist {
+      display: grid;
+      gap: 8px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .checklist label {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      color: #333;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .checklist input {
+      width: 16px; height: 16px;
+      margin-top: 3px;
+      accent-color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    /* ── Error block ─────────────────────────────────────────── */
+    .error-block {
+      padding: 12px 14px;
+      background: #0d0d0d;
+      border: 1px solid #450a0a;
+      border-left: 4px solid var(--danger);
+      border-radius: 0 8px 8px 0;
+      color: #f87171;
+      font: 13px/1.6 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      margin: 10px 0;
+      white-space: pre-wrap;
+    }
+
+    /* ── Mobile ──────────────────────────────────────────────── */
+    @media (max-width: 820px) {
+      :root { --fixed-h: 200px; }
+      .lesson-strip, .setup-layout { grid-template-columns: 1fr; }
+      .setup-menu { position: static; }
+      .page { padding: calc(var(--fixed-h) + 74px) 18px 44px; }
+      .fixed-terminal { padding: 10px 14px; }
+      .section-heading { display: block; }
+      .hint { margin-top: 4px; }
+      .step { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Fixed terminal preview -->
+  <section class="fixed-terminal" aria-label="Terminal preview">
+    <div class="terminal-window">
+      <div class="terminal-bar">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="terminal-title">Terminal — my-project</span>
+      </div>
+      <div class="terminal-body">
+        <div><span class="prompt">student@tumo my-project %</span> <span class="cmd">git remote add origin https://github.com/<span class="ph">YOUR-NAME</span>/my-project.git</span></div>
+        <div><span class="prompt">student@tumo my-project %</span> <span class="cmd">git push -u origin main</span></div>
+        <div><span class="dim">Username for 'https://github.com': </span><span class="cmd">YOUR-NAME</span></div>
+        <div><span class="dim">Password for 'https://YOUR-NAME@github.com': </span><span class="cmd">[paste token]</span></div>
+        <div><span class="ok">✓  Branch 'main' set up to track remote branch 'main' of 'origin'.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Language selector -->
+  <div class="language-flags" aria-label="Language selector">
+    <button type="button" class="active" data-lang="en">🇬🇧</button>
+    <button type="button" data-lang="hy">🇦🇲</button>
+    <button type="button" data-lang="ru">🇷🇺</button>
+  </div>
+
+  <main class="page">
+    <header>
+      <p class="eyebrow" data-i18n="eyebrow">GitHub Setup</p>
+      <h1 data-i18n="title">Push Your Code to GitHub</h1>
+      <p class="intro" data-i18n="intro">
+        GitHub is a website that stores your code online so it's safe even when the computer is wiped. Follow these steps to push your my-project to your own GitHub account.
+      </p>
+    </header>
+
+    <div class="lesson-strip">
+      <div class="note">
+        <strong data-i18n="noteALabel">No SSH needed</strong>
+        <p data-i18n="noteAText">We use HTTPS + a Personal Access Token — no SSH key setup required. The token is like a one-time password.</p>
+      </div>
+      <div class="note">
+        <strong data-i18n="noteBLabel">Your own repo</strong>
+        <p data-i18n="noteBText">Each student pushes to their own GitHub account. The URL will be github.com/YOUR-NAME/my-project.</p>
+      </div>
+      <div class="note">
+        <strong data-i18n="noteCLabel">Save your token</strong>
+        <p data-i18n="noteCText">You see the Personal Access Token only once. Write it down or save it in your phone notes before closing the page.</p>
+      </div>
+    </div>
+
+    <div class="setup-layout">
+
+      <!-- Sidebar nav -->
+      <nav class="setup-menu" aria-label="Step navigation">
+        <h2 data-i18n="navTitle">Steps</h2>
+        <a href="#step1" data-i18n="nav1">1. Sign in to GitHub</a>
+        <a href="#step2" data-i18n="nav2">2. Create a repository</a>
+        <a href="#step3" data-i18n="nav3">3. Copy your URL</a>
+        <a href="#step4" data-i18n="nav4">4. Connect your folder</a>
+        <a href="#step5" data-i18n="nav5">5. Get a token</a>
+        <a href="#step6" data-i18n="nav6">6. Push your code</a>
+        <a href="#step7" data-i18n="nav7">7. Verify it worked</a>
+        <a href="#trouble" data-i18n="nav8" style="color:var(--danger)">⚠ Fix 403 error</a>
+      </nav>
+
+      <!-- Steps -->
+      <div>
+        <section id="step1">
+          <div class="section-heading">
+            <h2 data-i18n="s1title">Step 1 — Sign in to GitHub</h2>
+          </div>
+          <div class="steps">
+            <div class="step">
+              <div class="step-number">1</div>
+              <div>
+                <h3 data-i18n="s1h">Open github.com in your browser</h3>
+                <p data-i18n="s1p">Go to <strong>github.com</strong> and sign in with your account. If you do not have an account, click <strong>Sign up</strong> and create one now.</p>
+                <div class="callout">
+                  <strong data-i18n="s1tip">Tip</strong>
+                  <span data-i18n="s1tipText">Use a personal email you can always access — not a school email that may expire.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="step2">
+          <div class="section-heading">
+            <h2 data-i18n="s2title">Step 2 — Create a new repository</h2>
+          </div>
+          <div class="steps">
+            <div class="step">
+              <div class="step-number">2</div>
+              <div>
+                <h3 data-i18n="s2h">Click "Create repository" on your dashboard</h3>
+                <p data-i18n="s2p1">After signing in you will see your GitHub dashboard. Click the green <strong>Create repository</strong> button.</p>
+                <p data-i18n="s2p2">Fill in the form like this:</p>
+                <div class="callout" style="margin-bottom:8px">
+                  <strong data-i18n="s2fields">Required fields</strong>
+                  <div style="margin-top:6px;display:grid;gap:4px;font-size:14px">
+                    <div><strong data-i18n="s2owner">Owner:</strong> <span data-i18n="s2ownerVal">your personal account</span></div>
+                    <div><strong data-i18n="s2name">Repository name:</strong> <code>my-project</code></div>
+                    <div><strong data-i18n="s2vis">Visibility:</strong> <span data-i18n="s2visVal">Public</span></div>
+                    <div><strong data-i18n="s2extras">README / .gitignore / license:</strong> <span data-i18n="s2extrasVal">leave all OFF</span></div>
+                  </div>
+                </div>
+                <p data-i18n="s2p3">Then click the green <strong>Create repository</strong> button at the bottom of the form.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="step3">
+          <div class="section-heading">
+            <h2 data-i18n="s3title">Step 3 — Copy your HTTPS URL</h2>
+          </div>
+          <div class="steps">
+            <div class="step">
+              <div class="step-number">3</div>
+              <div>
+                <h3 data-i18n="s3h">Find and copy the repository URL</h3>
+                <p data-i18n="s3p">After creating the repo GitHub shows a "Quick setup" page. Make sure <strong>HTTPS</strong> is selected (not SSH), then copy the URL. It looks like this:</p>
+                <pre class="command-block">https://github.com/<span class="hl">YOUR-USERNAME</span>/my-project.git</pre>
+                <div class="callout">
+                  <strong data-i18n="s3tip">Where to find it</strong>
+                  <span data-i18n="s3tipText">It's on the empty repo page right after you create it — look for the HTTPS button and the copy icon next to the URL.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="step4">
+          <div class="section-heading">
+            <h2 data-i18n="s4title">Step 4 — Connect your local folder to GitHub</h2>
+          </div>
+          <div class="steps">
+            <div class="step">
+              <div class="step-number">4</div>
+              <div>
+                <h3 data-i18n="s4h">Run these two commands in your my-project folder</h3>
+                <p data-i18n="s4p">Replace <strong class="ph">YOUR-USERNAME</strong> with your actual GitHub username:</p>
+                <pre class="command-block">git remote add origin https://github.com/<span class="hl">YOUR-USERNAME</span>/my-project.git
+git branch -M main</pre>
+                <div class="callout">
+                  <strong data-i18n="s4tip">What this does</strong>
+                  <span data-i18n="s4tipText"><code>git remote add origin</code> tells your local repo where to send code. <code>git branch -M main</code> renames your branch to "main" so it matches GitHub.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="step5">
+          <div class="section-heading">
+            <h2 data-i18n="s5title">Step 5 — Create a Personal Access Token</h2>
+            <p class="hint" data-i18n="s5hint">GitHub no longer accepts your account password — you need a token instead.</p>
+          </div>
+          <div class="steps">
+            <div class="step">
+              <div class="step-number">5</div>
+              <div>
+                <h3 data-i18n="s5h">Generate a token on GitHub</h3>
+                <p data-i18n="s5p">Follow this path on GitHub:</p>
+                <div class="path-steps">
+                  <span data-i18n="s5path1">Click your profile picture (top-right)</span>
+                  <span data-i18n="s5path2">Settings</span>
+                  <span data-i18n="s5path3">Developer settings (bottom of the left sidebar)</span>
+                  <span data-i18n="s5path4">Personal access tokens → Tokens (classic)</span>
+                  <span data-i18n="s5path5">Generate new token → Generate new token (classic)</span>
+                </div>
+                <p data-i18n="s5p2">Fill in the form:</p>
+                <div class="callout" style="margin-bottom:8px">
+                  <strong data-i18n="s5fields">Token settings</strong>
+                  <div style="margin-top:6px;display:grid;gap:4px;font-size:14px">
+                    <div><strong data-i18n="s5fname">Note:</strong> <span data-i18n="s5fnameVal">my-project token</span></div>
+                    <div><strong data-i18n="s5fexp">Expiration:</strong> <span data-i18n="s5fexpVal">90 days</span></div>
+                    <div><strong data-i18n="s5fscope">Scope:</strong> <span data-i18n="s5fscopeVal">check the box next to <strong>repo</strong></span></div>
+                  </div>
+                </div>
+                <p data-i18n="s5p3">Click <strong>Generate token</strong>. You will see a green token starting with <code>ghp_</code>.</p>
+                <div class="callout warning">
+                  <strong data-i18n="s5warn">⚠ Save your token now</strong>
+                  <span data-i18n="s5warnText">GitHub shows the token only once. Copy it and save it in your phone notes or a text file before closing this page. You will paste it as your password when you push.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="step6">
+          <div class="section-heading">
+            <h2 data-i18n="s6title">Step 6 — Push your code</h2>
+          </div>
+          <div class="steps">
+            <div class="step">
+              <div class="step-number">6</div>
+              <div>
+                <h3 data-i18n="s6h">Run the push command</h3>
+                <p data-i18n="s6p">In your terminal, inside the my-project folder, run:</p>
+                <pre class="command-block">git push -u origin main</pre>
+                <p data-i18n="s6p2">Git will ask for your credentials:</p>
+                <div class="callout">
+                  <strong data-i18n="s6creds">What to type when prompted</strong>
+                  <div style="margin-top:8px;display:grid;gap:6px;font-size:14px">
+                    <div><strong data-i18n="s6uLabel">Username:</strong> <span data-i18n="s6uVal">your GitHub username (e.g. CT1234)</span></div>
+                    <div><strong data-i18n="s6pLabel">Password:</strong> <span data-i18n="s6pVal">paste your token (starts with <code>ghp_</code>) — NOT your real password</span></div>
+                  </div>
+                </div>
+                <div class="callout warning">
+                  <strong data-i18n="s6noshow">The token won't appear as you type</strong>
+                  <span data-i18n="s6noshowText">That's normal. Paste it and press Enter even if you see nothing.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="step7">
+          <div class="section-heading">
+            <h2 data-i18n="s7title">Step 7 — Verify it worked</h2>
+          </div>
+          <div class="steps">
+            <div class="step">
+              <div class="step-number">7</div>
+              <div>
+                <h3 data-i18n="s7h">Check GitHub in the browser</h3>
+                <p data-i18n="s7p">Open your browser and go to:</p>
+                <pre class="command-block">https://github.com/<span class="hl">YOUR-USERNAME</span>/my-project</pre>
+                <p data-i18n="s7p2">You should see your files — <code>chess.js</code>, <code>index.html</code>, <code>style.css</code> — listed on the page. Your code is now safely backed up online.</p>
+                <div class="callout">
+                  <strong data-i18n="s7tip">Next time you make changes</strong>
+                  <span data-i18n="s7tipText">Run <code>git add .</code> → <code>git commit -m "message"</code> → <code>git push</code>. No need to set up the remote again.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Quick checklist -->
+        <section id="checklist">
+          <div class="section-heading">
+            <h2 data-i18n="checkTitle">Quick Checklist</h2>
+          </div>
+          <div class="checklist">
+            <label><input type="checkbox"><span data-i18n="ck1">Signed in to github.com</span></label>
+            <label><input type="checkbox"><span data-i18n="ck2">Created a repo named <code>my-project</code> under my own account</span></label>
+            <label><input type="checkbox"><span data-i18n="ck3">Ran <code>git remote add origin ...</code> with MY username in the URL</span></label>
+            <label><input type="checkbox"><span data-i18n="ck4">Generated a Personal Access Token and saved it somewhere</span></label>
+            <label><input type="checkbox"><span data-i18n="ck5">Ran <code>git push -u origin main</code> — no errors</span></label>
+            <label><input type="checkbox"><span data-i18n="ck6">Opened my GitHub repo URL and can see my files</span></label>
+          </div>
+        </section>
+
+        <!-- Troubleshooting -->
+        <section id="trouble">
+          <div class="section-heading">
+            <h2 data-i18n="tTitle" style="color:var(--danger)">⚠ Troubleshooting: 403 Permission Error</h2>
+          </div>
+
+          <div class="step" style="border-color:#fecaca">
+            <div class="step-number" style="background:var(--danger)">!</div>
+            <div>
+              <h3 data-i18n="t1h">You see this error when you push</h3>
+              <div class="error-block">remote: Permission to someone-else/their-project.git denied to YOUR-USERNAME.
+fatal: unable to access 'https://github.com/someone-else/their-project.git/': The requested URL returned error: 403</div>
+
+              <div class="callout danger">
+                <strong data-i18n="t1why">What this means</strong>
+                <span data-i18n="t1whyText">Your <code>origin</code> remote is pointing at someone else's repo. You don't have write permission there. The fix is to point <code>origin</code> at your own repo.</span>
+              </div>
+
+              <h3 style="margin-top:14px" data-i18n="t1fix">Fix — update your remote URL</h3>
+              <p data-i18n="t1fixp">Run this, replacing <strong class="ph">YOUR-USERNAME</strong> with your actual GitHub username:</p>
+              <pre class="command-block">git remote set-url origin https://github.com/<span class="hl">YOUR-USERNAME</span>/my-project.git
+git push -u origin main</pre>
+            </div>
+          </div>
+
+          <div class="step" style="margin-top:10px">
+            <div class="step-number" style="background:var(--warn)">!</div>
+            <div>
+              <h3 data-i18n="t2h">Git doesn't ask for username / password at all</h3>
+              <p data-i18n="t2p">Old credentials may be cached. Clear them and try again:</p>
+              <pre class="command-block">git config --global credential.helper ""
+git push -u origin main</pre>
+              <p data-i18n="t2p2">Now git will prompt for your username and token.</p>
+            </div>
+          </div>
+
+          <div class="step" style="margin-top:10px">
+            <div class="step-number" style="background:var(--blue)">!</div>
+            <div>
+              <h3 data-i18n="t3h">Password rejected even with the token</h3>
+              <p data-i18n="t3p">Check two things:</p>
+              <ul style="padding-left:18px;font-size:14px;color:#3f3f46;display:grid;gap:4px;margin-top:4px">
+                <li data-i18n="t3l1">The token starts with <code>ghp_</code> — if you pasted your real GitHub password it won't work.</li>
+                <li data-i18n="t3l2">The token has the <strong>repo</strong> scope checked. If you forgot, generate a new one.</li>
+                <li data-i18n="t3l3">The token hasn't expired — if it has, generate a new one.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const translations = {
+      en: {
+        eyebrow: "GitHub Setup",
+        title: "Push Your Code to GitHub",
+        intro: "GitHub is a website that stores your code online so it's safe even when the computer is wiped. Follow these steps to push your my-project to your own GitHub account.",
+        noteALabel: "No SSH needed",
+        noteAText: "We use HTTPS + a Personal Access Token — no SSH key setup required. The token is like a one-time password.",
+        noteBLabel: "Your own repo",
+        noteBText: "Each student pushes to their own GitHub account. The URL will be github.com/YOUR-NAME/my-project.",
+        noteCLabel: "Save your token",
+        noteCText: "You see the Personal Access Token only once. Write it down or save it in your phone notes before closing the page.",
+        navTitle: "Steps",
+        nav1: "1. Sign in to GitHub",
+        nav2: "2. Create a repository",
+        nav3: "3. Copy your URL",
+        nav4: "4. Connect your folder",
+        nav5: "5. Get a token",
+        nav6: "6. Push your code",
+        nav7: "7. Verify it worked",
+        nav8: "⚠ Fix 403 error",
+        s1title: "Step 1 — Sign in to GitHub",
+        s1h: "Open github.com in your browser",
+        s1p: "Go to github.com and sign in with your account. If you do not have an account, click Sign up and create one now.",
+        s1tip: "Tip",
+        s1tipText: "Use a personal email you can always access — not a school email that may expire.",
+        s2title: "Step 2 — Create a new repository",
+        s2h: "Click \"Create repository\" on your dashboard",
+        s2p1: "After signing in you will see your GitHub dashboard. Click the green Create repository button.",
+        s2p2: "Fill in the form like this:",
+        s2fields: "Required fields",
+        s2owner: "Owner:",
+        s2ownerVal: "your personal account",
+        s2name: "Repository name:",
+        s2vis: "Visibility:",
+        s2visVal: "Public",
+        s2extras: "README / .gitignore / license:",
+        s2extrasVal: "leave all OFF",
+        s2p3: "Then click the green Create repository button at the bottom of the form.",
+        s3title: "Step 3 — Copy your HTTPS URL",
+        s3h: "Find and copy the repository URL",
+        s3p: "After creating the repo GitHub shows a \"Quick setup\" page. Make sure HTTPS is selected (not SSH), then copy the URL. It looks like this:",
+        s3tip: "Where to find it",
+        s3tipText: "It's on the empty repo page right after you create it — look for the HTTPS button and the copy icon next to the URL.",
+        s4title: "Step 4 — Connect your local folder to GitHub",
+        s4h: "Run these two commands in your my-project folder",
+        s4p: "Replace YOUR-USERNAME with your actual GitHub username:",
+        s4tip: "What this does",
+        s4tipText: "git remote add origin tells your local repo where to send code. git branch -M main renames your branch to \"main\" so it matches GitHub.",
+        s5title: "Step 5 — Create a Personal Access Token",
+        s5hint: "GitHub no longer accepts your account password — you need a token instead.",
+        s5h: "Generate a token on GitHub",
+        s5p: "Follow this path on GitHub:",
+        s5path1: "Click your profile picture (top-right)",
+        s5path2: "Settings",
+        s5path3: "Developer settings (bottom of the left sidebar)",
+        s5path4: "Personal access tokens → Tokens (classic)",
+        s5path5: "Generate new token → Generate new token (classic)",
+        s5p2: "Fill in the form:",
+        s5fields: "Token settings",
+        s5fname: "Note:",
+        s5fnameVal: "my-project token",
+        s5fexp: "Expiration:",
+        s5fexpVal: "90 days",
+        s5fscope: "Scope:",
+        s5fscopeVal: "check the box next to repo",
+        s5p3: "Click Generate token. You will see a green token starting with ghp_.",
+        s5warn: "⚠ Save your token now",
+        s5warnText: "GitHub shows the token only once. Copy it and save it in your phone notes or a text file before closing this page. You will paste it as your password when you push.",
+        s6title: "Step 6 — Push your code",
+        s6h: "Run the push command",
+        s6p: "In your terminal, inside the my-project folder, run:",
+        s6p2: "Git will ask for your credentials:",
+        s6creds: "What to type when prompted",
+        s6uLabel: "Username:",
+        s6uVal: "your GitHub username (e.g. CT1234)",
+        s6pLabel: "Password:",
+        s6pVal: "paste your token (starts with ghp_) — NOT your real password",
+        s6noshow: "The token won't appear as you type",
+        s6noshowText: "That's normal. Paste it and press Enter even if you see nothing.",
+        s7title: "Step 7 — Verify it worked",
+        s7h: "Check GitHub in the browser",
+        s7p: "Open your browser and go to:",
+        s7p2: "You should see your files — chess.js, index.html, style.css — listed on the page. Your code is now safely backed up online.",
+        s7tip: "Next time you make changes",
+        s7tipText: "Run git add . → git commit -m \"message\" → git push. No need to set up the remote again.",
+        checkTitle: "Quick Checklist",
+        ck1: "Signed in to github.com",
+        ck2: "Created a repo named my-project under my own account",
+        ck3: "Ran git remote add origin ... with MY username in the URL",
+        ck4: "Generated a Personal Access Token and saved it somewhere",
+        ck5: "Ran git push -u origin main — no errors",
+        ck6: "Opened my GitHub repo URL and can see my files",
+        tTitle: "⚠ Troubleshooting: 403 Permission Error",
+        t1h: "You see this error when you push",
+        t1why: "What this means",
+        t1whyText: "Your origin remote is pointing at someone else's repo. You don't have write permission there. The fix is to point origin at your own repo.",
+        t1fix: "Fix — update your remote URL",
+        t1fixp: "Run this, replacing YOUR-USERNAME with your actual GitHub username:",
+        t2h: "Git doesn't ask for username / password at all",
+        t2p: "Old credentials may be cached. Clear them and try again:",
+        t2p2: "Now git will prompt for your username and token.",
+        t3h: "Password rejected even with the token",
+        t3p: "Check two things:",
+        t3l1: "The token starts with ghp_ — if you pasted your real GitHub password it won't work.",
+        t3l2: "The token has the repo scope checked. If you forgot, generate a new one.",
+        t3l3: "The token hasn't expired — if it has, generate a new one.",
+      },
+      hy: {
+        eyebrow: "GitHub Կարգավorpm.",
+        title: "Բեռ­նիr Կoddy GitHub-ov",
+        intro: "GitHub-ը կայq e, vorin pahum e qo coды, ancam kompiutere mvacvum e: Hетеvir ayс qayder-y qo my-project-y qo GitHub hespi vra bern elou hamar:",
+        noteALabel: "SSH petq chi",
+        noteAText: "Mеnq ogtavoum enq HTTPS + Personal Access Token — SSH banak petq chi: Token-y mi angamyan parol e:",
+        noteBLabel: "Qo repository-n",
+        noteBText: "Amsе usoghich bern elum e irenс GitHub hесpin: URL-y kayacer github.com/YOUR-NAME/my-project:",
+        noteCLabel: "Pahir token-y",
+        noteCText: "Token-y gitaкnis mi angam: Giratsir kam pahir qo telefoni notes-um:",
+        navTitle: "Qayder",
+        nav1: "1. Mangel GitHub",
+        nav2: "2. Stoghtsir repository",
+        nav3: "3. Kopiratsir URL",
+        nav4: "4. Kapogh tltapanak",
+        nav5: "5. Token stoghtsir",
+        nav6: "6. Berni r kod",
+        nav7: "7. Stugir",
+        nav8: "⚠ 403 skhal",
+        s1title: "Qadam 1 — Mangel GitHub",
+        s1h: "Bac github.com qo browse-ov",
+        s1p: "Gna github.com ev mangir qo hespov: Ete hes chunes, sghmir Sign up ev stoghtsir:",
+        s1tip: "Aknarq",
+        s1tipText: "Ogtavogh email-i hamar vor hamashkhar es — chey drprots email, vor karoghi e dprutel:",
+        s2title: "Qadam 2 — Stoghtsir repository",
+        s2h: "Sghmir «Create repository» dashboard-ov",
+        s2p1: "Mangvutsyunits heto tesnes dashboard: Sghmir kanach «Create repository» karrap:",
+        s2p2: "Lratsrir formy aystpes:",
+        s2fields: "Parzhadirvogh daster",
+        s2owner: "Owner:",
+        s2ownerVal: "qo ankakan hes",
+        s2name: "Repository name:",
+        s2vis: "Visibility:",
+        s2visVal: "Public",
+        s2extras: "README / .gitignore / license:",
+        s2extrasVal: "boly anhtapak tark",
+        s2p3: "Heto sghmir kanach «Create repository» karppy formy verjum:",
+        s3title: "Qadam 3 — Kopiratsir HTTPS URL",
+        s3h: "Gtir ev kopiratsir repository URL-y",
+        s3p: "Repository stoghtselu heto GitHub ts'uyts e «Quick setup» ej: Havastatsir, vor HTTPS e yntrvagy (vochy SSH), heto kopiratsir URL-y:",
+        s3tip: "Voroghich gtnel",
+        s3tipText: "Dashtum e depq repository stoghtselu heto — nayir HTTPS karrap ev copy icon URL-i kaghom:",
+        s4title: "Qadam 4 — Kapel local papkiny GitHub-in",
+        s4h: "Gortskatsir ayd erkу hrachany my-project papkinum",
+        s4p: "Pokhokhir YOUR-USERNAME qo iskakan GitHub username-ov:",
+        s4tip: "Inch e anum",
+        s4tipText: "git remote add origin asyum e qo local repo-in, vortegh uxarkel cod-y: git branch -M main vanoums e qo branch-y «main» anvanov:",
+        s5title: "Qadam 5 — Stoghtsir Personal Access Token",
+        s5hint: "GitHub ayl chи amboghj qndunum qo parol-y — petq e token:",
+        s5h: "Gneratsiatsir token GitHub-ov",
+        s5p: "Hetevy ayd chertoghutyan GitHub-ov:",
+        s5path1: "Sghmir qo nkary (verevi ankyunj)",
+        s5path2: "Settings",
+        s5path3: "Developer settings (dzakh sidebar-i verjum)",
+        s5path4: "Personal access tokens → Tokens (classic)",
+        s5path5: "Generate new token → Generate new token (classic)",
+        s5p2: "Lratsrir formy:",
+        s5fields: "Token parametrer",
+        s5fname: "Note:",
+        s5fnameVal: "my-project token",
+        s5fexp: "Expiration:",
+        s5fexpVal: "90 or",
+        s5fscope: "Scope:",
+        s5fscopeVal: "nshir nkhannishy «repo»-i kaghom",
+        s5p3: "Sghmir «Generate token»: Tesnes kanach token, sksvel ghp_-ov:",
+        s5warn: "⚠ Pahir token-y hima",
+        s5warnText: "GitHub ts'uyts e token-y mi angam: Kopiratsir ev pahir qo telefoni notes-um: Utoum es mtelel ayn, erb berni res parol-i teghum:",
+        s6title: "Qadam 6 — Berni r cod",
+        s6h: "Gortskatsir push hrachany",
+        s6p: "Terminal-ov, my-project papkinum, gortskatsir:",
+        s6p2: "Git harcnum e qo credentials-y:",
+        s6creds: "Inch mtel hartsnanelu depqum",
+        s6uLabel: "Username:",
+        s6uVal: "qo GitHub username-y (org CT1234)",
+        s6pLabel: "Password:",
+        s6pVal: "mtelir token-y (sksvel ghp_-ov) — VOCHY qo iskakan paroly",
+        s6noshow: "Token-y not'anum e mtelu ynthatsqum",
+        s6noshowText: "Daz normal e: Mtir ev sghmir Enter ancam ants antsenel:",
+        s7title: "Qadam 7 — Stugir",
+        s7h: "Nayir GitHub-y browse-ov",
+        s7p: "Bac qo browse-y ev gna:",
+        s7p2: "Petq e tesnel qo faylery — chess.js, index.html, style.css — ejum: Qo cod-y hima internетov pahpanvats e:",
+        s7tip: "Haji anvam pokhokhutyunner anels",
+        s7tipText: "Gortskatsir git add . → git commit -m \"message\" → git push: Remote-y kaylayin kargavorel petq chi:",
+        checkTitle: "Arach Checklist",
+        ck1: "Mangel em github.com",
+        ck2: "Stoghtsir repository my-project anvanov imy hespov",
+        ck3: "Gortskatsir git remote add origin MY username-ov URL-ov",
+        ck4: "Stoghtsir Personal Access Token ev pahel em ayn",
+        ck5: "Gortskatsir git push -u origin main — skhal chka",
+        ck6: "Bacir GitHub repo URL ev tesnum em files",
+        tTitle: "⚠ Skhal 403",
+        t1h: "Skhal, berni r coddy",
+        t1why: "Inch e nshanoum",
+        t1whyText: "Qo origin remote-y m'ekel e ours repo: Chunes iravunq uxarkelou ayntegh: Pokhokhir origin-y qo repo:",
+        t1fix: "Kargavorich — pokhel remote URL-y",
+        t1fixp: "Gortskatsir asd, pokhokhel YOUR-USERNAME-y qo iskakan GitHub username-ov:",
+        t2h: "Git hartsnum chi username/password",
+        t2p: "Heski credentials-y karoghi e cache-avats linel: Mazrel ev krknel:",
+        t2p2: "Ayl git kharci username ev token:",
+        t3h: "Password meryel e ancam token-ov",
+        t3p: "Stugir erku bany:",
+        t3l1: "Token-y sksvoum e ghp_-ov — ete mtir qo iskakan paroly, chi ashkhati:",
+        t3l2: "Token-y ounи repo scope-y: Ete moratsrir, stoghtsir nor:",
+        t3l3: "Token-y chi verchatsi — ete verchatsi e, stoghtsir nor:",
+      },
+      ru: {
+        eyebrow: "Настройка GitHub",
+        title: "Залей код на GitHub",
+        intro: "GitHub — сайт, который хранит твой код онлайн, даже если компьютер сбросится. Следуй этим шагам, чтобы залить my-project в свой аккаунт GitHub.",
+        noteALabel: "SSH не нужен",
+        noteAText: "Мы используем HTTPS + Personal Access Token — никакого SSH-ключа. Токен — это разовый пароль.",
+        noteBLabel: "Твой репозиторий",
+        noteBText: "Каждый студент пушит в свой GitHub-аккаунт. URL будет github.com/ВАШ-НИК/my-project.",
+        noteCLabel: "Сохрани токен",
+        noteCText: "Personal Access Token показывается только один раз. Запиши его в заметки телефона перед тем, как закрыть страницу.",
+        navTitle: "Шаги",
+        nav1: "1. Войти в GitHub",
+        nav2: "2. Создать репозиторий",
+        nav3: "3. Скопировать URL",
+        nav4: "4. Подключить папку",
+        nav5: "5. Получить токен",
+        nav6: "6. Запушить код",
+        nav7: "7. Проверить",
+        nav8: "⚠ Исправить ошибку 403",
+        s1title: "Шаг 1 — Войти в GitHub",
+        s1h: "Открой github.com в браузере",
+        s1p: "Перейди на github.com и войди в свой аккаунт. Если аккаунта нет — нажми Sign up и создай его сейчас.",
+        s1tip: "Совет",
+        s1tipText: "Используй личную почту, к которой всегда есть доступ — не школьную, которая может перестать работать.",
+        s2title: "Шаг 2 — Создать репозиторий",
+        s2h: "Нажми «Create repository» на дашборде",
+        s2p1: "После входа ты увидишь дашборд GitHub. Нажми зелёную кнопку Create repository.",
+        s2p2: "Заполни форму вот так:",
+        s2fields: "Обязательные поля",
+        s2owner: "Owner:",
+        s2ownerVal: "твой личный аккаунт",
+        s2name: "Repository name:",
+        s2vis: "Visibility:",
+        s2visVal: "Public",
+        s2extras: "README / .gitignore / license:",
+        s2extrasVal: "всё оставь выключенным",
+        s2p3: "Затем нажми зелёную кнопку Create repository внизу формы.",
+        s3title: "Шаг 3 — Скопировать HTTPS URL",
+        s3h: "Найди и скопируй URL репозитория",
+        s3p: "После создания репозитория GitHub показывает страницу «Quick setup». Убедись, что выбран HTTPS (не SSH), и скопируй URL:",
+        s3tip: "Где найти",
+        s3tipText: "Он на странице пустого репозитория сразу после создания — ищи кнопку HTTPS и иконку копирования рядом с URL.",
+        s4title: "Шаг 4 — Подключить локальную папку к GitHub",
+        s4h: "Выполни две команды в папке my-project",
+        s4p: "Замени YOUR-USERNAME на свой настоящий никнейм GitHub:",
+        s4tip: "Что это делает",
+        s4tipText: "git remote add origin говорит локальному репо, куда отправлять код. git branch -M main переименовывает ветку в «main», как на GitHub.",
+        s5title: "Шаг 5 — Создать Personal Access Token",
+        s5hint: "GitHub больше не принимает пароль аккаунта — нужен токен.",
+        s5h: "Создай токен на GitHub",
+        s5p: "Следуй этому пути на GitHub:",
+        s5path1: "Нажми на аватар (правый верхний угол)",
+        s5path2: "Settings",
+        s5path3: "Developer settings (внизу левой боковой панели)",
+        s5path4: "Personal access tokens → Tokens (classic)",
+        s5path5: "Generate new token → Generate new token (classic)",
+        s5p2: "Заполни форму:",
+        s5fields: "Параметры токена",
+        s5fname: "Note:",
+        s5fnameVal: "my-project token",
+        s5fexp: "Expiration:",
+        s5fexpVal: "90 дней",
+        s5fscope: "Scope:",
+        s5fscopeVal: "поставь галочку напротив repo",
+        s5p3: "Нажми Generate token. Появится зелёный токен, начинающийся с ghp_.",
+        s5warn: "⚠ Сохрани токен прямо сейчас",
+        s5warnText: "GitHub показывает токен только один раз. Скопируй его и сохрани в заметках телефона или текстовом файле перед закрытием страницы. Ты будешь вставлять его вместо пароля при пуше.",
+        s6title: "Шаг 6 — Запушить код",
+        s6h: "Выполни команду push",
+        s6p: "В терминале, внутри папки my-project, выполни:",
+        s6p2: "Git попросит учётные данные:",
+        s6creds: "Что вводить при запросе",
+        s6uLabel: "Username:",
+        s6uVal: "твой никнейм GitHub (например, CT1234)",
+        s6pLabel: "Password:",
+        s6pVal: "вставь токен (начинается с ghp_) — НЕ настоящий пароль",
+        s6noshow: "Токен не отображается при вводе",
+        s6noshowText: "Это нормально. Вставь его и нажми Enter, даже если ничего не видно.",
+        s7title: "Шаг 7 — Проверить",
+        s7h: "Открой GitHub в браузере",
+        s7p: "Открой браузер и перейди по адресу:",
+        s7p2: "Ты должен увидеть свои файлы — chess.js, index.html, style.css — на странице. Код теперь надёжно сохранён онлайн.",
+        s7tip: "Когда в следующий раз внесёшь изменения",
+        s7tipText: "Выполни git add . → git commit -m \"сообщение\" → git push. Настраивать remote больше не нужно.",
+        checkTitle: "Быстрый чеклист",
+        ck1: "Вошёл на github.com",
+        ck2: "Создал репозиторий my-project в своём аккаунте",
+        ck3: "Выполнил git remote add origin ... со СВОИМ именем в URL",
+        ck4: "Создал Personal Access Token и сохранил его",
+        ck5: "Выполнил git push -u origin main — без ошибок",
+        ck6: "Открыл URL своего репозитория и вижу файлы",
+        tTitle: "⚠ Устранение ошибки 403",
+        t1h: "Ты видишь эту ошибку при пуше",
+        t1why: "Что это означает",
+        t1whyText: "Твой remote origin указывает на чужой репозиторий. У тебя нет прав на запись туда. Исправление — направь origin на свой репозиторий.",
+        t1fix: "Исправление — обнови URL remote",
+        t1fixp: "Выполни это, заменив YOUR-USERNAME на свой никнейм GitHub:",
+        t2h: "Git вообще не спрашивает username / password",
+        t2p: "Старые учётные данные могут быть закешированы. Очисти и попробуй снова:",
+        t2p2: "Теперь git спросит username и токен.",
+        t3h: "Пароль отклоняется даже с токеном",
+        t3p: "Проверь два момента:",
+        t3l1: "Токен начинается с ghp_ — если ты вставил настоящий пароль GitHub, это не сработает.",
+        t3l2: "У токена отмечена область repo. Если забыл — создай новый.",
+        t3l3: "Срок действия токена не истёк — если истёк, создай новый.",
+      },
+    };
+
+    let activeLang = "en";
+    const i18nNodes = document.querySelectorAll("[data-i18n]");
+    const langButtons = document.querySelectorAll(".language-flags button");
+
+    function setLang(lang) {
+      activeLang = lang;
+      document.documentElement.lang = lang;
+      langButtons.forEach(b => b.classList.toggle("active", b.dataset.lang === lang));
+      i18nNodes.forEach(el => {
+        const key = el.dataset.i18n;
+        const val = translations[lang]?.[key] ?? translations.en[key];
+        if (val !== undefined) el.textContent = val;
+      });
+    }
+
+    langButtons.forEach(b => b.addEventListener("click", () => setLang(b.dataset.lang)));
+  </script>
+</body>
+</html>

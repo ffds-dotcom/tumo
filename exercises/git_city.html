@@ -1,0 +1,1549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Git City</title>
+<link rel="icon" href="data:," />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f4f7f6;
+    --panel: #ffffff;
+    --ink: #17201c;
+    --muted: #65706b;
+    --line: #dce4e0;
+    --line-strong: #b8c5bf;
+    --blue: #2563eb;
+    --blue-soft: rgba(37, 99, 235, 0.12);
+    --green: #2f7d57;
+    --red: #dc2626;
+    --red-soft: rgba(220, 38, 38, 0.12);
+    --amber: #b7791f;
+    --road: #252b2e;
+    --yard: #e8ecea;
+  }
+
+  html, body { min-height: 100%; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    overflow: hidden;
+  }
+
+  button,
+  input {
+    font: inherit;
+  }
+
+  .app {
+    height: 100vh;
+    display: grid;
+    grid-template-rows: auto 1fr;
+  }
+
+  .topbar {
+    min-height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 14px 18px;
+    background: rgba(255, 255, 255, 0.94);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    min-width: 0;
+  }
+
+  h1 {
+    font-size: 20px;
+    line-height: 1;
+    letter-spacing: 0;
+  }
+
+  .flow {
+    color: var(--muted);
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .head-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 112px;
+    justify-content: flex-end;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .head-chip strong {
+    color: var(--ink);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .layout {
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(520px, 1fr) 360px;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .city-shell,
+  .side {
+    min-height: 0;
+    border: 1px solid var(--line);
+    background: var(--panel);
+  }
+
+  .city-shell {
+    display: grid;
+    grid-template-rows: 1fr auto;
+  }
+
+  .canvas-wrap {
+    min-height: 0;
+    position: relative;
+    overflow: hidden;
+    background: #eef3f1;
+  }
+
+  canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .command-bar {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 10px;
+    align-items: center;
+    padding: 12px;
+    border-top: 1px solid var(--line);
+    background: #fbfcfc;
+  }
+
+  .prompt {
+    color: var(--green);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  #commandInput {
+    width: 100%;
+    height: 38px;
+    border: 1px solid var(--line-strong);
+    background: #fff;
+    color: var(--ink);
+    padding: 0 12px;
+    outline: none;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px;
+  }
+
+  #commandInput:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px var(--blue-soft);
+  }
+
+  #runCommand {
+    height: 38px;
+    border: 1px solid #111;
+    background: #111;
+    color: #fff;
+    padding: 0 16px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  #runCommand:hover { background: #2b2b2b; }
+
+  .side {
+    display: grid;
+    grid-template-rows: auto minmax(130px, 1fr) minmax(116px, 0.72fr);
+    overflow: hidden;
+  }
+
+  .panel {
+    min-height: 0;
+    padding: 14px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .panel:last-child { border-bottom: none; }
+
+  .panel h2 {
+    margin-bottom: 10px;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .badge {
+    padding: 4px 7px;
+    border: 1px solid var(--line);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .badge.not-added { color: var(--muted); background: #f7f8f8; }
+  .badge.added { color: var(--blue); background: var(--blue-soft); border-color: rgba(37, 99, 235, 0.28); }
+  .badge.committed { color: var(--green); background: rgba(47, 125, 87, 0.12); border-color: rgba(47, 125, 87, 0.28); }
+
+  .diff-list,
+  .history-list,
+  .log-list {
+    list-style: none;
+  }
+
+  .diff-list {
+    display: grid;
+    gap: 7px;
+  }
+
+  .empty {
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .diff-item {
+    display: grid;
+    grid-template-columns: 24px 1fr;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--line);
+    padding: 8px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+  }
+
+  .diff-mark {
+    font-weight: 900;
+    text-align: center;
+  }
+
+  .diff-item.add { color: var(--green); background: rgba(47, 125, 87, 0.08); }
+  .diff-item.remove { color: var(--red); background: var(--red-soft); }
+
+  .history-panel,
+  .log-panel {
+    overflow: hidden;
+  }
+
+  .scroll {
+    height: calc(100% - 24px);
+    overflow: auto;
+    padding-right: 3px;
+  }
+
+  .history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .commit-row {
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    gap: 8px;
+    border-left: 3px solid var(--green);
+    background: #f8faf9;
+    padding: 8px 9px;
+  }
+
+  .commit-row.revert {
+    border-left-color: var(--amber);
+  }
+
+  .commit-id {
+    color: var(--green);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  .commit-message {
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .commit-diff {
+    margin-top: 3px;
+    color: var(--muted);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 11px;
+  }
+
+  .log-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .log-line {
+    border-left: 3px solid var(--line-strong);
+    padding: 6px 8px;
+    background: #f8faf9;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  .log-line.ok { border-left-color: var(--green); color: #244f3b; }
+  .log-line.error { border-left-color: var(--red); color: #8f1d1d; background: #fff7f7; }
+  .log-line.command {
+    border-left-color: var(--blue);
+    color: #1f3f8f;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+
+  @media (max-width: 900px) {
+    body { overflow: auto; }
+
+    .app {
+      min-height: 100vh;
+      height: auto;
+    }
+
+    .topbar {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .brand {
+      display: block;
+    }
+
+    .flow {
+      display: block;
+      margin-top: 5px;
+      white-space: normal;
+    }
+
+    .head-chip {
+      justify-content: flex-start;
+    }
+
+    .layout {
+      grid-template-columns: 1fr;
+    }
+
+    .city-shell {
+      min-height: 560px;
+    }
+
+    .side {
+      grid-template-rows: auto 240px 180px;
+      min-height: 520px;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .layout {
+      padding: 8px;
+      gap: 8px;
+    }
+
+    .command-bar {
+      grid-template-columns: auto 1fr;
+    }
+
+    #runCommand {
+      grid-column: 1 / -1;
+    }
+
+    .city-shell {
+      min-height: 520px;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <h1>Git City</h1>
+      <span class="flow">not added -> added -> committed</span>
+    </div>
+    <div class="head-chip">HEAD <strong id="headLabel">none</strong></div>
+  </header>
+
+  <main class="layout">
+    <section class="city-shell" aria-label="Git City simulator">
+      <div class="canvas-wrap">
+        <canvas id="cityCanvas"></canvas>
+      </div>
+      <form class="command-bar" id="commandForm">
+        <span class="prompt">$</span>
+        <input id="commandInput" autocomplete="off" spellcheck="false" placeholder="git add roads" aria-label="Git command" />
+        <button id="runCommand" type="submit">Run</button>
+      </form>
+    </section>
+
+    <aside class="side">
+      <section class="panel">
+        <h2>Added Diff</h2>
+        <ul class="diff-list" id="diffList"></ul>
+      </section>
+
+      <section class="panel history-panel">
+        <h2>Commits</h2>
+        <div class="scroll">
+          <ol class="history-list" id="historyList"></ol>
+        </div>
+      </section>
+
+      <section class="panel log-panel">
+        <h2>Terminal</h2>
+        <div class="scroll">
+          <ul class="log-list" id="logList"></ul>
+        </div>
+      </section>
+    </aside>
+  </main>
+</div>
+
+<script>
+const MODULES = [
+  "roads",
+  "buildings",
+  "cars",
+  "pedestrians",
+  "streetlights",
+  "cats",
+  "dogs",
+  "trees",
+  "dinosaurs",
+  "ufos"
+];
+
+const canvas = document.getElementById("cityCanvas");
+const ctx = canvas.getContext("2d");
+const commandForm = document.getElementById("commandForm");
+const commandInput = document.getElementById("commandInput");
+const diffList = document.getElementById("diffList");
+const historyList = document.getElementById("historyList");
+const logList = document.getElementById("logList");
+const headLabel = document.getElementById("headLabel");
+
+let staged = {};
+let committed = createModuleState();
+let commits = [];
+let commandHistory = [];
+let commandHistoryIndex = 0;
+let lastLogType = "ok";
+let carClock = 0;
+
+const MODULE_LABELS = {
+  roads: "roads",
+  buildings: "buildings",
+  cars: "cars",
+  pedestrians: "pedestrians",
+  streetlights: "street lights",
+  cats: "cats",
+  dogs: "dogs",
+  trees: "trees",
+  dinosaurs: "dinosaurs",
+  ufos: "ufos"
+};
+
+const MODULE_COLORS = {
+  roads: "#252b2e",
+  buildings: "#8b5cf6",
+  cars: "#ef4444",
+  pedestrians: "#2563eb",
+  streetlights: "#f59e0b",
+  cats: "#f97316",
+  dogs: "#a16207",
+  trees: "#22c55e",
+  dinosaurs: "#16a34a",
+  ufos: "#64748b"
+};
+
+const MODULE_ALIASES = {
+  road: "roads",
+  roads: "roads",
+  building: "buildings",
+  buildings: "buildings",
+  car: "cars",
+  cars: "cars",
+  pedestrian: "pedestrians",
+  pedestrians: "pedestrians",
+  people: "pedestrians",
+  person: "pedestrians",
+  streetlight: "streetlights",
+  streetlights: "streetlights",
+  "street light": "streetlights",
+  "street lights": "streetlights",
+  light: "streetlights",
+  lights: "streetlights",
+  cat: "cats",
+  cats: "cats",
+  dog: "dogs",
+  dogs: "dogs",
+  tree: "trees",
+  trees: "trees",
+  dinosaur: "dinosaurs",
+  dinosaurs: "dinosaurs",
+  dino: "dinosaurs",
+  dinos: "dinosaurs",
+  ufo: "ufos",
+  ufos: "ufos"
+};
+
+const CITY_ROADS = {
+  horizontal: [
+    { type: "h", y: 0.30, x1: 0.06, x2: 0.94 },
+    { type: "h", y: 0.67, x1: 0.08, x2: 0.92 }
+  ],
+  vertical: [
+    { type: "v", x: 0.28, y1: 0.08, y2: 0.90 },
+    { type: "v", x: 0.52, y1: 0.10, y2: 0.92 },
+    { type: "v", x: 0.78, y1: 0.08, y2: 0.88 }
+  ]
+};
+
+const buildingLots = [
+  { x: 0.11, y: 0.11, w: 0.12, h: 0.13, color: "#8b5cf6" },
+  { x: 0.36, y: 0.10, w: 0.11, h: 0.13, color: "#0ea5e9" },
+  { x: 0.62, y: 0.11, w: 0.11, h: 0.13, color: "#f97316" },
+  { x: 0.11, y: 0.43, w: 0.12, h: 0.15, color: "#14b8a6" },
+  { x: 0.36, y: 0.43, w: 0.11, h: 0.14, color: "#eab308" },
+  { x: 0.62, y: 0.43, w: 0.11, h: 0.15, color: "#ec4899" },
+  { x: 0.36, y: 0.77, w: 0.12, h: 0.13, color: "#22c55e" },
+  { x: 0.63, y: 0.77, w: 0.12, h: 0.13, color: "#64748b" }
+];
+
+const carRoutes = [
+  { axis: "x", lane: CITY_ROADS.horizontal[0].y, from: CITY_ROADS.horizontal[0].x1 + 0.04, to: CITY_ROADS.horizontal[0].x2 - 0.02, color: "#ef4444", offset: 0.00 },
+  { axis: "x", lane: CITY_ROADS.horizontal[1].y, from: CITY_ROADS.horizontal[1].x2 - 0.02, to: CITY_ROADS.horizontal[1].x1, color: "#f59e0b", offset: 0.34 },
+  { axis: "y", lane: CITY_ROADS.vertical[1].x, from: CITY_ROADS.vertical[1].y1 + 0.02, to: CITY_ROADS.vertical[1].y2 - 0.04, color: "#2563eb", offset: 0.18 },
+  { axis: "y", lane: CITY_ROADS.vertical[0].x, from: CITY_ROADS.vertical[0].y2 - 0.04, to: CITY_ROADS.vertical[0].y1 + 0.06, color: "#10b981", offset: 0.62 }
+];
+
+function createModuleState() {
+  return Object.fromEntries(MODULES.map((moduleName) => [moduleName, false]));
+}
+
+function cloneState(state) {
+  return Object.fromEntries(MODULES.map((moduleName) => [moduleName, Boolean(state[moduleName])]));
+}
+
+function hasStagedChanges() {
+  return Object.keys(staged).length > 0;
+}
+
+function moduleLabel(moduleName) {
+  return MODULE_LABELS[moduleName] || moduleName;
+}
+
+function moduleSentenceName(moduleName) {
+  return moduleLabel(moduleName);
+}
+
+function commitId(index) {
+  return "c" + String(index + 1).padStart(3, "0");
+}
+
+function formatDiff(changes) {
+  return Object.entries(changes)
+    .map(([name, action]) => (action === "add" ? "+" : "-") + moduleSentenceName(name))
+    .join(" ");
+}
+
+function pushLog(text, type = "ok") {
+  lastLogType = type;
+  const item = document.createElement("li");
+  item.className = "log-line " + type;
+  item.textContent = text;
+  logList.prepend(item);
+  while (logList.children.length > 18) {
+    logList.removeChild(logList.lastChild);
+  }
+}
+
+function renderPanels() {
+  diffList.innerHTML = "";
+  const stagedEntries = Object.entries(staged);
+  if (!stagedEntries.length) {
+    const empty = document.createElement("li");
+    empty.className = "empty";
+    empty.textContent = "No added changes";
+    diffList.appendChild(empty);
+  } else {
+    stagedEntries.forEach(([moduleName, action]) => {
+      const item = document.createElement("li");
+      item.className = "diff-item " + action;
+      item.innerHTML = `
+        <span class="diff-mark">${action === "add" ? "+" : "-"}</span>
+        <span>${moduleName}</span>
+      `;
+      diffList.appendChild(item);
+    });
+  }
+
+  historyList.innerHTML = "";
+  if (!commits.length) {
+    const empty = document.createElement("li");
+    empty.className = "empty";
+    empty.textContent = "No commits yet";
+    historyList.appendChild(empty);
+  } else {
+    commits.slice().reverse().forEach((commit) => {
+      const row = document.createElement("li");
+      row.className = "commit-row" + (commit.reverts ? " revert" : "");
+      row.innerHTML = `
+        <span class="commit-id">${commit.id}</span>
+        <span>
+          <span class="commit-message">${commit.message}</span>
+          <span class="commit-diff">${formatDiff(commit.changes)}</span>
+        </span>
+      `;
+      historyList.appendChild(row);
+    });
+  }
+
+  headLabel.textContent = commits.length ? commits[commits.length - 1].id : "none";
+}
+
+function resizeCanvas() {
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+  canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+function roundedRect(context, x, y, w, h, radius) {
+  const r = Math.min(radius, w / 2, h / 2);
+  context.beginPath();
+  context.moveTo(x + r, y);
+  context.lineTo(x + w - r, y);
+  context.quadraticCurveTo(x + w, y, x + w, y + r);
+  context.lineTo(x + w, y + h - r);
+  context.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  context.lineTo(x + r, y + h);
+  context.quadraticCurveTo(x, y + h, x, y + h - r);
+  context.lineTo(x, y + r);
+  context.quadraticCurveTo(x, y, x + r, y);
+  context.closePath();
+}
+
+function drawLabel(text, x, y, color = "#65706b") {
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.font = "800 10px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+  ctx.letterSpacing = "0px";
+  ctx.fillText(text, x, y);
+  ctx.restore();
+}
+
+function getRects() {
+  const w = canvas.clientWidth;
+  const h = canvas.clientHeight;
+  const padding = Math.max(18, Math.min(28, w * 0.03));
+  const yardW = Math.max(130, Math.min(210, w * 0.25));
+  const top = 42;
+  const bottomPad = 26;
+  const yard = {
+    x: padding,
+    y: top,
+    w: yardW,
+    h: Math.max(180, h - top - bottomPad)
+  };
+  const city = {
+    x: yard.x + yard.w + Math.max(18, w * 0.035),
+    y: top,
+    w: Math.max(220, w - yard.x - yard.w - Math.max(18, w * 0.035) - padding),
+    h: Math.max(220, h - top - bottomPad)
+  };
+  return { yard, city };
+}
+
+function drawBlueprintFrame(rect, color) {
+  ctx.save();
+  ctx.setLineDash([7, 7]);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
+  ctx.restore();
+}
+
+function drawYard(yard) {
+  ctx.save();
+  ctx.fillStyle = "#e8eeeb";
+  ctx.strokeStyle = "#cbd7d1";
+  ctx.lineWidth = 1;
+  ctx.fillRect(yard.x, yard.y, yard.w, yard.h);
+  ctx.strokeRect(yard.x, yard.y, yard.w, yard.h);
+
+  ctx.fillStyle = "#d9e2dd";
+  for (let y = yard.y + 14; y < yard.y + yard.h; y += 28) {
+    ctx.fillRect(yard.x, y, yard.w, 1);
+  }
+
+  drawLabel("NOT ADDED", yard.x + 12, yard.y + 22);
+
+  const crateGap = 6;
+  const crateTop = yard.y + 46;
+  const crateH = Math.max(22, (yard.h - 62 - crateGap * (MODULES.length - 1)) / MODULES.length);
+  MODULES.forEach((moduleName, index) => {
+    if (committed[moduleName] || staged[moduleName]) return;
+    const crate = {
+      x: yard.x + 20,
+      y: crateTop + index * (crateH + crateGap),
+      w: yard.w - 40,
+      h: crateH
+    };
+    drawModuleCrate(moduleName, crate);
+  });
+
+  ctx.restore();
+}
+
+function drawModuleCrate(moduleName, rect) {
+  ctx.save();
+  roundedRect(ctx, rect.x, rect.y, rect.w, rect.h, 6);
+  ctx.fillStyle = "#f8faf9";
+  ctx.strokeStyle = "#b8c5bf";
+  ctx.lineWidth = 1;
+  ctx.fill();
+  ctx.stroke();
+
+  const iconX = rect.x + 12;
+  const iconY = rect.y + 15;
+  const isCompact = rect.h < 34;
+  if (!isCompact && moduleName === "roads") {
+    ctx.fillStyle = "#343a40";
+    ctx.fillRect(iconX, iconY + 5, 38, 10);
+    ctx.strokeStyle = "#f8faf9";
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(iconX + 4, iconY + 10);
+    ctx.lineTo(iconX + 34, iconY + 10);
+    ctx.stroke();
+  }
+
+  if (!isCompact && moduleName === "buildings") {
+    ["#8b5cf6", "#0ea5e9", "#f97316"].forEach((color, i) => {
+      ctx.fillStyle = color;
+      ctx.fillRect(iconX + i * 14, iconY + (i % 2) * 5, 10, 20 - (i % 2) * 5);
+    });
+  }
+
+  if (!isCompact && moduleName === "cars") {
+    ["#ef4444", "#2563eb"].forEach((color, i) => {
+      ctx.fillStyle = color;
+      roundedRect(ctx, iconX + i * 22, iconY + 5, 18, 10, 3);
+      ctx.fill();
+    });
+  }
+
+  if (isCompact || !["roads", "buildings", "cars"].includes(moduleName)) {
+    ctx.fillStyle = MODULE_COLORS[moduleName] || "#65706b";
+    ctx.beginPath();
+    ctx.arc(isCompact ? rect.x + 15 : iconX + 20, rect.y + rect.h / 2, Math.min(9, rect.h / 3), 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.setLineDash([]);
+  ctx.fillStyle = "#17201c";
+  ctx.font = `${rect.h < 34 ? "700 10px" : "700 13px"} -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif`;
+  ctx.fillText(moduleLabel(moduleName), isCompact ? rect.x + 28 : rect.x + 62, rect.y + rect.h / 2 + 4);
+  ctx.restore();
+}
+
+function drawCityBase(city) {
+  ctx.save();
+  ctx.fillStyle = "#dfe9e3";
+  ctx.strokeStyle = "#9fb4aa";
+  ctx.lineWidth = 2;
+  ctx.fillRect(city.x, city.y, city.w, city.h);
+  ctx.strokeRect(city.x, city.y, city.w, city.h);
+
+  ctx.fillStyle = "rgba(255,255,255,0.34)";
+  const blockW = city.w / 6;
+  const blockH = city.h / 5;
+  for (let i = 0; i < 6; i += 1) {
+    for (let j = 0; j < 5; j += 1) {
+      if ((i + j) % 2 === 0) {
+        ctx.fillRect(city.x + i * blockW + 8, city.y + j * blockH + 8, blockW - 16, blockH - 16);
+      }
+    }
+  }
+
+  drawLabel("CITY", city.x + 12, city.y + 22);
+  ctx.restore();
+}
+
+function featureState(moduleName) {
+  if (staged[moduleName] === "add") return "blueprint";
+  if (staged[moduleName] === "remove" && committed[moduleName]) return "remove";
+  if (committed[moduleName]) return "solid";
+  return "absent";
+}
+
+function drawRoads(city, state) {
+  if (state === "absent") return;
+  const roads = CITY_ROADS.horizontal.concat(CITY_ROADS.vertical);
+
+  ctx.save();
+  ctx.lineCap = "square";
+  roads.forEach((road) => {
+    const isBlueprint = state === "blueprint";
+    ctx.globalAlpha = isBlueprint ? 0.76 : 1;
+    ctx.strokeStyle = isBlueprint ? "#2563eb" : "#252b2e";
+    ctx.lineWidth = isBlueprint ? 18 : 24;
+    if (isBlueprint) ctx.setLineDash([10, 10]);
+    else ctx.setLineDash([]);
+    ctx.beginPath();
+    if (road.type === "h") {
+      ctx.moveTo(city.x + road.x1 * city.w, city.y + road.y * city.h);
+      ctx.lineTo(city.x + road.x2 * city.w, city.y + road.y * city.h);
+    } else {
+      ctx.moveTo(city.x + road.x * city.w, city.y + road.y1 * city.h);
+      ctx.lineTo(city.x + road.x * city.w, city.y + road.y2 * city.h);
+    }
+    ctx.stroke();
+
+    if (!isBlueprint) {
+      ctx.strokeStyle = "rgba(255,255,255,0.72)";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([9, 12]);
+      ctx.beginPath();
+      if (road.type === "h") {
+        ctx.moveTo(city.x + road.x1 * city.w, city.y + road.y * city.h);
+        ctx.lineTo(city.x + road.x2 * city.w, city.y + road.y * city.h);
+      } else {
+        ctx.moveTo(city.x + road.x * city.w, city.y + road.y1 * city.h);
+        ctx.lineTo(city.x + road.x * city.w, city.y + road.y2 * city.h);
+      }
+      ctx.stroke();
+    }
+  });
+
+  if (state === "remove") {
+    drawRemovalTape(city, "roads");
+  }
+  ctx.restore();
+}
+
+function drawBuildings(city, state) {
+  if (state === "absent") return;
+  const isBlueprint = state === "blueprint";
+  ctx.save();
+  buildingLots.forEach((lot) => {
+    const x = city.x + lot.x * city.w;
+    const y = city.y + lot.y * city.h;
+    const w = lot.w * city.w;
+    const h = lot.h * city.h;
+
+    if (isBlueprint) {
+      ctx.globalAlpha = 0.82;
+      ctx.fillStyle = "rgba(37, 99, 235, 0.12)";
+      ctx.strokeStyle = "#2563eb";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 5]);
+      ctx.fillRect(x, y, w, h);
+      ctx.strokeRect(x, y, w, h);
+      ctx.setLineDash([]);
+      return;
+    }
+
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = "rgba(0,0,0,0.12)";
+    ctx.fillRect(x + 5, y + 6, w, h);
+    ctx.fillStyle = lot.color;
+    ctx.strokeStyle = "rgba(0,0,0,0.24)";
+    ctx.lineWidth = 1;
+    ctx.fillRect(x, y, w, h);
+    ctx.strokeRect(x, y, w, h);
+    ctx.strokeStyle = "rgba(255,255,255,0.36)";
+    ctx.lineWidth = 1;
+    for (let gx = x + 10; gx < x + w - 6; gx += 18) {
+      ctx.beginPath();
+      ctx.moveTo(gx, y + 6);
+      ctx.lineTo(gx, y + h - 6);
+      ctx.stroke();
+    }
+  });
+
+  if (state === "remove") {
+    drawRemovalTape(city, "buildings");
+  }
+  ctx.restore();
+}
+
+function drawCars(city, state) {
+  if (state === "absent") return;
+  const roadsAvailable = committed.roads || staged.roads === "add";
+  const isBlueprint = state === "blueprint";
+  const isRemoval = state === "remove";
+
+  ctx.save();
+  if (!roadsAvailable && !isBlueprint) {
+    drawDepotCars(city, isRemoval);
+    ctx.restore();
+    return;
+  }
+
+  carRoutes.forEach((route, index) => {
+    const travel = (carClock * 0.00009 + route.offset) % 1;
+    const t = isBlueprint ? (index + 1) / (carRoutes.length + 1) : travel;
+    const from = route.from;
+    const to = route.to;
+    const value = from + (to - from) * t;
+    const carW = route.axis === "x" ? 28 : 14;
+    const carH = route.axis === "x" ? 14 : 28;
+    const x = route.axis === "x"
+      ? city.x + value * city.w - carW / 2
+      : city.x + route.lane * city.w - carW / 2;
+    const y = route.axis === "x"
+      ? city.y + route.lane * city.h - carH / 2
+      : city.y + value * city.h - carH / 2;
+
+    ctx.globalAlpha = isBlueprint ? 0.44 : 1;
+    ctx.fillStyle = isBlueprint ? "#2563eb" : route.color;
+    roundedRect(ctx, x, y, carW, carH, 4);
+    ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,0.72)";
+    roundedRect(ctx, x + carW * 0.27, y + carH * 0.23, carW * 0.32, carH * 0.54, 2);
+    ctx.fill();
+  });
+
+  if (isRemoval) {
+    drawRemovalTape(city, "cars");
+  }
+  ctx.restore();
+}
+
+function drawDepotCars(city, isRemoval) {
+  const depot = {
+    x: city.x + city.w * 0.10,
+    y: city.y + city.h * 0.78,
+    w: city.w * 0.28,
+    h: city.h * 0.14
+  };
+  ctx.save();
+  ctx.fillStyle = "#f8faf9";
+  ctx.strokeStyle = "#b8c5bf";
+  ctx.lineWidth = 1;
+  ctx.fillRect(depot.x, depot.y, depot.w, depot.h);
+  ctx.strokeRect(depot.x, depot.y, depot.w, depot.h);
+  drawLabel("CAR DEPOT", depot.x + 10, depot.y + 20, "#65706b");
+
+  ["#ef4444", "#2563eb", "#10b981"].forEach((color, i) => {
+    ctx.fillStyle = color;
+    roundedRect(ctx, depot.x + 14 + i * 34, depot.y + 36, 24, 12, 4);
+    ctx.fill();
+  });
+
+  ctx.fillStyle = "#b7791f";
+  ctx.font = "800 18px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+  ctx.fillText("!", depot.x + depot.w - 24, depot.y + 44);
+
+  if (isRemoval) {
+    ctx.strokeStyle = "#dc2626";
+    ctx.lineWidth = 3;
+    ctx.setLineDash([8, 6]);
+    ctx.strokeRect(depot.x - 6, depot.y - 6, depot.w + 12, depot.h + 12);
+  }
+  ctx.restore();
+}
+
+function drawStreetLights(city, state) {
+  if (state === "absent") return;
+  const isBlueprint = state === "blueprint";
+  const isRemoval = state === "remove";
+  const spots = [
+    { x: 0.17, y: 0.30 }, { x: 0.40, y: 0.30 }, { x: 0.66, y: 0.30 }, { x: 0.86, y: 0.30 },
+    { x: 0.18, y: 0.67 }, { x: 0.44, y: 0.67 }, { x: 0.62, y: 0.67 }, { x: 0.84, y: 0.67 },
+    { x: 0.28, y: 0.18 }, { x: 0.52, y: 0.50 }, { x: 0.78, y: 0.82 }
+  ];
+
+  ctx.save();
+  ctx.globalAlpha = isBlueprint ? 0.56 : 1;
+  spots.forEach((spot) => {
+    const x = city.x + spot.x * city.w;
+    const y = city.y + spot.y * city.h;
+    ctx.strokeStyle = isBlueprint ? "#2563eb" : "#4b5563";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(x, y - 24);
+    ctx.lineTo(x, y - 5);
+    ctx.stroke();
+    ctx.fillStyle = isBlueprint ? "rgba(37, 99, 235, 0.32)" : "rgba(245, 158, 11, 0.28)";
+    ctx.beginPath();
+    ctx.arc(x + 4, y - 27, 12, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = isBlueprint ? "#2563eb" : "#f59e0b";
+    ctx.beginPath();
+    ctx.arc(x + 4, y - 27, 4, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.restore();
+
+  if (isRemoval) drawRemovalTape(city, "streetlights");
+}
+
+function drawTrees(city, state) {
+  if (state === "absent") return;
+  const isBlueprint = state === "blueprint";
+  const isRemoval = state === "remove";
+  const spots = [
+    { x: 0.08, y: 0.20, s: 1.0 }, { x: 0.31, y: 0.18, s: 0.9 }, { x: 0.56, y: 0.20, s: 1.0 }, { x: 0.90, y: 0.20, s: 0.95 },
+    { x: 0.08, y: 0.52, s: 0.9 }, { x: 0.31, y: 0.54, s: 1.0 }, { x: 0.56, y: 0.52, s: 0.9 }, { x: 0.90, y: 0.54, s: 1.0 },
+    { x: 0.17, y: 0.84, s: 1.0 }, { x: 0.56, y: 0.84, s: 0.95 }, { x: 0.90, y: 0.84, s: 0.9 }
+  ];
+
+  ctx.save();
+  ctx.globalAlpha = isBlueprint ? 0.58 : 1;
+  spots.forEach((spot) => {
+    const x = city.x + spot.x * city.w;
+    const y = city.y + spot.y * city.h;
+    const size = 10 * spot.s;
+    ctx.fillStyle = isBlueprint ? "#2563eb" : "#8b5a2b";
+    ctx.fillRect(x - 2, y + 3, 4, 12);
+    ctx.fillStyle = isBlueprint ? "rgba(37, 99, 235, 0.42)" : "#22c55e";
+    ctx.beginPath();
+    ctx.arc(x, y, size, 0, Math.PI * 2);
+    ctx.arc(x - size * 0.7, y + 4, size * 0.72, 0, Math.PI * 2);
+    ctx.arc(x + size * 0.7, y + 4, size * 0.72, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.restore();
+
+  if (isRemoval) drawRemovalTape(city, "trees");
+}
+
+function drawPedestrians(city, state) {
+  if (state === "absent") return;
+  const isBlueprint = state === "blueprint";
+  const isRemoval = state === "remove";
+  const spots = [
+    { x: 0.20, y: 0.36, color: "#2563eb" },
+    { x: 0.36, y: 0.28, color: "#7c3aed" },
+    { x: 0.49, y: 0.70, color: "#059669" },
+    { x: 0.58, y: 0.64, color: "#dc2626" },
+    { x: 0.82, y: 0.70, color: "#0891b2" },
+    { x: 0.74, y: 0.28, color: "#be123c" }
+  ];
+
+  ctx.save();
+  ctx.globalAlpha = isBlueprint ? 0.58 : 1;
+  ctx.lineWidth = 2;
+  spots.forEach((spot) => {
+    const x = city.x + spot.x * city.w;
+    const y = city.y + spot.y * city.h;
+    const color = isBlueprint ? "#2563eb" : spot.color;
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(x, y - 10, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(x, y - 5);
+    ctx.lineTo(x, y + 8);
+    ctx.moveTo(x - 7, y);
+    ctx.lineTo(x + 7, y);
+    ctx.moveTo(x, y + 8);
+    ctx.lineTo(x - 5, y + 16);
+    ctx.moveTo(x, y + 8);
+    ctx.lineTo(x + 5, y + 16);
+    ctx.stroke();
+  });
+  ctx.restore();
+
+  if (isRemoval) drawRemovalTape(city, "pedestrians");
+}
+
+function drawSmallAnimal(x, y, color, scale, isBlueprint, isDog) {
+  const bodyW = (isDog ? 24 : 18) * scale;
+  const bodyH = (isDog ? 12 : 9) * scale;
+  ctx.fillStyle = isBlueprint ? "#2563eb" : color;
+  roundedRect(ctx, x - bodyW / 2, y - bodyH, bodyW, bodyH, bodyH / 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(x + bodyW * 0.45, y - bodyH * 1.05, bodyH * 0.52, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(x + bodyW * 0.36, y - bodyH * 1.42);
+  ctx.lineTo(x + bodyW * 0.50, y - bodyH * 1.92);
+  ctx.lineTo(x + bodyW * 0.62, y - bodyH * 1.36);
+  ctx.fill();
+  ctx.strokeStyle = isBlueprint ? "#2563eb" : color;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(x - bodyW * 0.48, y - bodyH * 0.75);
+  ctx.lineTo(x - bodyW * 0.76, y - bodyH * (isDog ? 1.28 : 1.55));
+  ctx.stroke();
+  ctx.fillRect(x - bodyW * 0.25, y - 2, 3 * scale, 7 * scale);
+  ctx.fillRect(x + bodyW * 0.18, y - 2, 3 * scale, 7 * scale);
+}
+
+function drawCats(city, state) {
+  if (state === "absent") return;
+  const isBlueprint = state === "blueprint";
+  const isRemoval = state === "remove";
+  const spots = [
+    { x: 0.13, y: 0.38, color: "#f97316" },
+    { x: 0.58, y: 0.25, color: "#111827" },
+    { x: 0.87, y: 0.60, color: "#facc15" }
+  ];
+
+  ctx.save();
+  ctx.globalAlpha = isBlueprint ? 0.58 : 1;
+  spots.forEach((spot) => drawSmallAnimal(city.x + spot.x * city.w, city.y + spot.y * city.h, spot.color, 1, isBlueprint, false));
+  ctx.restore();
+
+  if (isRemoval) drawRemovalTape(city, "cats");
+}
+
+function drawDogs(city, state) {
+  if (state === "absent") return;
+  const isBlueprint = state === "blueprint";
+  const isRemoval = state === "remove";
+  const spots = [
+    { x: 0.32, y: 0.62, color: "#a16207" },
+    { x: 0.70, y: 0.36, color: "#92400e" },
+    { x: 0.47, y: 0.77, color: "#78350f" }
+  ];
+
+  ctx.save();
+  ctx.globalAlpha = isBlueprint ? 0.58 : 1;
+  spots.forEach((spot) => drawSmallAnimal(city.x + spot.x * city.w, city.y + spot.y * city.h, spot.color, 1.1, isBlueprint, true));
+  ctx.restore();
+
+  if (isRemoval) drawRemovalTape(city, "dogs");
+}
+
+function drawDinosaurs(city, state) {
+  if (state === "absent") return;
+  const isBlueprint = state === "blueprint";
+  const isRemoval = state === "remove";
+  const spots = [
+    { x: 0.22, y: 0.82, color: "#16a34a", scale: 1.0 },
+    { x: 0.86, y: 0.46, color: "#15803d", scale: 0.86 }
+  ];
+
+  ctx.save();
+  ctx.globalAlpha = isBlueprint ? 0.58 : 1;
+  spots.forEach((spot) => {
+    const x = city.x + spot.x * city.w;
+    const y = city.y + spot.y * city.h;
+    const s = spot.scale;
+    ctx.fillStyle = isBlueprint ? "#2563eb" : spot.color;
+    ctx.beginPath();
+    ctx.ellipse(x, y, 30 * s, 15 * s, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(x - 27 * s, y - 4 * s);
+    ctx.lineTo(x - 52 * s, y - 18 * s);
+    ctx.lineTo(x - 36 * s, y + 5 * s);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(x + 22 * s, y - 8 * s);
+    ctx.quadraticCurveTo(x + 38 * s, y - 34 * s, x + 52 * s, y - 22 * s);
+    ctx.quadraticCurveTo(x + 43 * s, y - 12 * s, x + 31 * s, y - 2 * s);
+    ctx.fill();
+    ctx.fillRect(x - 10 * s, y + 10 * s, 6 * s, 18 * s);
+    ctx.fillRect(x + 12 * s, y + 10 * s, 6 * s, 18 * s);
+  });
+  ctx.restore();
+
+  if (isRemoval) drawRemovalTape(city, "dinosaurs");
+}
+
+function drawUFOs(city, state) {
+  if (state === "absent") return;
+  const isBlueprint = state === "blueprint";
+  const isRemoval = state === "remove";
+  const spots = [
+    { x: 0.22, y: 0.08, s: 1.0 },
+    { x: 0.55, y: 0.07, s: 0.86 },
+    { x: 0.84, y: 0.11, s: 0.92 }
+  ];
+
+  ctx.save();
+  ctx.globalAlpha = isBlueprint ? 0.58 : 1;
+  spots.forEach((spot) => {
+    const x = city.x + spot.x * city.w;
+    const y = city.y + spot.y * city.h;
+    const s = spot.s;
+    ctx.fillStyle = isBlueprint ? "rgba(37, 99, 235, 0.22)" : "rgba(14, 165, 233, 0.16)";
+    ctx.beginPath();
+    ctx.moveTo(x - 10 * s, y + 12 * s);
+    ctx.lineTo(x - 28 * s, y + 52 * s);
+    ctx.lineTo(x + 28 * s, y + 52 * s);
+    ctx.lineTo(x + 10 * s, y + 12 * s);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = isBlueprint ? "#2563eb" : "#64748b";
+    ctx.beginPath();
+    ctx.ellipse(x, y + 12 * s, 34 * s, 10 * s, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = isBlueprint ? "rgba(37, 99, 235, 0.55)" : "#bae6fd";
+    ctx.beginPath();
+    ctx.ellipse(x, y + 4 * s, 15 * s, 10 * s, 0, Math.PI, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.restore();
+
+  if (isRemoval) drawRemovalTape(city, "ufos");
+}
+
+function drawRemovalTape(city, moduleName) {
+  ctx.save();
+  ctx.globalAlpha = 0.92;
+  ctx.strokeStyle = "#dc2626";
+  ctx.lineWidth = 3;
+  ctx.setLineDash([10, 7]);
+
+  if (moduleName === "roads") {
+    [["h", 0.30], ["h", 0.67]].forEach((entry) => {
+      const y = city.y + entry[1] * city.h;
+      ctx.beginPath();
+      ctx.moveTo(city.x + city.w * 0.08, y - 18);
+      ctx.lineTo(city.x + city.w * 0.92, y + 18);
+      ctx.stroke();
+    });
+  } else {
+    ctx.strokeRect(city.x + city.w * 0.08, city.y + city.h * 0.10, city.w * 0.84, city.h * 0.82);
+    ctx.beginPath();
+    ctx.moveTo(city.x + city.w * 0.12, city.y + city.h * 0.16);
+    ctx.lineTo(city.x + city.w * 0.88, city.y + city.h * 0.84);
+    ctx.moveTo(city.x + city.w * 0.88, city.y + city.h * 0.16);
+    ctx.lineTo(city.x + city.w * 0.12, city.y + city.h * 0.84);
+    ctx.stroke();
+  }
+
+  ctx.setLineDash([]);
+  ctx.fillStyle = "rgba(220, 38, 38, 0.12)";
+  ctx.fillRect(city.x, city.y, city.w, city.h);
+  ctx.restore();
+}
+
+function drawAddedRibbon(city) {
+  const entries = Object.entries(staged);
+  if (!entries.length) return;
+
+  ctx.save();
+  const ribbon = {
+    x: city.x + city.w - 154,
+    y: city.y + 12,
+    w: 138,
+    h: 28 + entries.length * 20
+  };
+  ctx.fillStyle = "rgba(255,255,255,0.92)";
+  ctx.strokeStyle = "#b8c5bf";
+  ctx.fillRect(ribbon.x, ribbon.y, ribbon.w, ribbon.h);
+  ctx.strokeRect(ribbon.x, ribbon.y, ribbon.w, ribbon.h);
+  drawLabel("ADDED", ribbon.x + 10, ribbon.y + 18, "#2563eb");
+  ctx.font = "700 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
+  entries.forEach(([name, action], index) => {
+    ctx.fillStyle = action === "add" ? "#2f7d57" : "#dc2626";
+    ctx.fillText((action === "add" ? "+" : "-") + name, ribbon.x + 12, ribbon.y + 40 + index * 18);
+  });
+  ctx.restore();
+}
+
+function drawStatusToast(w) {
+  if (!logList.firstChild) return;
+  ctx.save();
+  const text = logList.firstChild.textContent;
+  const maxText = text.length > 54 ? text.slice(0, 51) + "..." : text;
+  ctx.font = "700 12px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+  const metrics = ctx.measureText(maxText);
+  const x = 18;
+  const y = 12;
+  const toastW = Math.min(w - 36, metrics.width + 28);
+  ctx.fillStyle = lastLogType === "error" ? "rgba(255,247,247,0.96)" : "rgba(255,255,255,0.96)";
+  ctx.strokeStyle = lastLogType === "error" ? "#fecaca" : "#dce4e0";
+  ctx.fillRect(x, y, toastW, 28);
+  ctx.strokeRect(x, y, toastW, 28);
+  ctx.fillStyle = lastLogType === "error" ? "#8f1d1d" : "#244f3b";
+  ctx.fillText(maxText, x + 12, y + 18);
+  ctx.restore();
+}
+
+function renderCanvas(time) {
+  carClock = time || 0;
+  const w = canvas.clientWidth;
+  const h = canvas.clientHeight;
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = "#eef3f1";
+  ctx.fillRect(0, 0, w, h);
+
+  const { yard, city } = getRects();
+  drawYard(yard);
+  drawCityBase(city);
+  drawRoads(city, featureState("roads"));
+  drawTrees(city, featureState("trees"));
+  drawBuildings(city, featureState("buildings"));
+  drawStreetLights(city, featureState("streetlights"));
+  drawPedestrians(city, featureState("pedestrians"));
+  drawCats(city, featureState("cats"));
+  drawDogs(city, featureState("dogs"));
+  drawDinosaurs(city, featureState("dinosaurs"));
+  drawCars(city, featureState("cars"));
+  drawUFOs(city, featureState("ufos"));
+  drawAddedRibbon(city);
+  drawStatusToast(w);
+
+  requestAnimationFrame(renderCanvas);
+}
+
+function normalizeModule(target) {
+  if (!target) return null;
+  const cleaned = target
+    .toLowerCase()
+    .trim()
+    .replace(/['\u2019]/g, "")
+    .replace(/[-_]+/g, " ")
+    .replace(/\s+/g, " ");
+  if (cleaned === "all") return "all";
+  return MODULE_ALIASES[cleaned] || null;
+}
+
+function stageAdd(moduleName) {
+  if (staged[moduleName] === "add") {
+    return { changed: false, message: `${moduleSentenceName(moduleName)} is already added.` };
+  }
+  if (staged[moduleName] === "remove") {
+    delete staged[moduleName];
+    return { changed: true, message: `${moduleSentenceName(moduleName)} removal canceled.` };
+  }
+  if (committed[moduleName]) {
+    return { changed: false, message: `${moduleSentenceName(moduleName)} is already committed.` };
+  }
+  staged[moduleName] = "add";
+  return { changed: true, message: `${moduleSentenceName(moduleName)} added.` };
+}
+
+function stageRemove(moduleName) {
+  if (staged[moduleName] === "remove") {
+    return { changed: false, message: `${moduleSentenceName(moduleName)} is already added for removal.` };
+  }
+  if (staged[moduleName] === "add") {
+    delete staged[moduleName];
+    return { changed: true, message: `${moduleSentenceName(moduleName)} moved back outside the city.` };
+  }
+  if (!committed[moduleName]) {
+    return { changed: false, message: `${moduleSentenceName(moduleName)} is not in the city yet.` };
+  }
+  staged[moduleName] = "remove";
+  return { changed: true, message: `${moduleSentenceName(moduleName)} added for removal.` };
+}
+
+function runForTarget(target, action) {
+  const moduleName = normalizeModule(target);
+  if (!moduleName) {
+    pushLog(`Unknown module: ${target || "missing"}.`, "error");
+    return;
+  }
+
+  const targets = moduleName === "all" ? MODULES : [moduleName];
+  const messages = [];
+  let changed = false;
+
+  targets.forEach((name) => {
+    const result = action === "add" ? stageAdd(name) : stageRemove(name);
+    if (result.changed) changed = true;
+    messages.push(result.message);
+  });
+
+  if (!changed) {
+    pushLog(messages[0] || "No change.", "error");
+  } else {
+    pushLog(messages.filter(Boolean).join(" "), "ok");
+  }
+  renderPanels();
+}
+
+function commitStaged(message) {
+  if (!hasStagedChanges()) {
+    pushLog("Nothing added. Use git add or git remove first.", "error");
+    return;
+  }
+
+  const before = cloneState(committed);
+  const changes = { ...staged };
+  Object.entries(changes).forEach(([moduleName, action]) => {
+    committed[moduleName] = action === "add";
+  });
+  const after = cloneState(committed);
+  const commit = {
+    id: commitId(commits.length),
+    message: message || "city update",
+    changes,
+    before,
+    after
+  };
+  commits.push(commit);
+  staged = {};
+  pushLog(`Committed ${commit.id}: ${commit.message}`, "ok");
+  renderPanels();
+}
+
+function findCommit(target) {
+  if (!target || target.toUpperCase() === "HEAD") {
+    return commits[commits.length - 1] || null;
+  }
+  const cleaned = target.toLowerCase();
+  return commits.find((commit) => commit.id.toLowerCase() === cleaned) || null;
+}
+
+function revertCommit(target) {
+  if (hasStagedChanges()) {
+    pushLog("Commit staged changes before reverting.", "error");
+    return;
+  }
+
+  const source = findCommit(target);
+  if (!source) {
+    pushLog(`Cannot find commit ${target || "HEAD"}.`, "error");
+    return;
+  }
+
+  const changes = {};
+  Object.entries(source.changes).forEach(([moduleName, action]) => {
+    if (action === "add" && committed[moduleName]) {
+      changes[moduleName] = "remove";
+    }
+    if (action === "remove" && !committed[moduleName]) {
+      changes[moduleName] = "add";
+    }
+  });
+
+  if (!Object.keys(changes).length) {
+    pushLog(`${source.id} is already undone in the current city.`, "error");
+    return;
+  }
+
+  const before = cloneState(committed);
+  Object.entries(changes).forEach(([moduleName, action]) => {
+    committed[moduleName] = action === "add";
+  });
+  const after = cloneState(committed);
+  const commit = {
+    id: commitId(commits.length),
+    message: `revert ${source.id}`,
+    changes,
+    before,
+    after,
+    reverts: source.id
+  };
+  commits.push(commit);
+  pushLog(`Committed ${commit.id}: revert ${source.id}`, "ok");
+  renderPanels();
+}
+
+function parseCommitMessage(raw) {
+  const quoted = raw.match(/\s-m\s+(?:"([^"]*)"|'([^']*)')/);
+  if (quoted) return (quoted[1] || quoted[2] || "").trim();
+  const unquoted = raw.match(/\s-m\s+(.+)$/);
+  if (unquoted) return unquoted[1].trim();
+  return "";
+}
+
+function runCommand(rawCommand) {
+  const raw = rawCommand.trim();
+  if (!raw) return;
+
+  commandHistory.push(raw);
+  commandHistoryIndex = commandHistory.length;
+  pushLog("$ " + raw, "command");
+
+  const parts = raw.split(/\s+/);
+  if (parts[0].toLowerCase() !== "git") {
+    pushLog("Commands must start with git.", "error");
+    return;
+  }
+
+  const action = (parts[1] || "").toLowerCase();
+  if (action === "add") {
+    runForTarget(parts.slice(2).join(" "), "add");
+    return;
+  }
+
+  if (action === "remove" || action === "rm") {
+    runForTarget(parts.slice(2).join(" "), "remove");
+    return;
+  }
+
+  if (action === "commit") {
+    commitStaged(parseCommitMessage(raw));
+    return;
+  }
+
+  if (action === "revert") {
+    revertCommit(parts[2] || "HEAD");
+    return;
+  }
+
+  if (action === "status") {
+    const diff = Object.keys(staged).length ? formatDiff(staged) : "clean";
+    pushLog(`Added diff: ${diff}`, "ok");
+    return;
+  }
+
+  if (action === "log") {
+    const head = commits.length ? commits[commits.length - 1].id : "none";
+    pushLog(`HEAD ${head}, ${commits.length} commits`, "ok");
+    return;
+  }
+
+  pushLog(`Unknown git command: ${action || "missing"}.`, "error");
+}
+
+commandForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const value = commandInput.value;
+  commandInput.value = "";
+  runCommand(value);
+});
+
+commandInput.addEventListener("keydown", (event) => {
+  if (event.key === "ArrowUp") {
+    event.preventDefault();
+    if (!commandHistory.length) return;
+    commandHistoryIndex = Math.max(0, commandHistoryIndex - 1);
+    commandInput.value = commandHistory[commandHistoryIndex] || "";
+  }
+  if (event.key === "ArrowDown") {
+    event.preventDefault();
+    if (!commandHistory.length) return;
+    commandHistoryIndex = Math.min(commandHistory.length, commandHistoryIndex + 1);
+    commandInput.value = commandHistory[commandHistoryIndex] || "";
+  }
+});
+
+window.addEventListener("resize", resizeCanvas);
+
+resizeCanvas();
+renderPanels();
+pushLog("Ready.", "ok");
+requestAnimationFrame(renderCanvas);
+commandInput.focus();
+</script>
+</body>
+</html>

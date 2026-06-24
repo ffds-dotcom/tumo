@@ -806,20 +806,51 @@
     const demoRows = document.querySelectorAll("[data-demo-command]");
     let typingTimer;
     let activeCommand = "";
+    let currentLang = "en";
 
     const commandDemos = {
-      "pwd": "/Users/student",
-      "ls": "Desktop   Documents   Downloads   day1",
-      "cd Desktop": "Now you are inside:\n/Users/student/Desktop",
-      "cd ..": "Moved up one folder:\n/Users/student",
-      "clear": "",
-      "history": "1  pwd\n2  ls\n3  cd Desktop\n4  cd ..",
-      "mkdir day1": "Created folder: day1",
-      "touch notes.txt": "Created empty file: notes.txt",
-      "cat notes.txt": "Hello TUMO!\nToday I learned pwd, ls, and cd.",
-      "cp notes.txt backup.txt": "Copied notes.txt to backup.txt",
-      "mv notes.txt day1.txt": "Renamed notes.txt to day1.txt",
-      "rm old-file.txt": "Removed old-file.txt\nCareful: real rm does not use Trash."
+      en: {
+        "pwd": "/Users/student",
+        "ls": "Desktop   Documents   Downloads   day1",
+        "cd Desktop": "Now you are inside:\n/Users/student/Desktop",
+        "cd ..": "Moved up one folder:\n/Users/student",
+        "clear": "",
+        "history": "1  pwd\n2  ls\n3  cd Desktop\n4  cd ..",
+        "mkdir day1": "Created folder: day1",
+        "touch notes.txt": "Created empty file: notes.txt",
+        "cat notes.txt": "Hello TUMO!\nToday I learned pwd, ls, and cd.",
+        "cp notes.txt backup.txt": "Copied notes.txt to backup.txt",
+        "mv notes.txt day1.txt": "Renamed notes.txt to day1.txt",
+        "rm old-file.txt": "Removed old-file.txt\nCareful: real rm does not use Trash."
+      },
+      hy: {
+        "pwd": "/Users/student",
+        "ls": "Desktop   Documents   Downloads   day1",
+        "cd Desktop": "Հիմա դու այս թղթապանակում ես.\n/Users/student/Desktop",
+        "cd ..": "Բարձրացար մեկ թղթապանակ վերեւ.\n/Users/student",
+        "clear": "",
+        "history": "1  pwd\n2  ls\n3  cd Desktop\n4  cd ..",
+        "mkdir day1": "Ստեղծվեց թղթապանակ՝ day1",
+        "touch notes.txt": "Ստեղծվեց դատարկ ֆայլ՝ notes.txt",
+        "cat notes.txt": "Բարեւ TUMO!\nԱյսօր սովորեցի pwd, ls եւ cd։",
+        "cp notes.txt backup.txt": "notes.txt-ը պատճենվեց backup.txt-ի մեջ",
+        "mv notes.txt day1.txt": "notes.txt-ը վերանվանվեց day1.txt",
+        "rm old-file.txt": "old-file.txt-ը ջնջվեց\nԶգույշ. իրական rm-ը Trash չի օգտագործում։"
+      },
+      ru: {
+        "pwd": "/Users/student",
+        "ls": "Desktop   Documents   Downloads   day1",
+        "cd Desktop": "Теперь ты внутри:\n/Users/student/Desktop",
+        "cd ..": "Поднялся на одну папку выше:\n/Users/student",
+        "clear": "",
+        "history": "1  pwd\n2  ls\n3  cd Desktop\n4  cd ..",
+        "mkdir day1": "Создана папка: day1",
+        "touch notes.txt": "Создан пустой файл: notes.txt",
+        "cat notes.txt": "Привет, TUMO!\nСегодня я выучил pwd, ls и cd.",
+        "cp notes.txt backup.txt": "notes.txt скопирован в backup.txt",
+        "mv notes.txt day1.txt": "notes.txt переименован в day1.txt",
+        "rm old-file.txt": "old-file.txt удален\nОсторожно: настоящий rm не использует Trash."
+      }
     };
 
     function typeCommand(command) {
@@ -836,13 +867,14 @@
         if (index >= command.length) {
           window.clearInterval(typingTimer);
           window.setTimeout(() => {
-            terminalOutput.textContent = commandDemos[command];
+            terminalOutput.textContent = commandDemos[currentLang][command] || commandDemos.en[command];
           }, 140);
         }
       }, 42);
     }
 
     function setLanguage(lang) {
+      currentLang = lang;
       document.documentElement.lang = lang;
       buttons.forEach((button) => {
         button.classList.toggle("active", button.dataset.lang === lang);
@@ -853,6 +885,10 @@
         if (key === "terminalIdle" && activeCommand) return;
         node.textContent = translations[lang][key] || translations.en[key] || node.textContent;
       });
+
+      if (activeCommand) {
+        terminalOutput.textContent = commandDemos[currentLang][activeCommand] || commandDemos.en[activeCommand];
+      }
     }
 
     buttons.forEach((button) => {
