@@ -681,6 +681,17 @@
       animation: go-wobble 1.15s ease-in-out infinite;
     }
 
+    .overlay-next-turn {
+      position: static;
+      z-index: 2;
+      min-width: 156px;
+      pointer-events: auto;
+    }
+
+    .overlay-next-turn[hidden] {
+      display: none;
+    }
+
     .card-overlay.reveal .overlay-actions {
       display: none;
     }
@@ -1460,6 +1471,7 @@
       <div class="preview-stack">
         <div class="preview-card-list" id="previewCardList" aria-live="polite"></div>
         <button class="action-button overlay-go" id="overlayGoButton" type="button" data-i18n="timerGo">GO</button>
+        <button class="action-button success-button overlay-next-turn" id="overlayNextTurnButton" type="button" data-i18n="nextTurnButton" hidden>NEXT TURN</button>
       </div>
       <div class="overlay-actions" id="overlayActions">
         <button class="action-button success-button" id="overlayCorrectButton" type="button" data-i18n="correctButton">Correct</button>
@@ -1579,6 +1591,7 @@
         doneButton: "Done",
         correctButton: "Correct",
         missedButton: "Missed",
+        nextTurnButton: "NEXT TURN",
         yesButton: "YES",
         noButton: "NO",
         canvasTitle: "Village Canvas",
@@ -1683,6 +1696,7 @@
         doneButton: "Պատրաստ է",
         correctButton: "Ճիշտ է",
         missedButton: "Չստացվեց",
+        nextTurnButton: "ՀԱՋՈՐԴ ՀԵՐԹ",
         yesButton: "ԱՅՈ",
         noButton: "ՈՉ",
         canvasTitle: "Գյուղի կտավ",
@@ -1787,6 +1801,7 @@
         doneButton: "Готово",
         correctButton: "Верно",
         missedButton: "Ошибка",
+        nextTurnButton: "СЛЕДУЮЩИЙ ХОД",
         yesButton: "ДА",
         noButton: "НЕТ",
         canvasTitle: "Деревенский холст",
@@ -1925,6 +1940,7 @@
     const overlayTimebarFill = document.getElementById("overlayTimebarFill");
     const overlayPromptLabel = document.getElementById("overlayPromptLabel");
     const overlayGoButton = document.getElementById("overlayGoButton");
+    const overlayNextTurnButton = document.getElementById("overlayNextTurnButton");
     const overlayCorrectButton = document.getElementById("overlayCorrectButton");
     const overlayMissedButton = document.getElementById("overlayMissedButton");
     const langButtons = document.querySelectorAll(".language-flags button");
@@ -2290,6 +2306,8 @@
         timebarFill.style.transform = "scaleX(1)";
         overlayTimebarFill.style.transform = "scaleX(1)";
       }
+
+      updateRevealCompletion();
     }
 
     function updateMeters() {
@@ -2416,6 +2434,15 @@
       document.querySelectorAll(".instruction-card").forEach((card, index) => {
         syncRevealCardState(card, index);
       });
+      updateRevealCompletion();
+    }
+
+    function updateRevealCompletion() {
+      overlayNextTurnButton.hidden = !(
+        phase === "reveal" &&
+        stageCards.length > 0 &&
+        selectedRevealCards.size === stageCards.length
+      );
     }
 
     function confirmRevealCard(index) {
@@ -2430,14 +2457,6 @@
       playCoinSound();
       selectedRevealCards.add(index);
       syncRevealCardStates();
-
-      if (selectedRevealCards.size === stageCards.length) {
-        revealAdvanceTimer = setTimeout(() => {
-          if (phase === "reveal" && selectedRevealCards.size === stageCards.length) {
-            markCorrect();
-          }
-        }, 420);
-      }
     }
 
     function renderCards(showText) {
@@ -2497,6 +2516,7 @@
       renderCards(true);
       renderOverlayCards(false);
       revealActions.hidden = true;
+      updateRevealCompletion();
       setCheckCopy("checkMemorize");
       previewEndAt = performance.now() + PREVIEW_SECONDS * 1000;
       setPhase("preview");
@@ -2549,6 +2569,7 @@
       renderCards(true);
       renderOverlayCards(true);
       revealActions.hidden = true;
+      updateRevealCompletion();
       setCheckCopy("checkReveal");
       setPhase("reveal");
       scheduleCardPops(stageCards.length);
@@ -2785,6 +2806,7 @@
     correctButton.addEventListener("click", markCorrect);
     missedButton.addEventListener("click", markMissed);
     overlayGoButton.addEventListener("click", skipPreview);
+    overlayNextTurnButton.addEventListener("click", markCorrect);
     overlayCorrectButton.addEventListener("click", markCorrect);
     overlayMissedButton.addEventListener("click", markMissed);
     newRunButton.addEventListener("click", startRun);
