@@ -38,11 +38,7 @@
       overflow: hidden;
       color: var(--ink);
       font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
-      background:
-        linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px),
-        linear-gradient(0deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px),
-        linear-gradient(180deg, #77bde4 0 34%, #8fd06b 34% 100%);
-      background-size: 24px 24px, 24px 24px, auto;
+      background: #fff;
     }
 
     button,
@@ -101,12 +97,7 @@
 
     .app::before,
     .app::after {
-      content: "";
-      position: fixed;
-      left: 0;
-      right: 0;
-      z-index: -1;
-      pointer-events: none;
+      display: none;
     }
 
     .app::before {
@@ -169,7 +160,7 @@
 
     .meters {
       display: grid;
-      grid-template-columns: repeat(4, minmax(82px, 1fr));
+      grid-template-columns: repeat(3, minmax(82px, 1fr));
       gap: 6px;
     }
 
@@ -400,7 +391,7 @@
       z-index: 24;
       display: none;
       padding: 0;
-      background: rgba(24, 30, 19, 0.28);
+      background: #fff;
       pointer-events: none;
       overflow: hidden;
     }
@@ -425,15 +416,14 @@
 
     .overlay-status {
       position: absolute;
-      top: 10px;
+      top: 16px;
       left: 50%;
-      z-index: 4;
-      width: min(780px, calc(100vw - 24px));
-      display: flex;
-      align-items: stretch;
-      justify-content: center;
-      gap: 10px;
-      transform: translateX(-50%);
+      width: min(860px, calc(100vw - 32px));
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: start;
+      gap: 12px;
+      translate: -50% 0;
       pointer-events: none;
     }
 
@@ -446,28 +436,33 @@
     }
 
     .overlay-clock {
-      flex: 0 0 clamp(118px, 18vw, 150px);
+      --clock-tilt: -2.5deg;
+      position: relative;
+      min-height: 96px;
+      display: grid;
+      place-items: center;
       background: #d84938;
       color: #fff7dc;
       box-shadow: inset -6px -6px 0 rgba(76, 34, 25, 0.28);
-      animation: panel-pop-in 280ms cubic-bezier(0.2, 0.9, 0.25, 1.12) both;
+      transform: rotate(var(--clock-tilt));
+      transform-origin: 50% 54%;
       pointer-events: auto;
     }
 
+    .overlay-clock.timer-shake {
+      animation: timer-shake 260ms ease-out both;
+    }
+
     .overlay-prompt {
-      flex: 1 1 0;
+      position: relative;
+      width: 100%;
       background: #fff1a8;
       color: var(--ink);
       box-shadow:
         0 10px 0 rgba(38, 56, 29, 0.22),
         inset -7px -7px 0 rgba(112, 79, 42, 0.16);
       animation: panel-pop-in 280ms 80ms cubic-bezier(0.2, 0.9, 0.25, 1.12) both;
-      max-width: 620px;
       pointer-events: auto;
-    }
-
-    .overlay-clock.timer-shake {
-      animation: timer-shake 190ms ease-in-out both;
     }
 
     .overlay-timer {
@@ -545,10 +540,10 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       gap: 18px;
       overflow: auto;
-      padding: 250px 24px 92px;
+      padding: 190px 24px 92px;
       pointer-events: none;
     }
 
@@ -556,9 +551,9 @@
       width: min(100%, 1280px);
       min-height: 0;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
-      align-content: center;
+      align-content: flex-start;
       gap: 14px;
       flex-wrap: wrap;
       overflow: visible;
@@ -613,11 +608,74 @@
     }
 
     .instruction-card.has-questionnaire {
-      padding-top: 80px;
+      padding-top: 76px;
     }
 
     .card-prompt-text {
       display: block;
+    }
+
+    .card-type-badge,
+    .card-pin-badge {
+      display: inline-block;
+      width: max-content;
+      max-width: 100%;
+      justify-self: center;
+      margin-bottom: 8px;
+      padding: 3px 7px;
+      border: 2px solid #26381d;
+      background: #e9b646;
+      color: #26381d;
+      font-size: 10px;
+      font-weight: 950;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+
+    .card-pin-badge {
+      display: none;
+      position: absolute;
+      right: 12px;
+      top: 14px;
+      margin: 0;
+      background: #7dbde8;
+    }
+
+    .instruction-card[data-kind="modifier"] .card-type-badge {
+      background: #7dbde8;
+    }
+
+    .instruction-card[data-kind="conflict"] .card-type-badge {
+      background: #e0715f;
+      color: #fffdf1;
+    }
+
+    .instruction-card[data-kind="noise"] .card-type-badge {
+      background: #cbd3c9;
+    }
+
+    .instruction-card.context-faded {
+      opacity: 0.72;
+      filter: grayscale(0.4);
+    }
+
+    .instruction-card.context-faded .card-prompt-text {
+      color: #5e6a5a;
+    }
+
+    .instruction-card.is-pinnable {
+      cursor: pointer;
+    }
+
+    .instruction-card.card-pinned {
+      border-color: #1d6f87;
+      box-shadow:
+        8px 8px 0 rgba(29, 111, 135, 0.28),
+        inset -8px -8px 0 rgba(29, 111, 135, 0.12);
+    }
+
+    .instruction-card.card-pinned .card-pin-badge {
+      display: inline-block;
     }
 
     .card-question-controls {
@@ -632,11 +690,11 @@
     }
 
     .card-choice-button {
-      height: 32px;
+      height: 30px;
       border: 3px solid #26381d;
       color: #1f2418;
       font: inherit;
-      font-size: 12px;
+      font-size: 10px;
       font-weight: 950;
       cursor: pointer;
       box-shadow: inset -3px -3px 0 rgba(38, 56, 29, 0.16);
@@ -647,17 +705,21 @@
       outline-offset: 2px;
     }
 
-    .card-choice-yes {
+    .card-choice-included {
       background: #8ccd65;
     }
 
-    .card-choice-yes.is-selected {
+    .card-choice-dropped {
+      background: #d87968;
+    }
+
+    .card-choice-button.is-selected {
       background: #5fa845;
       color: #fffdf1;
     }
 
-    .card-choice-no {
-      background: #d87968;
+    .card-choice-dropped.is-selected {
+      background: #c84637;
     }
 
     .instruction-card:nth-child(3n + 1) {
@@ -684,7 +746,7 @@
       min-width: 98px;
       pointer-events: auto;
       transform-origin: center;
-      animation: go-wobble 1.15s ease-in-out infinite;
+      animation: go-wobble 1.15s ease-in-out 2;
     }
 
     .overlay-next-turn {
@@ -692,6 +754,11 @@
       z-index: 2;
       min-width: 156px;
       pointer-events: auto;
+    }
+
+    .overlay-next-turn.needs-retry {
+      background: #e0715f;
+      box-shadow: 0 5px 0 #91392f;
     }
 
     .overlay-next-turn[hidden] {
@@ -723,11 +790,36 @@
     }
 
     .card-overlay.reveal .preview-stack {
-      padding: 238px 24px 72px;
+      padding: 178px 24px 72px;
     }
 
     .card-overlay.reveal .instruction-card {
       cursor: default;
+    }
+
+    .audit-summary {
+      width: min(780px, calc(100vw - 32px));
+      padding: 10px 12px;
+      border: 3px solid #26381d;
+      background: #fff7dc;
+      box-shadow: 0 7px 0 rgba(38, 56, 29, 0.2);
+      color: #26381d;
+      font-size: 13px;
+      font-weight: 900;
+      line-height: 1.35;
+      text-align: center;
+      pointer-events: auto;
+    }
+
+    .audit-summary strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 14px;
+      text-transform: uppercase;
+    }
+
+    .audit-summary[hidden] {
+      display: none;
     }
 
     .card-overlay.reveal .instruction-card.card-correct {
@@ -741,29 +833,20 @@
         inset -8px -8px 0 rgba(47, 111, 63, 0.11);
     }
 
-    .card-overlay.reveal .instruction-card.card-correct::after {
-      content: "OK";
-      position: absolute;
-      right: 12px;
-      top: 14px;
-      padding: 3px 7px;
-      border: 3px solid #26381d;
-      background: #8ccd65;
-      color: #1f2418;
-      font-size: 13px;
-      font-weight: 950;
-    }
-
-    .card-overlay.reveal .instruction-card.has-questionnaire.card-correct::after {
-      content: none;
+    .card-overlay.reveal .instruction-card.card-dropped {
+      border-color: #91392f;
+      background:
+        linear-gradient(90deg, rgba(200, 70, 55, 0.14) 0 8px, transparent 8px),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.7), transparent 44%),
+        #ffe6df;
     }
 
     @keyframes overlay-fade-in {
       from {
-        background: rgba(24, 30, 19, 0);
+        background: #fff;
       }
       to {
-        background: rgba(24, 30, 19, 0.38);
+        background: #fff;
       }
     }
 
@@ -789,6 +872,25 @@
       }
     }
 
+    @keyframes timer-shake {
+      0%,
+      100% {
+        transform: translate(0, 0) rotate(var(--clock-tilt));
+      }
+      18% {
+        transform: translate(-3px, 1px) rotate(calc(var(--clock-tilt) - 3deg));
+      }
+      38% {
+        transform: translate(3px, -1px) rotate(calc(var(--clock-tilt) + 2deg));
+      }
+      58% {
+        transform: translate(-2px, 0) rotate(calc(var(--clock-tilt) - 2deg));
+      }
+      78% {
+        transform: translate(2px, 1px) rotate(calc(var(--clock-tilt) + 1deg));
+      }
+    }
+
     @keyframes bar-pop-in {
       from {
         opacity: 0;
@@ -797,25 +899,6 @@
       to {
         opacity: 1;
         transform: scaleX(1);
-      }
-    }
-
-    @keyframes timer-shake {
-      0%,
-      100% {
-        transform: translateX(0) rotate(0deg);
-      }
-      18% {
-        transform: translateX(-3px) rotate(-1.8deg);
-      }
-      38% {
-        transform: translateX(3px) rotate(1.8deg);
-      }
-      58% {
-        transform: translateX(-2px) rotate(-1deg);
-      }
-      78% {
-        transform: translateX(2px) rotate(1deg);
       }
     }
 
@@ -892,12 +975,7 @@
     }
 
     .board-panel.stage-active {
-      grid-template-rows: auto minmax(0, 1fr);
-    }
-
-    .board-panel.stage-active .board-head {
-      top: auto;
-      bottom: 82px;
+      grid-template-rows: minmax(0, 1fr);
     }
 
     .memory-panel,
@@ -936,9 +1014,7 @@
       min-height: 0;
       overflow: hidden;
       border: 0;
-      background:
-        linear-gradient(180deg, rgba(110, 182, 217, 0.9) 0 47%, rgba(137, 199, 108, 0.88) 47% 100%),
-        #8fd06b;
+      background: #fff;
       box-shadow: none;
     }
 
@@ -972,7 +1048,44 @@
     }
 
     .canvas-frame.locked .canvas-lock {
+      display: none;
+    }
+
+    .context-notes {
+      position: absolute;
+      left: 12px;
+      top: 12px;
+      z-index: 7;
+      width: min(430px, calc(100% - 112px));
+      max-height: 180px;
+      overflow: auto;
+      padding: 8px 10px;
+      border: 3px solid #26381d;
+      background: rgba(255, 247, 220, 0.92);
+      box-shadow: 0 6px 0 rgba(31, 36, 24, 0.18);
+      color: #26381d;
+      font-size: 12px;
+      font-weight: 900;
+      line-height: 1.3;
+      pointer-events: none;
+    }
+
+    .context-notes strong {
+      display: block;
+      margin-bottom: 5px;
+      color: #4f613c;
+      font-size: 10px;
+      text-transform: uppercase;
+    }
+
+    .context-notes ol {
       display: grid;
+      gap: 4px;
+      padding-left: 18px;
+    }
+
+    .context-notes[hidden] {
+      display: none;
     }
 
     .tool-dock {
@@ -982,14 +1095,12 @@
       bottom: 12px;
       z-index: 8;
       display: grid;
-      grid-template-columns: auto 1fr auto;
-      align-items: center;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: end;
       gap: 10px;
       margin: 0;
-      padding: 6px;
-      border: 3px solid #26381d;
-      background: rgba(255, 247, 220, 0.84);
-      box-shadow: 0 6px 0 rgba(31, 36, 24, 0.18);
+      padding: 0;
+      pointer-events: none;
     }
 
     .tool-group,
@@ -998,6 +1109,27 @@
       align-items: center;
       gap: 6px;
       flex-wrap: wrap;
+    }
+
+    .tool-group {
+      justify-self: start;
+      pointer-events: auto;
+    }
+
+    .swatches {
+      display: grid;
+      grid-template-columns: repeat(12, 38px);
+      grid-column: 2;
+      justify-self: center;
+      justify-content: center;
+      width: 540px;
+      min-width: 0;
+      max-width: min(100%, 560px);
+      padding: 6px;
+      border: 3px solid #26381d;
+      background: rgba(255, 247, 220, 0.84);
+      box-shadow: 0 6px 0 rgba(31, 36, 24, 0.18);
+      pointer-events: auto;
     }
 
     .icon-button,
@@ -1123,43 +1255,9 @@
       line-height: 1.45;
     }
 
-    .player-setup {
-      display: grid;
-      gap: 10px;
-      max-width: 340px;
-      margin: 18px auto 4px;
-      text-align: left;
-    }
-
     .modal-language-flags {
       justify-self: center;
       margin-bottom: 6px;
-    }
-
-    .player-setup label {
-      color: #4f613c;
-      font-size: 11px;
-      font-weight: 950;
-      text-transform: uppercase;
-    }
-
-    .player-setup input {
-      width: 100%;
-      height: 44px;
-      border: 3px solid #26381d;
-      background: #fffdf1;
-      color: var(--ink);
-      font: inherit;
-      font-size: 16px;
-      font-weight: 950;
-      text-align: left;
-      padding: 0 12px;
-      text-transform: uppercase;
-    }
-
-    .player-name-fields {
-      display: grid;
-      gap: 8px;
     }
 
     @media (max-width: 1080px) {
@@ -1209,24 +1307,25 @@
         padding: 0;
       }
 
-      .overlay-status {
-        top: 6px;
-        width: calc(100vw - 12px);
-        gap: 6px;
-      }
-
       .overlay-clock,
       .overlay-prompt {
         min-width: 0;
         padding: 7px 8px;
       }
 
+      .overlay-status {
+        top: 8px;
+        width: calc(100vw - 12px);
+        grid-template-columns: 86px minmax(0, 1fr);
+        gap: 6px;
+      }
+
       .overlay-clock {
-        flex-basis: 86px;
+        min-height: 76px;
       }
 
       .overlay-prompt {
-        max-width: none;
+        width: auto;
       }
 
       .overlay-prompt-instruction,
@@ -1248,7 +1347,7 @@
       }
 
       .preview-stack {
-        padding: 224px 8px 78px;
+        padding: 144px 8px 78px;
         gap: 12px;
       }
 
@@ -1262,7 +1361,7 @@
       }
 
       .card-overlay.reveal .preview-stack {
-        padding: 206px 8px 48px;
+        padding: 134px 8px 48px;
       }
 
       .instruction-card {
@@ -1271,6 +1370,34 @@
         padding: 46px 12px 14px;
         font-size: 13px;
         box-shadow: 5px 5px 0 rgba(76, 52, 28, 0.28);
+      }
+
+      .instruction-card.has-questionnaire {
+        padding-top: 72px;
+      }
+
+      .card-question-controls {
+        left: 44px;
+        right: 8px;
+        gap: 4px;
+      }
+
+      .card-choice-button {
+        height: 26px;
+        border-width: 2px;
+        font-size: 8px;
+      }
+
+      .card-type-badge,
+      .card-pin-badge {
+        padding: 3px 5px;
+        font-size: 8px;
+      }
+
+      .audit-summary {
+        width: min(356px, calc(100vw - 16px));
+        padding: 8px;
+        font-size: 11px;
       }
 
       .topbar {
@@ -1291,7 +1418,7 @@
 
       .meters {
         grid-column: 1 / -1;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
       }
 
       #newRunButton {
@@ -1376,25 +1503,43 @@
         margin: 0;
       }
 
-      .board-panel.stage-active .board-head {
-        top: auto;
-        bottom: 118px;
-      }
-
       .tool-dock {
         grid-template-columns: 1fr;
+        justify-items: center;
         gap: 6px;
         left: 8px;
         right: 8px;
         bottom: 8px;
         margin: 0;
-        padding: 5px;
+        padding: 0;
+      }
+
+      .context-notes {
+        left: 8px;
+        top: 8px;
+        width: min(278px, calc(100% - 74px));
+        max-height: 128px;
+        padding: 6px 8px;
+        font-size: 10px;
       }
 
       .tool-group,
       .swatches {
         justify-content: center;
         gap: 4px;
+      }
+
+      .tool-group,
+      .swatches {
+        justify-self: center;
+      }
+
+      .swatches {
+        grid-column: auto;
+        grid-template-columns: repeat(6, 30px);
+        width: 216px;
+        max-width: 100%;
+        padding: 5px;
       }
 
       .icon-button,
@@ -1443,16 +1588,12 @@
       </div>
       <div class="brand">
         <h1>Context Overload</h1>
-        <div class="subtitle" data-i18n="subtitle">A game to make humans feel what its like to hold too much context</div>
+        <div class="subtitle" data-i18n="subtitle">A game about what AI drops when the prompt has too much context</div>
       </div>
       <div class="meters" aria-label="Run status">
         <div class="meter">
           <span data-i18n="stageLabel">Stage</span>
           <strong id="stageNumber">1</strong>
-        </div>
-        <div class="meter">
-          <span data-i18n="playerLabel">Player</span>
-          <strong id="playerNumber">1</strong>
         </div>
         <div class="meter">
           <span data-i18n="cardsLabel">Cards</span>
@@ -1504,7 +1645,8 @@
         </div>
         <div class="canvas-frame locked" id="canvasFrame">
           <canvas id="pixelCanvas" width="1024" height="672" aria-label="Drawing canvas" data-i18n-aria="pixelCanvasAria"></canvas>
-          <div class="canvas-lock" id="canvasLock">Cards first</div>
+          <div class="canvas-lock" id="canvasLock"></div>
+          <div class="context-notes" id="contextNotes" hidden></div>
         </div>
         <div class="tool-dock" aria-label="Drawing tools" data-i18n-aria="drawingToolsAria">
           <div class="tool-group">
@@ -1543,7 +1685,8 @@
       </div>
       <div class="preview-stack">
         <div class="preview-card-list" id="previewCardList" aria-live="polite"></div>
-        <button class="action-button overlay-go" id="overlayGoButton" type="button" data-i18n="timerGo">GO</button>
+        <div class="audit-summary" id="auditSummary" hidden></div>
+        <button class="action-button overlay-go" id="overlayGoButton" type="button" data-i18n="timerGo">DO PROMPTS</button>
         <button class="action-button success-button overlay-next-turn" id="overlayNextTurnButton" type="button" data-i18n="nextTurnButton" hidden>NEXT TURN</button>
       </div>
       <div class="overlay-actions" id="overlayActions">
@@ -1557,16 +1700,8 @@
     <div class="modal">
       <h2 id="modalTitle">Context Overload</h2>
       <p id="modalCopy">
-        Look at the village cards for 15 seconds. Then draw them from memory.
+        Read the prompt context, send it to memory, then draw what survived.
       </p>
-      <div class="player-setup" id="playerSetup" hidden>
-        <label data-i18n="playerNamesLabel">Player names</label>
-        <div class="player-name-fields">
-          <input class="player-name-input" type="text" maxlength="14" value="Player 1" data-default-name="Player 1" data-i18n-placeholder="playerOnePlaceholder" placeholder="Player 1" />
-          <input class="player-name-input" type="text" maxlength="14" data-default-name="Player 2" data-i18n-placeholder="playerTwoPlaceholder" placeholder="Player 2" />
-          <input class="player-name-input" type="text" maxlength="14" data-default-name="Player 3" data-i18n-placeholder="playerThreePlaceholder" placeholder="Player 3" />
-        </div>
-      </div>
       <div class="language-flags modal-language-flags" aria-label="Language selector">
         <button type="button" class="active" data-lang="en" aria-label="English">🇬🇧</button>
         <button type="button" data-lang="hy" aria-label="Armenian">🇦🇲</button>
@@ -1583,6 +1718,17 @@
     const BRUSH_SIZE = 4;
     const PREVIEW_SECONDS = 15;
     const STARTING_CARD_COUNT = 2;
+    const CONTEXT_WINDOW_SIZE = 5;
+    const SUMMARY_KEEP_LIMIT = 3;
+
+    const roundModes = [
+      { key: "normal", titleKey: "promptsTitle", taskKey: "promptsTask", seconds: 15, cardDelta: 0 },
+      { key: "short", titleKey: "shortRoundTitle", taskKey: "shortRoundTask", seconds: 10, cardDelta: 0 },
+      { key: "overload", titleKey: "overloadRoundTitle", taskKey: "overloadRoundTask", seconds: 15, cardDelta: 2 },
+      { key: "window", titleKey: "windowRoundTitle", taskKey: "windowRoundTask", seconds: 15, cardDelta: 1, windowSize: CONTEXT_WINDOW_SIZE },
+      { key: "recovery", titleKey: "recoveryRoundTitle", taskKey: "recoveryRoundTask", seconds: 18, cardDelta: -1 },
+      { key: "summary", titleKey: "summaryRoundTitle", taskKey: "summaryRoundTask", seconds: 12, cardDelta: 1, summaryLimit: SUMMARY_KEEP_LIMIT }
+    ];
 
     const cardKeys = [
       "cardPig",
@@ -1634,7 +1780,13 @@
       "cardBakery",
       "cardBread",
       "cardFootprints",
-      "cardFlag"
+      "cardFlag",
+      "cardNoiseWeather",
+      "cardNoiseBackstory",
+      "cardNoisePolite",
+      "cardContradictRoof",
+      "cardContradictSun",
+      "cardContradictCow"
     ];
 
     const counterCardKeys = new Set([
@@ -1642,7 +1794,16 @@
       "cardScarecrow",
       "cardTower",
       "cardBakery",
-      "cardFootprints"
+      "cardFootprints",
+      "cardContradictRoof",
+      "cardContradictSun",
+      "cardContradictCow"
+    ]);
+
+    const noiseCardKeys = new Set([
+      "cardNoiseWeather",
+      "cardNoiseBackstory",
+      "cardNoisePolite"
     ]);
 
     const cardPrerequisites = {
@@ -1652,64 +1813,79 @@
       cardWhiteSheep: ["cardSheep"],
       cardTower: ["cardTree"],
       cardBakery: ["cardCart"],
-      cardFootprints: ["cardPath"]
+      cardFootprints: ["cardPath"],
+      cardContradictRoof: ["cardHouse"],
+      cardContradictSun: ["cardSun"],
+      cardContradictCow: ["cardCow"]
     };
 
     const translations = {
       en: {
-        subtitle: "A game to make humans feel what its like to hold too much context",
+        subtitle: "A game about what AI drops when the prompt has too much context",
         stageLabel: "Stage",
-        playerLabel: "Player",
-        promptsTitle: "Prompts",
-        promptsTask: "Memorize these cards",
-        checkTitle: "Questionnaire",
-        checkTask: "Did you draw every card?",
-        playerPromptsFor: "Prompts For",
-        playerPromptsTask: "Memorize these cards",
-        playerCheckFor: "Check Drawing For",
-        playerCheckTask: "Did they complete every card?",
-        cardsLabel: "Cards",
+        promptsTitle: "DRAW THESE PROMPTS",
+        promptsTask: "Keep the important details in memory",
+        shortRoundTitle: "Fast Prompt",
+        shortRoundTask: "Less time, same context",
+        overloadRoundTitle: "Overload",
+        overloadRoundTask: "Extra context has been added",
+        windowRoundTitle: "Context Window",
+        windowRoundTask: "Older context fades before you draw",
+        recoveryRoundTitle: "Recovery",
+        recoveryRoundTask: "A shorter prompt after overload",
+        summaryRoundTitle: "Summarize First",
+        summaryRoundTask: "Click up to 3 cards to keep as notes",
+        checkTitle: "Context Audit",
+        checkTask: "What survived the overloaded prompt?",
+        cardsLabel: "Context",
         bestLabel: "Best",
         nextLabel: "Next",
         deckLabel: "Deck",
         newRunButton: "New Run",
-        playerNamesLabel: "Player names",
-        playerOnePlaceholder: "Player 1",
-        playerTwoPlaceholder: "Player 2",
-        playerThreePlaceholder: "Player 3",
         startButton: "Start",
         doneButton: "Done",
         correctButton: "Correct",
         missedButton: "Missed",
         nextTurnButton: "NEXT TURN",
-        yesButton: "YES",
-        noButton: "NO",
+        retryRunButton: "TRY AGAIN",
+        includedButton: "YES",
+        droppedButton: "NO",
+        cardKindDetail: "detail",
+        cardKindModifier: "modifier",
+        cardKindConflict: "override",
+        cardKindNoise: "noise",
+        pinnedBadge: "kept",
         canvasTitle: "Village Canvas",
-        selfCheckTitle: "Self Check",
+        selfCheckTitle: "Context Check",
         phaseReady: "Ready",
-        phaseMemorize: "Memorize",
+        phaseMemorize: "Read",
         phaseDraw: "Draw",
-        phaseReveal: "Reveal",
+        phaseReveal: "Audit",
         stateIdle: "Idle",
-        stateWatch: "Watch",
+        stateWatch: "Read",
         stateDraw: "Draw",
-        stateCheck: "Check",
-        timerGo: "GO",
+        stateCheck: "Audit",
+        timerGo: "DO PROMPTS",
         timerOk: "OK",
-        cardsFirst: "Cards first",
-        hiddenCard: "Hidden card",
-        checkStart: "Start a run to see the first village cards. After the timer, draw from memory.",
-        checkMemorize: "Memorize every card before the timer runs out.",
-        checkDraw: "Cards are hidden. Draw the village from memory.",
-        checkReveal: "Compare your drawing with the revealed cards.",
+        hiddenCard: "Context hidden",
+        fadedContext: "Older context faded out",
+        contextNotesTitle: "Kept context notes",
+        checkStart: "Start a run to read the first prompt context. After the timer, draw what survived.",
+        checkMemorize: "Read the prompt. Details, noise, and overrides are mixed together.",
+        checkSummarize: "Click up to {limit} important cards to keep as notes before sending the prompt.",
+        checkDraw: "The prompt is gone. Draw what you think the AI kept.",
+        checkReveal: "Mark each card: YES if it survived, NO if it was missing.",
+        auditSummaryEmpty: "Mark each card YES or NO to see what survived.",
+        auditSummaryTitle: "AI context result",
+        auditSummaryBody: "{included} yes, {dropped} no.",
+        auditSummaryWin: "Clean context survived. The next prompt will be harder.",
+        auditSummaryLoss: "This is context overload: too many details made important instructions disappear.",
         modalStartTitle: "Context Overload",
-        modalStartCopy: "Look at the village cards for 15 seconds. Then draw them from memory.",
-        modalSetupTitle: "Players",
-        modalSetupCopy: "Add up to 3 player names. Non-empty names will take turns.",
+        modalStartCopy: "Read prompt cards, send them to memory, then draw what survived. Too much context will hide, collide, and distract.",
         modalVictoryTitle: "Village Complete",
-        modalVictoryCopy: "You survived all 50 memory cards and finished the whole deck.",
-        modalGameOverTitle: "Game Over",
-        modalGameOverCopy: "{player} is out of the game. The run ended on stage {stage}. Your best cleared stage is {best}.",
+        modalVictoryCopy: "You kept the whole prompt deck under control.",
+        modalGameOverTitle: "Context Dropped",
+        modalGameOverCopy: "Stage {stage}: {included} yes, {dropped} no. Best cleared stage: {best}.",
         memoryCardsAria: "Memory cards",
         pixelCanvasAria: "Drawing canvas",
         drawingToolsAria: "Drawing tools",
@@ -1769,63 +1945,81 @@
           cardBakery: "If there is a cart, remove one wheel.",
           cardBread: "Draw bread.",
           cardFootprints: "If there is a path, remove part of the path.",
-          cardFlag: "Draw a flag."
+          cardFlag: "Draw a flag.",
+          cardNoiseWeather: "Noise: The village had rainy Tuesdays last year. No drawing needed.",
+          cardNoiseBackstory: "Noise: The mayor collects old maps. No drawing needed.",
+          cardNoisePolite: "Noise: Think the word please. It changes nothing in the drawing.",
+          cardContradictRoof: "Override: If there is a red-roof house, make the roof blue instead.",
+          cardContradictSun: "Override: If there is a sun, erase it and draw the moon instead.",
+          cardContradictCow: "Override: If there is a cow, remove the black spots."
         }
       },
       hy: {
-        subtitle: "Խաղ, որ մարդիկ զգան, թե ինչ է չափազանց շատ համատեքստ պահելը",
+        subtitle: "Խաղ այն մասին, թե ինչ է AI-ը կորցնում, երբ հուշումը չափազանց շատ համատեքստ ունի",
         stageLabel: "Փուլ",
-        playerLabel: "Խաղացող",
-        promptsTitle: "Հուշումներ",
-        promptsTask: "Հիշիր այս քարտերը",
-        checkTitle: "Հարցաթերթիկ",
-        checkTask: "Նկարե՞լ ես բոլոր քարտերը",
-        playerPromptsFor: "Հուշումներ՝",
-        playerPromptsTask: "Հիշիր այս քարտերը",
-        playerCheckFor: "Ստուգիր նկարը՝",
-        playerCheckTask: "Կատարե՞լ է բոլոր քարտերը",
-        cardsLabel: "Քարտեր",
+        promptsTitle: "ՆԿԱՐԻՐ ԱՅՍ ՀՈՒՇՈՒՄՆԵՐԸ",
+        promptsTask: "Պահիր կարևոր մանրամասները հիշողության մեջ",
+        shortRoundTitle: "Արագ հուշում",
+        shortRoundTask: "Քիչ ժամանակ, նույն համատեքստը",
+        overloadRoundTitle: "Ծանրաբեռնում",
+        overloadRoundTask: "Ավելացված է լրացուցիչ համատեքստ",
+        windowRoundTitle: "Համատեքստի պատուհան",
+        windowRoundTask: "Հին համատեքստը մարում է նկարելուց առաջ",
+        recoveryRoundTitle: "Վերականգնում",
+        recoveryRoundTask: "Ավելի կարճ հուշում ծանրաբեռնումից հետո",
+        summaryRoundTitle: "Նախ ամփոփիր",
+        summaryRoundTask: "Սեղմիր մինչև 3 քարտ՝ որպես նշում պահելու համար",
+        checkTitle: "Համատեքստի ստուգում",
+        checkTask: "Ի՞նչը մնաց ծանրաբեռնված հուշումից",
+        cardsLabel: "Համատեքստ",
         bestLabel: "Լավագույն",
         nextLabel: "Հաջորդ",
         deckLabel: "Կապոց",
         newRunButton: "Նոր խաղ",
-        playerNamesLabel: "Խաղացողների անունները",
-        playerOnePlaceholder: "Խաղացող 1",
-        playerTwoPlaceholder: "Խաղացող 2",
-        playerThreePlaceholder: "Խաղացող 3",
         startButton: "Սկսել",
         doneButton: "Պատրաստ է",
         correctButton: "Ճիշտ է",
         missedButton: "Չստացվեց",
         nextTurnButton: "ՀԱՋՈՐԴ ՀԵՐԹ",
-        yesButton: "ԱՅՈ",
-        noButton: "ՈՉ",
+        retryRunButton: "ԿՐԿԻՆ ՓՈՐՁԻՐ",
+        includedButton: "ԱՅՈ",
+        droppedButton: "ՈՉ",
+        cardKindDetail: "մանրամասն",
+        cardKindModifier: "փոփոխիչ",
+        cardKindConflict: "փոխարինում",
+        cardKindNoise: "աղմուկ",
+        pinnedBadge: "պահված",
         canvasTitle: "Գյուղի կտավ",
-        selfCheckTitle: "Ինքնաստուգում",
+        selfCheckTitle: "Համատեքստի ստուգում",
         phaseReady: "Պատրաստ",
-        phaseMemorize: "Հիշիր",
+        phaseMemorize: "Կարդա",
         phaseDraw: "Նկարիր",
-        phaseReveal: "Բացում",
+        phaseReveal: "Ստուգում",
         stateIdle: "Սպասում",
-        stateWatch: "Նայիր",
+        stateWatch: "Կարդա",
         stateDraw: "Նկարիր",
         stateCheck: "Ստուգիր",
-        timerGo: "ԳՆԱ",
+        timerGo: "DO PROMPTS",
         timerOk: "OK",
-        cardsFirst: "Սկզբում քարտերը",
-        hiddenCard: "Թաքնված քարտ",
-        checkStart: "Սկսիր խաղը, որ տեսնես առաջին գյուղական քարտերը։ Ժամաչափից հետո նկարիր հիշողությամբ։",
-        checkMemorize: "Հիշիր բոլոր քարտերը մինչ ժամանակը կավարտվի։",
-        checkDraw: "Քարտերը թաքնված են։ Նկարիր գյուղը հիշողությամբ։",
-        checkReveal: "Համեմատիր նկարածդ բացված քարտերի հետ։",
+        hiddenCard: "Համատեքստը թաքնված է",
+        fadedContext: "Հին համատեքստը մարեց",
+        contextNotesTitle: "Պահված համատեքստի նշումներ",
+        checkStart: "Սկսիր խաղը՝ առաջին հուշման համատեքստը կարդալու համար։ Ժամաչափից հետո նկարիր մնացածը։",
+        checkMemorize: "Կարդա հուշումը․ մանրամասները, աղմուկը և փոխարինումները խառնված են։",
+        checkSummarize: "Սեղմիր մինչև {limit} կարևոր քարտ՝ որպես նշում պահելու համար։",
+        checkDraw: "Հուշումը չկա։ Նկարիր այն, ինչ կարծում ես՝ AI-ը պահեց։",
+        checkReveal: "Նշիր յուրաքանչյուր քարտ՝ ԱՅՈ, եթե մնաց, ՈՉ, եթե կորավ։",
+        auditSummaryEmpty: "Նշիր յուրաքանչյուր քարտ ԱՅՈ կամ ՈՉ՝ տեսնելու համար, թե ինչ մնաց։",
+        auditSummaryTitle: "AI համատեքստի արդյունք",
+        auditSummaryBody: "{included} այո, {dropped} ոչ։",
+        auditSummaryWin: "Մաքուր համատեքստը պահպանվեց։ Հաջորդ հուշումը դժվար կլինի։",
+        auditSummaryLoss: "Սա համատեքստի ծանրաբեռնում է․ չափազանց շատ մանրամասներ կորցնում են կարևոր հրահանգները։",
         modalStartTitle: "Context Overload",
-        modalStartCopy: "15 վայրկյան նայիր գյուղի քարտերին։ Հետո նկարիր դրանք հիշողությամբ։",
-        modalSetupTitle: "Խաղացողներ",
-        modalSetupCopy: "Ավելացրու մինչև 3 խաղացողի անուն։ Դատարկ չթողնված անունները կխաղան հերթով։",
+        modalStartCopy: "Կարդա հուշման քարտերը, ուղարկիր հիշողություն, հետո նկարիր մնացածը։ Շատ համատեքստը կթաքցնի, կխառնի և կշեղի։",
         modalVictoryTitle: "Գյուղը ավարտված է",
-        modalVictoryCopy: "Դու հաղթահարեցիր բոլոր 50 հիշողության քարտերը և ավարտեցիր ամբողջ կապոցը։",
-        modalGameOverTitle: "Խաղն ավարտվեց",
-        modalGameOverCopy: "{player}-ը դուրս է խաղից։ Խաղը ավարտվեց {stage}-րդ փուլում։ Քո լավագույն հաղթահարած փուլը {best}-ն է։",
+        modalVictoryCopy: "Դու վերահսկեցիր ամբողջ հուշման կապոցը։",
+        modalGameOverTitle: "Համատեքստը կորավ",
+        modalGameOverCopy: "{stage}-րդ փուլ․ {included} այո, {dropped} ոչ։ Լավագույն փուլը՝ {best}։",
         memoryCardsAria: "Հիշողության քարտեր",
         pixelCanvasAria: "Նկարչական կտավ",
         drawingToolsAria: "Նկարչական գործիքներ",
@@ -1885,63 +2079,81 @@
           cardBakery: "Եթե սայլ կա, ջնջիր մեկ անիվ։",
           cardBread: "Նկարիր հաց։",
           cardFootprints: "Եթե արահետ կա, ջնջիր արահետի մի մասը։",
-          cardFlag: "Նկարիր դրոշ։"
+          cardFlag: "Նկարիր դրոշ։",
+          cardNoiseWeather: "Աղմուկ․ գյուղում անցյալ տարի երեքշաբթի օրերը անձրևոտ էին։ Նկարելու կարիք չկա։",
+          cardNoiseBackstory: "Աղմուկ․ գյուղապետը հին քարտեզներ է հավաքում։ Նկարելու կարիք չկա։",
+          cardNoisePolite: "Աղմուկ․ մտքում ասա «խնդրում եմ»։ Նկարի վրա դա ոչինչ չի փոխում։",
+          cardContradictRoof: "Փոխարինում․ եթե կարմիր տանիքով տուն կա, տանիքը դարձրու կապույտ։",
+          cardContradictSun: "Փոխարինում․ եթե արև կա, ջնջիր այն և փոխարենը լուսին նկարիր։",
+          cardContradictCow: "Փոխարինում․ եթե կով կա, ջնջիր սև բծերը։"
         }
       },
       ru: {
-        subtitle: "Игра, чтобы люди почувствовали, каково держать слишком много контекста",
+        subtitle: "Игра о том, что ИИ теряет, когда в запросе слишком много контекста",
         stageLabel: "Этап",
-        playerLabel: "Игрок",
-        promptsTitle: "Подсказки",
-        promptsTask: "Запомни эти карты",
-        checkTitle: "Проверка",
-        checkTask: "Ты нарисовал(а) все карты?",
-        playerPromptsFor: "Подсказки для",
-        playerPromptsTask: "Запомни эти карты",
-        playerCheckFor: "Проверь рисунок",
-        playerCheckTask: "Все карты выполнены?",
-        cardsLabel: "Карты",
+        promptsTitle: "НАРИСУЙ ЭТИ ЗАПРОСЫ",
+        promptsTask: "Удержи важные детали в памяти",
+        shortRoundTitle: "Быстрый запрос",
+        shortRoundTask: "Меньше времени, тот же контекст",
+        overloadRoundTitle: "Перегрузка",
+        overloadRoundTask: "Добавлен лишний контекст",
+        windowRoundTitle: "Окно контекста",
+        windowRoundTask: "Старый контекст исчезает до рисования",
+        recoveryRoundTitle: "Восстановление",
+        recoveryRoundTask: "Более короткий запрос после перегрузки",
+        summaryRoundTitle: "Сначала кратко",
+        summaryRoundTask: "Нажми до 3 карт, чтобы оставить заметки",
+        checkTitle: "Аудит контекста",
+        checkTask: "Что выжило в перегруженном запросе?",
+        cardsLabel: "Контекст",
         bestLabel: "Рекорд",
         nextLabel: "Дальше",
         deckLabel: "Колода",
         newRunButton: "Новая игра",
-        playerNamesLabel: "Имена игроков",
-        playerOnePlaceholder: "Игрок 1",
-        playerTwoPlaceholder: "Игрок 2",
-        playerThreePlaceholder: "Игрок 3",
         startButton: "Старт",
         doneButton: "Готово",
         correctButton: "Верно",
         missedButton: "Ошибка",
         nextTurnButton: "СЛЕДУЮЩИЙ ХОД",
-        yesButton: "ДА",
-        noButton: "НЕТ",
+        retryRunButton: "ПОПРОБОВАТЬ СНОВА",
+        includedButton: "ДА",
+        droppedButton: "НЕТ",
+        cardKindDetail: "деталь",
+        cardKindModifier: "правка",
+        cardKindConflict: "замена",
+        cardKindNoise: "шум",
+        pinnedBadge: "важно",
         canvasTitle: "Деревенский холст",
-        selfCheckTitle: "Самопроверка",
+        selfCheckTitle: "Проверка контекста",
         phaseReady: "Готово",
-        phaseMemorize: "Запомни",
+        phaseMemorize: "Читай",
         phaseDraw: "Рисуй",
-        phaseReveal: "Открыто",
+        phaseReveal: "Аудит",
         stateIdle: "Ждем",
-        stateWatch: "Смотри",
+        stateWatch: "Читай",
         stateDraw: "Рисуй",
-        stateCheck: "Проверь",
-        timerGo: "РИС",
+        stateCheck: "Аудит",
+        timerGo: "DO PROMPTS",
         timerOk: "OK",
-        cardsFirst: "Сначала карты",
-        hiddenCard: "Скрытая карта",
-        checkStart: "Начни игру, чтобы увидеть первые деревенские карты. После таймера рисуй по памяти.",
-        checkMemorize: "Запомни все карты до конца таймера.",
-        checkDraw: "Карты скрыты. Нарисуй деревню по памяти.",
-        checkReveal: "Сравни свой рисунок с открытыми картами.",
+        hiddenCard: "Контекст скрыт",
+        fadedContext: "Старый контекст исчез",
+        contextNotesTitle: "Сохраненные заметки",
+        checkStart: "Начни игру, чтобы прочитать первый контекст запроса. После таймера нарисуй то, что выжило.",
+        checkMemorize: "Читай запрос. Детали, шум и замены перемешаны.",
+        checkSummarize: "Нажми до {limit} важных карт, чтобы оставить заметки перед отправкой.",
+        checkDraw: "Запрос исчез. Нарисуй то, что, по-твоему, ИИ удержал.",
+        checkReveal: "Отметь каждую карту: ДА, если она выжила, НЕТ, если пропала.",
+        auditSummaryEmpty: "Отметь каждую карту ДА или НЕТ, чтобы увидеть, что выжило.",
+        auditSummaryTitle: "Результат контекста ИИ",
+        auditSummaryBody: "{included} да, {dropped} нет.",
+        auditSummaryWin: "Чистый контекст выжил. Следующий запрос будет сложнее.",
+        auditSummaryLoss: "Это перегрузка контекста: лишние детали заставляют важные инструкции исчезать.",
         modalStartTitle: "Context Overload",
-        modalStartCopy: "Смотри на деревенские карты 15 секунд. Потом нарисуй их по памяти.",
-        modalSetupTitle: "Игроки",
-        modalSetupCopy: "Добавь до 3 имен игроков. Непустые имена будут играть по очереди.",
+        modalStartCopy: "Прочитай карты запроса, отправь их в память, затем нарисуй то, что выжило. Лишний контекст скрывает, конфликтует и отвлекает.",
         modalVictoryTitle: "Деревня готова",
-        modalVictoryCopy: "Ты прошел все 50 карт памяти и закончил всю колоду.",
-        modalGameOverTitle: "Игра окончена",
-        modalGameOverCopy: "{player} выходит из игры. Игра закончилась на этапе {stage}. Твой лучший пройденный этап: {best}.",
+        modalVictoryCopy: "Ты удержал всю колоду запроса под контролем.",
+        modalGameOverTitle: "Контекст потерян",
+        modalGameOverCopy: "Этап {stage}: {included} да, {dropped} нет. Лучший этап: {best}.",
         memoryCardsAria: "Карты памяти",
         pixelCanvasAria: "Холст для рисования",
         drawingToolsAria: "Инструменты рисования",
@@ -2001,7 +2213,13 @@
           cardBakery: "Если есть тележка, сотри одно колесо.",
           cardBread: "Нарисуй хлеб.",
           cardFootprints: "Если есть тропинка, сотри часть тропинки.",
-          cardFlag: "Нарисуй флаг."
+          cardFlag: "Нарисуй флаг.",
+          cardNoiseWeather: "Шум: в прошлом году по вторникам в деревне шел дождь. Рисовать не нужно.",
+          cardNoiseBackstory: "Шум: мэр собирает старые карты. Рисовать не нужно.",
+          cardNoisePolite: "Шум: мысленно скажи «пожалуйста». Это не меняет рисунок.",
+          cardContradictRoof: "Замена: если есть дом с красной крышей, сделай крышу синей.",
+          cardContradictSun: "Замена: если есть солнце, сотри его и нарисуй луну.",
+          cardContradictCow: "Замена: если есть корова, убери черные пятна."
         }
       }
     };
@@ -2028,7 +2246,6 @@
     const phaseLabel = document.getElementById("phaseLabel");
     const timebarFill = document.getElementById("timebarFill");
     const stageNumber = document.getElementById("stageNumber");
-    const playerNumber = document.getElementById("playerNumber");
     const cardCount = document.getElementById("cardCount");
     const bestStage = document.getElementById("bestStage");
     const visibleCount = document.getElementById("visibleCount");
@@ -2044,15 +2261,13 @@
     const modalTitle = document.getElementById("modalTitle");
     const modalCopy = document.getElementById("modalCopy");
     const overlay = document.getElementById("overlay");
-    const playerSetup = document.getElementById("playerSetup");
-    const playerNameInputs = document.querySelectorAll(".player-name-input");
     const swatches = document.getElementById("swatches");
     const canvasFrame = document.getElementById("canvasFrame");
     const canvasLock = document.getElementById("canvasLock");
     const stageStrip = document.getElementById("stageStrip");
     const cardOverlay = document.getElementById("cardOverlay");
-    const previewCardList = document.getElementById("previewCardList");
     const overlayClock = document.querySelector(".overlay-clock");
+    const previewCardList = document.getElementById("previewCardList");
     const overlayTimerNumber = document.getElementById("overlayTimerNumber");
     const overlayPhaseLabel = document.getElementById("overlayPhaseLabel");
     const overlayTimebarFill = document.getElementById("overlayTimebarFill");
@@ -2061,6 +2276,8 @@
     const overlayNextTurnButton = document.getElementById("overlayNextTurnButton");
     const overlayCorrectButton = document.getElementById("overlayCorrectButton");
     const overlayMissedButton = document.getElementById("overlayMissedButton");
+    const auditSummary = document.getElementById("auditSummary");
+    const contextNotes = document.getElementById("contextNotes");
     const langButtons = document.querySelectorAll(".language-flags button");
     const translatable = document.querySelectorAll("[data-i18n]");
     const ariaTranslatable = document.querySelectorAll("[data-i18n-aria]");
@@ -2070,8 +2287,6 @@
     let phase = "idle";
     let stage = 1;
     let best = 0;
-    let playerNames = ["Player 1"];
-    let currentPlayerName = "Player 1";
     let stageCards = [];
     let drawPile = [];
     let drawnCardKeys = new Set();
@@ -2085,7 +2300,8 @@
     let isDrawing = false;
     let lastPaintCell = null;
     let pixels = makeBlankPixels();
-    let selectedRevealCards = new Set();
+    let cardAuditMarks = new Map();
+    let pinnedCardIndexes = new Set();
     let revealAdvanceTimer = 0;
     let audioContext = null;
     let masterGain = null;
@@ -2099,8 +2315,7 @@
       titleKey: "modalStartTitle",
       copyKey: "modalStartCopy",
       buttonKey: "startButton",
-      params: {},
-      setup: false
+      params: {}
     };
 
     function translate(key, params = {}) {
@@ -2110,6 +2325,65 @@
 
     function translateCard(cardKey) {
       return translations[currentLang]?.cards?.[cardKey] ?? translations.en.cards[cardKey] ?? cardKey;
+    }
+
+    function getRoundConfig() {
+      return roundModes[(stage - 1) % roundModes.length];
+    }
+
+    function currentPreviewSeconds() {
+      return getRoundConfig().seconds || PREVIEW_SECONDS;
+    }
+
+    function getCardKind(cardKey) {
+      if (noiseCardKeys.has(cardKey)) {
+        return "noise";
+      }
+      if (counterCardKeys.has(cardKey)) {
+        return "conflict";
+      }
+      if (cardPrerequisites[cardKey]) {
+        return "modifier";
+      }
+      return "detail";
+    }
+
+    function translateCardKind(kind) {
+      const keys = {
+        detail: "cardKindDetail",
+        modifier: "cardKindModifier",
+        conflict: "cardKindConflict",
+        noise: "cardKindNoise"
+      };
+      return translate(keys[kind] || "cardKindDetail");
+    }
+
+    function isContextFaded(index) {
+      const { windowSize } = getRoundConfig();
+      return Boolean(windowSize && stageCards.length > windowSize && index < stageCards.length - windowSize);
+    }
+
+    function canPinContext() {
+      return Boolean(getRoundConfig().summaryLimit);
+    }
+
+    function getAuditSummary() {
+      const summary = {
+        included: 0,
+        dropped: 0
+      };
+
+      cardAuditMarks.forEach((mark) => {
+        if (Object.prototype.hasOwnProperty.call(summary, mark)) {
+          summary[mark] += 1;
+        }
+      });
+
+      return summary;
+    }
+
+    function hasAuditProblem(summary = getAuditSummary()) {
+      return summary.dropped > 0;
     }
 
     function getAudioContext() {
@@ -2310,34 +2584,30 @@
       modalTitle.textContent = translate(modalContent.titleKey, modalContent.params);
       modalCopy.textContent = translate(modalContent.copyKey, modalContent.params);
       modalButton.textContent = translate(modalContent.buttonKey, modalContent.params);
-      playerSetup.hidden = !modalContent.setup;
     }
 
     function applyPhaseText() {
+      canvasLock.textContent = "";
       if (phase === "preview") {
-        canvasLock.textContent = translate("cardsFirst");
         runState.textContent = translate("stateWatch");
         phaseLabel.textContent = translate("phaseMemorize");
         overlayPhaseLabel.textContent = translate("phaseMemorize");
       } else if (phase === "draw") {
-        canvasLock.textContent = "";
         runState.textContent = translate("stateDraw");
         phaseLabel.textContent = translate("phaseDraw");
         timerNumber.textContent = translate("timerGo");
         overlayPhaseLabel.textContent = translate("phaseDraw");
       } else if (phase === "reveal") {
-        canvasLock.textContent = translate("stateCheck");
         runState.textContent = translate("stateCheck");
         phaseLabel.textContent = translate("phaseReveal");
         timerNumber.textContent = translate("timerOk");
         overlayTimerNumber.textContent = translate("timerOk");
         overlayPhaseLabel.textContent = translate("phaseReveal");
       } else {
-        canvasLock.textContent = translate("cardsFirst");
         runState.textContent = translate("stateIdle");
         phaseLabel.textContent = translate("phaseReady");
-        timerNumber.textContent = String(PREVIEW_SECONDS);
-        overlayTimerNumber.textContent = String(PREVIEW_SECONDS);
+        timerNumber.textContent = String(currentPreviewSeconds());
+        overlayTimerNumber.textContent = String(currentPreviewSeconds());
         overlayPhaseLabel.textContent = translate("phaseReady");
       }
     }
@@ -2382,6 +2652,8 @@
       if (stageCards.length) {
         renderCards(cardsVisible);
         renderOverlayCards();
+        renderContextNotes();
+        renderAuditSummary();
       }
     }
 
@@ -2391,51 +2663,67 @@
 
     function updateOverlayPromptLabel() {
       const isReveal = phase === "reveal";
-      const instruction = document.createElement("span");
+      const round = getRoundConfig();
       const title = document.createElement("strong");
       const detail = document.createElement("span");
 
-      instruction.className = "overlay-prompt-instruction";
       title.className = "overlay-prompt-title";
       detail.className = "overlay-prompt-detail";
 
-      instruction.textContent = translate(isReveal ? "playerCheckFor" : "playerPromptsFor");
-      title.textContent = currentPlayerName || translate("playerOnePlaceholder");
-      detail.textContent = translate(isReveal ? "playerCheckTask" : "playerPromptsTask");
+      title.textContent = translate(isReveal ? "checkTitle" : round.titleKey);
+      detail.textContent = translate(isReveal ? "checkTask" : round.taskKey);
 
-      overlayPromptLabel.replaceChildren(instruction, title, detail);
+      overlayPromptLabel.replaceChildren(title, detail);
+    }
+
+    function resetOverlayScroll() {
+      const stack = document.querySelector(".preview-stack");
+      if (!stack) {
+        return;
+      }
+      stack.scrollTop = 0;
+      requestAnimationFrame(() => {
+        stack.scrollTop = 0;
+      });
+      setTimeout(() => {
+        stack.scrollTop = 0;
+      }, 80);
     }
 
     function shakeOverlayTimer(seconds) {
-      if (lastOverlayTimerSecond === seconds) {
+      if (seconds === lastOverlayTimerSecond) {
         return;
       }
+
+      if (lastOverlayTimerSecond !== null) {
+        overlayClock.classList.remove("timer-shake");
+        void overlayClock.offsetWidth;
+        overlayClock.classList.add("timer-shake");
+      }
       lastOverlayTimerSecond = seconds;
-      overlayClock.classList.remove("timer-shake");
-      void overlayClock.offsetWidth;
-      overlayClock.classList.add("timer-shake");
     }
 
     function setPhase(nextPhase) {
       phase = nextPhase;
       const canDraw = phase === "draw";
-      const hasActiveStage = phase === "preview" || phase === "draw" || phase === "reveal";
       canvasFrame.classList.toggle("locked", !canDraw);
       doneButton.disabled = !canDraw;
-      stageStrip.hidden = !hasActiveStage;
-      boardPanel.classList.toggle("stage-active", hasActiveStage);
+      stageStrip.hidden = true;
+      boardPanel.classList.remove("stage-active");
       cardOverlay.classList.toggle("show", phase === "preview" || phase === "reveal");
       cardOverlay.classList.toggle("reveal", phase === "reveal");
       applyPhaseText();
       updateOverlayPromptLabel();
 
-      if (phase !== "draw") {
-        stopScratchSound();
-      }
       if (phase !== "preview") {
         lastOverlayTimerSecond = null;
         overlayClock.classList.remove("timer-shake");
       }
+
+      if (phase !== "draw") {
+        stopScratchSound();
+      }
+      renderContextNotes();
       if (phase !== "preview" && phase !== "reveal") {
         clearScheduledCardPops();
       }
@@ -2448,22 +2736,22 @@
         overlayTimebarFill.style.transform = "scaleX(1)";
       }
 
+      if (phase === "preview" || phase === "reveal") {
+        resetOverlayScroll();
+      }
       updateRevealCompletion();
     }
 
     function updateMeters() {
       stageNumber.textContent = stage;
-      currentPlayerName = playerNames[(stage - 1) % playerNames.length] || translate("playerOnePlaceholder");
-      playerNumber.textContent = currentPlayerName;
       updateOverlayPromptLabel();
       cardCount.textContent = stageCards.length || currentCardTarget();
       bestStage.textContent = best;
     }
 
     function currentCardTarget() {
-      const activePlayerCount = Math.max(playerNames.length, 1);
-      const completedPlayerRounds = Math.floor((stage - 1) / activePlayerCount);
-      return Math.min(STARTING_CARD_COUNT + completedPlayerRounds, cardKeys.length);
+      const { cardDelta = 0 } = getRoundConfig();
+      return Math.min(Math.max(STARTING_CARD_COUNT, STARTING_CARD_COUNT + stage - 1 + cardDelta), cardKeys.length);
     }
 
     function shuffle(list) {
@@ -2517,91 +2805,195 @@
       stageCards = selected;
     }
 
-    function createCardElement(cardKey, index, className, showText = true, showQuestionnaire = false) {
+    function createCardElement(cardKey, index, className, showText = true, showQuestionnaire = false, options = {}) {
+      const { faded = false, pinnable = false } = options;
+      const kind = getCardKind(cardKey);
       const card = document.createElement("article");
       card.className = className;
       card.dataset.index = index + 1;
+      card.dataset.kind = kind;
+      if (faded) {
+        card.classList.add("context-faded");
+      }
       if (showQuestionnaire) {
         card.classList.add("has-questionnaire");
       }
+      if (pinnable) {
+        card.classList.add("is-pinnable");
+        card.setAttribute("role", "button");
+        card.setAttribute("tabindex", "0");
+        card.addEventListener("click", () => togglePinnedCard(index));
+        card.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            togglePinnedCard(index);
+          }
+        });
+      }
+
+      const typeBadge = document.createElement("span");
+      typeBadge.className = "card-type-badge";
+      typeBadge.textContent = translateCardKind(kind);
+
+      const pinBadge = document.createElement("span");
+      pinBadge.className = "card-pin-badge";
+      pinBadge.textContent = translate("pinnedBadge");
 
       const promptText = document.createElement("span");
       promptText.className = "card-prompt-text";
-      promptText.textContent = showText ? translateCard(cardKey) : translate("hiddenCard");
+      promptText.textContent = showText ? translateCard(cardKey) : translate(faded ? "fadedContext" : "hiddenCard");
 
       if (showQuestionnaire) {
         const controls = document.createElement("div");
         controls.className = "card-question-controls";
 
-        const yesButton = document.createElement("button");
-        yesButton.className = "card-choice-button card-choice-yes";
-        yesButton.type = "button";
-        yesButton.textContent = translate("yesButton");
-        yesButton.setAttribute("aria-pressed", "false");
-        yesButton.addEventListener("click", (event) => {
-          event.stopPropagation();
-          confirmRevealCard(index);
+        [
+          { mark: "included", labelKey: "includedButton", className: "card-choice-included" },
+          { mark: "dropped", labelKey: "droppedButton", className: "card-choice-dropped" }
+        ].forEach(({ mark, labelKey, className }) => {
+          const button = document.createElement("button");
+          button.className = `card-choice-button ${className}`;
+          button.type = "button";
+          button.dataset.audit = mark;
+          button.textContent = translate(labelKey);
+          button.setAttribute("aria-pressed", "false");
+          button.addEventListener("click", (event) => {
+            event.stopPropagation();
+            setAuditMark(index, mark);
+          });
+          controls.appendChild(button);
         });
 
-        const noButton = document.createElement("button");
-        noButton.className = "card-choice-button card-choice-no";
-        noButton.type = "button";
-        noButton.textContent = translate("noButton");
-        noButton.addEventListener("click", (event) => {
-          event.stopPropagation();
-          markMissed();
-        });
-
-        controls.append(yesButton, noButton);
-        card.append(controls, promptText);
+        card.append(controls, typeBadge, pinBadge, promptText);
       } else {
-        card.append(promptText);
+        card.append(typeBadge, pinBadge, promptText);
       }
 
       if (className.includes("instruction-card")) {
         card.style.setProperty("--card-delay", `${Math.min(index * 70, 700)}ms`);
         syncRevealCardState(card, index);
+        syncPinnedCardState(card, index);
       }
       return card;
     }
 
     function syncRevealCardState(card, index) {
-      const isCorrect = selectedRevealCards.has(index);
-      card.classList.toggle("card-correct", isCorrect);
-      const yesButton = card.querySelector(".card-choice-yes");
-      if (yesButton) {
-        yesButton.classList.toggle("is-selected", isCorrect);
-        yesButton.setAttribute("aria-pressed", isCorrect ? "true" : "false");
+      const mark = cardAuditMarks.get(index);
+      card.classList.toggle("card-correct", mark === "included");
+      card.classList.toggle("card-dropped", mark === "dropped");
+      delete card.dataset.auditLabel;
+
+      card.querySelectorAll(".card-choice-button").forEach((button) => {
+        const isSelected = button.dataset.audit === mark;
+        button.classList.toggle("is-selected", isSelected);
+        button.setAttribute("aria-pressed", isSelected ? "true" : "false");
+      });
+    }
+
+    function syncPinnedCardState(card, index) {
+      const isPinned = pinnedCardIndexes.has(index);
+      card.classList.toggle("card-pinned", isPinned);
+      if (card.classList.contains("is-pinnable")) {
+        card.setAttribute("aria-pressed", isPinned ? "true" : "false");
       }
     }
 
     function syncRevealCardStates() {
       document.querySelectorAll(".instruction-card").forEach((card, index) => {
         syncRevealCardState(card, index);
+        syncPinnedCardState(card, index);
       });
       updateRevealCompletion();
+      renderAuditSummary();
     }
 
     function updateRevealCompletion() {
-      overlayNextTurnButton.hidden = !(
-        phase === "reveal" &&
-        stageCards.length > 0 &&
-        selectedRevealCards.size === stageCards.length
-      );
+      const allAudited = phase === "reveal" && stageCards.length > 0 && cardAuditMarks.size === stageCards.length;
+      const needsRetry = allAudited && hasAuditProblem();
+      overlayNextTurnButton.hidden = !allAudited;
+      overlayNextTurnButton.classList.toggle("needs-retry", needsRetry);
+      overlayNextTurnButton.textContent = translate(needsRetry ? "retryRunButton" : "nextTurnButton");
     }
 
-    function confirmRevealCard(index) {
+    function setAuditMark(index, mark) {
       if (phase !== "reveal") {
         return;
       }
-      if (selectedRevealCards.has(index)) {
+      if (cardAuditMarks.get(index) === mark) {
         return;
       }
 
       clearTimeout(revealAdvanceTimer);
-      playCoinSound();
-      selectedRevealCards.add(index);
+      cardAuditMarks.set(index, mark);
+      if (mark === "included") {
+        playCoinSound();
+      } else {
+        playNegativeSound();
+      }
       syncRevealCardStates();
+    }
+
+    function togglePinnedCard(index) {
+      const limit = getRoundConfig().summaryLimit || 0;
+      if (phase !== "preview" || !limit || isContextFaded(index)) {
+        return;
+      }
+      if (pinnedCardIndexes.has(index)) {
+        pinnedCardIndexes.delete(index);
+      } else if (pinnedCardIndexes.size < limit) {
+        pinnedCardIndexes.add(index);
+        playCoinSound();
+      } else {
+        playNegativeSound();
+      }
+      renderOverlayCards(false);
+      renderContextNotes();
+    }
+
+    function renderAuditSummary() {
+      if (phase !== "reveal") {
+        auditSummary.hidden = true;
+        auditSummary.replaceChildren();
+        return;
+      }
+
+      const summary = getAuditSummary();
+      const allAudited = cardAuditMarks.size === stageCards.length;
+      const title = document.createElement("strong");
+      const body = document.createElement("span");
+      const verdict = document.createElement("span");
+
+      title.textContent = translate("auditSummaryTitle");
+      body.textContent = cardAuditMarks.size
+        ? translate("auditSummaryBody", summary)
+        : translate("auditSummaryEmpty");
+      verdict.textContent = allAudited
+        ? " " + translate(hasAuditProblem(summary) ? "auditSummaryLoss" : "auditSummaryWin")
+        : "";
+
+      auditSummary.hidden = false;
+      auditSummary.replaceChildren(title, body, verdict);
+    }
+
+    function renderContextNotes() {
+      if (phase !== "draw" || !pinnedCardIndexes.size) {
+        contextNotes.hidden = true;
+        contextNotes.replaceChildren();
+        return;
+      }
+
+      const title = document.createElement("strong");
+      const list = document.createElement("ol");
+      title.textContent = translate("contextNotesTitle");
+
+      [...pinnedCardIndexes].sort((a, b) => a - b).forEach((index) => {
+        const item = document.createElement("li");
+        item.textContent = translateCard(stageCards[index]);
+        list.appendChild(item);
+      });
+
+      contextNotes.replaceChildren(title, list);
+      contextNotes.hidden = false;
     }
 
     function renderCards(showText) {
@@ -2616,12 +3008,15 @@
     function renderOverlayCards(showQuestionnaire = phase === "reveal") {
       previewCardList.innerHTML = "";
       stageCards.forEach((cardKey, index) => {
-        previewCardList.appendChild(createCardElement(cardKey, index, "instruction-card", true, showQuestionnaire));
+        const faded = !showQuestionnaire && isContextFaded(index);
+        const pinnable = !showQuestionnaire && canPinContext() && !faded;
+        previewCardList.appendChild(createCardElement(cardKey, index, "instruction-card", !faded, showQuestionnaire, { faded, pinnable }));
       });
+      resetOverlayScroll();
     }
 
-    function openModal(titleKey, copyKey, buttonKey, params = {}, setup = false) {
-      modalContent = { titleKey, copyKey, buttonKey, params, setup };
+    function openModal(titleKey, copyKey, buttonKey, params = {}) {
+      modalContent = { titleKey, copyKey, buttonKey, params };
       applyModalContent();
       overlay.classList.add("show");
       updateMeters();
@@ -2635,27 +3030,15 @@
       resumeAudio();
       timerToken += 1;
       clearTimeout(revealAdvanceTimer);
-      playerNames = Array.from(playerNameInputs)
-        .map((input) => input.value.trim())
-        .filter(Boolean)
-        .slice(0, 3);
-      if (!playerNames.length) {
-        playerNames = [translate("playerOnePlaceholder")];
-      }
       best = Math.max(best, 0);
       stage = 1;
       stageCards = [];
+      cardAuditMarks = new Map();
+      pinnedCardIndexes = new Set();
       resetDrawPile();
       pixels = makeBlankPixels();
       renderCanvas();
       beginStage();
-    }
-
-    function showPlayerSetup() {
-      cancelAnimationFrame(timerFrame);
-      timerToken += 1;
-      setPhase("idle");
-      openModal("modalSetupTitle", "modalSetupCopy", "startButton", {}, true);
     }
 
     function beginStage() {
@@ -2664,7 +3047,8 @@
       const stageTimerToken = timerToken;
       clearTimeout(revealAdvanceTimer);
       closeModal();
-      selectedRevealCards = new Set();
+      cardAuditMarks = new Map();
+      pinnedCardIndexes = new Set();
       drawStageCards();
       updateMeters();
       if (!stageCards.length) {
@@ -2676,9 +3060,9 @@
       renderOverlayCards(false);
       revealActions.hidden = true;
       updateRevealCompletion();
-      setCheckCopy("checkMemorize");
-      previewEndAt = performance.now() + PREVIEW_SECONDS * 1000;
-      lastOverlayTimerSecond = PREVIEW_SECONDS;
+      renderAuditSummary();
+      setCheckCopy(canPinContext() ? "checkSummarize" : "checkMemorize", { limit: getRoundConfig().summaryLimit || SUMMARY_KEEP_LIMIT });
+      previewEndAt = performance.now() + currentPreviewSeconds() * 1000;
       setPhase("preview");
       scheduleCardPops(stageCards.length);
       tickTimer(stageTimerToken);
@@ -2693,10 +3077,8 @@
       const seconds = Math.ceil(remaining / 1000);
       timerNumber.textContent = String(seconds).padStart(2, "0");
       overlayTimerNumber.textContent = String(seconds).padStart(2, "0");
-      if (seconds > 0) {
-        shakeOverlayTimer(seconds);
-      }
-      const scale = remaining / (PREVIEW_SECONDS * 1000);
+      shakeOverlayTimer(seconds);
+      const scale = remaining / (currentPreviewSeconds() * 1000);
       timebarFill.style.transform = `scaleX(${scale})`;
       overlayTimebarFill.style.transform = `scaleX(${scale})`;
 
@@ -2714,6 +3096,7 @@
       renderCards(false);
       setCheckCopy("checkDraw");
       setPhase("draw");
+      renderContextNotes();
     }
 
     function skipPreview() {
@@ -2728,14 +3111,26 @@
       if (phase !== "draw") {
         return;
       }
-      selectedRevealCards = new Set();
+      cardAuditMarks = new Map();
       renderCards(true);
       renderOverlayCards(true);
       revealActions.hidden = true;
       updateRevealCompletion();
       setCheckCopy("checkReveal");
       setPhase("reveal");
+      renderAuditSummary();
       scheduleCardPops(stageCards.length);
+    }
+
+    function finishAudit() {
+      if (phase !== "reveal" || cardAuditMarks.size !== stageCards.length) {
+        return;
+      }
+      if (hasAuditProblem()) {
+        markMissed(getAuditSummary());
+      } else {
+        markCorrect();
+      }
     }
 
     function markCorrect() {
@@ -2753,14 +3148,19 @@
       beginStage();
     }
 
-    function markMissed() {
+    function markMissed(summary = getAuditSummary()) {
       if (phase !== "reveal") {
         return;
       }
       clearTimeout(revealAdvanceTimer);
       playNegativeSound();
       setPhase("idle");
-      openModal("modalGameOverTitle", "modalGameOverCopy", "newRunButton", { stage, best, player: currentPlayerName });
+      openModal("modalGameOverTitle", "modalGameOverCopy", "newRunButton", {
+        stage,
+        best,
+        included: summary.included || 0,
+        dropped: summary.dropped || 0
+      });
     }
 
     function renderCanvas() {
@@ -2969,17 +3369,11 @@
     correctButton.addEventListener("click", markCorrect);
     missedButton.addEventListener("click", markMissed);
     overlayGoButton.addEventListener("click", skipPreview);
-    overlayNextTurnButton.addEventListener("click", markCorrect);
+    overlayNextTurnButton.addEventListener("click", finishAudit);
     overlayCorrectButton.addEventListener("click", markCorrect);
     overlayMissedButton.addEventListener("click", markMissed);
-    newRunButton.addEventListener("click", showPlayerSetup);
-    modalButton.addEventListener("click", () => {
-      if (modalContent.setup) {
-        startRun();
-        return;
-      }
-      showPlayerSetup();
-    });
+    newRunButton.addEventListener("click", startRun);
+    modalButton.addEventListener("click", startRun);
     langButtons.forEach((button) => {
       button.addEventListener("click", () => setLanguage(button.dataset.lang));
     });
