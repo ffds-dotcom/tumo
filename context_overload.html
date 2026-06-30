@@ -414,6 +414,22 @@
       pointer-events: none;
     }
 
+    .reveal-drawing {
+      position: absolute;
+      inset: 0;
+      display: none;
+      width: 100%;
+      height: 100%;
+      padding: 124px 16px 33vh;
+      object-fit: contain;
+      background: #fff;
+      pointer-events: none;
+    }
+
+    .card-overlay.reveal .reveal-drawing {
+      display: block;
+    }
+
     .overlay-status {
       position: absolute;
       top: 16px;
@@ -790,11 +806,72 @@
     }
 
     .card-overlay.reveal .preview-stack {
-      padding: 178px 24px 72px;
+      top: auto;
+      bottom: 0;
+      height: auto;
+      max-height: 33vh;
+      justify-content: flex-start;
+      gap: 10px;
+      padding: 12px 16px 14px;
+      background: rgba(255, 247, 220, 0.96);
+      border-top: 3px solid #26381d;
+    }
+
+    .card-overlay.reveal .overlay-status {
+      top: 12px;
+    }
+
+    .card-overlay.reveal .overlay-prompt {
+      padding: 8px 12px;
+    }
+
+    .card-overlay.reveal .overlay-prompt-title {
+      padding: 4px 14px 5px;
+      font-size: clamp(22px, 3.2vw, 34px);
+    }
+
+    .card-overlay.reveal .overlay-prompt-detail {
+      font-size: clamp(11px, 1.2vw, 14px);
     }
 
     .card-overlay.reveal .instruction-card {
       cursor: default;
+      flex: 0 1 172px;
+      min-height: 0;
+      padding: 44px 10px 10px;
+      font-size: 12px;
+      line-height: 1.2;
+      box-shadow: 5px 5px 0 rgba(76, 52, 28, 0.28);
+      animation-duration: 280ms;
+    }
+
+    .card-overlay.reveal .instruction-card.has-questionnaire {
+      padding-top: 44px;
+    }
+
+    .card-overlay.reveal .instruction-card::before {
+      left: 8px;
+      top: 8px;
+      width: 22px;
+      height: 22px;
+      border-width: 2px;
+      font-size: 11px;
+    }
+
+    .card-overlay.reveal .card-type-badge {
+      display: none;
+    }
+
+    .card-overlay.reveal .card-question-controls {
+      top: 8px;
+      left: 36px;
+      right: 8px;
+      gap: 5px;
+    }
+
+    .card-overlay.reveal .card-choice-button {
+      height: 26px;
+      font-size: 9px;
     }
 
     .audit-summary {
@@ -1361,7 +1438,16 @@
       }
 
       .card-overlay.reveal .preview-stack {
-        padding: 134px 8px 48px;
+        max-height: 40vh;
+        padding: 10px 8px 12px;
+      }
+
+      .reveal-drawing {
+        padding: 100px 8px 40vh;
+      }
+
+      .card-overlay.reveal .instruction-card {
+        flex-basis: min(150px, 44vw);
       }
 
       .instruction-card {
@@ -1671,6 +1757,7 @@
 
   <div class="card-overlay" id="cardOverlay" aria-label="Instruction cards" data-i18n-aria="memoryCardsAria">
     <div class="card-table">
+      <img class="reveal-drawing" id="revealDrawing" alt="" data-i18n-aria="pixelCanvasAria" />
       <div class="overlay-status">
         <div class="overlay-clock" aria-live="polite">
           <div class="overlay-timer" id="overlayTimerNumber">15</div>
@@ -1898,60 +1985,60 @@
         cards: {
           cardPig: "Draw a pig.",
           cardPinkPig: "If there is a pig, color it pink.",
-          cardHouse: "Draw a small red-roof house.",
+          cardHouse: "Draw a house.",
           cardSmoke: "Draw smoke.",
-          cardFence: "Draw a wooden fence.",
-          cardWell: "Draw a village well.",
-          cardPath: "Draw a path from left to right.",
+          cardFence: "Draw a fence.",
+          cardWell: "Draw a well.",
+          cardPath: "Draw a path.",
           cardChicken: "Draw a chicken.",
-          cardCow: "Draw a cow with black spots.",
-          cardHaystack: "If there is a fence, remove one piece.",
-          cardScarecrow: "If there is a cloud, remove one cloud.",
-          cardPond: "Draw a blue pond.",
-          cardDucks: "Draw ducks.",
-          cardTree: "Draw a tall tree.",
-          cardApples: "Draw apples.",
-          cardCart: "Draw a cart with two wheels.",
-          cardFarmerHat: "Draw a farmer hat.",
+          cardCow: "Draw a cow.",
+          cardHaystack: "If there is a fence, remove it.",
+          cardScarecrow: "If there is a cloud, remove it.",
+          cardPond: "Draw a pond.",
+          cardDucks: "Draw a duck.",
+          cardTree: "Draw a tree.",
+          cardApples: "Draw an apple.",
+          cardCart: "Draw a cart.",
+          cardFarmerHat: "Draw a hat.",
           cardBarnDoor: "Draw a door.",
           cardMarketStall: "Draw a table.",
-          cardFruitStall: "Draw fruit.",
+          cardFruitStall: "Draw a pear.",
           cardWindmill: "Draw a windmill.",
           cardSheep: "Draw a sheep.",
-          cardWhiteSheep: "If there is a sheep, make it white.",
+          cardWhiteSheep: "If there is a sheep, color it white.",
           cardGoat: "Draw a goat.",
-          cardStoneBridge: "Draw a stone bridge.",
+          cardStoneBridge: "Draw a bridge.",
           cardRiver: "Draw a river.",
-          cardFlowers: "Draw flowers.",
-          cardBeehive: "Draw ants.",
+          cardFlowers: "Draw a flower.",
+          cardBeehive: "Draw an ant.",
           cardDog: "Draw a dog.",
           cardCat: "Draw a cat.",
-          cardLantern: "Draw birds in the sky.",
+          cardLantern: "Draw a bird.",
           cardMailbox: "Draw a mailbox.",
           cardPumpkins: "Draw a pumpkin.",
-          cardClouds: "Draw three clouds.",
-          cardSun: "Draw the sun in a corner.",
+          cardClouds: "Draw a cloud.",
+          cardSun: "Draw a sun.",
           cardMoon: "Draw a moon.",
-          cardFirewood: "Draw a stack of firewood.",
-          cardBucket: "Draw a water bucket.",
-          cardMushrooms: "Draw a mushroom patch.",
+          cardFirewood: "Draw a log.",
+          cardBucket: "Draw a bucket.",
+          cardMushrooms: "Draw a mushroom.",
           cardBell: "Draw a bell.",
           cardGate: "Draw a gate.",
-          cardCarrots: "Draw carrots.",
+          cardCarrots: "Draw a carrot.",
           cardCrow: "Draw a crow.",
-          cardWheat: "Draw a yellow wheat field.",
-          cardBoat: "Draw a small boat.",
-          cardTower: "If there is a tree, remove the tree.",
-          cardBakery: "If there is a cart, remove one wheel.",
+          cardWheat: "Draw wheat.",
+          cardBoat: "Draw a boat.",
+          cardTower: "If there is a tree, remove it.",
+          cardBakery: "If there is a cart, remove it.",
           cardBread: "Draw bread.",
-          cardFootprints: "If there is a path, remove part of the path.",
+          cardFootprints: "If there is a path, remove it.",
           cardFlag: "Draw a flag.",
-          cardNoiseWeather: "Noise: The village had rainy Tuesdays last year. No drawing needed.",
-          cardNoiseBackstory: "Noise: The mayor collects old maps. No drawing needed.",
-          cardNoisePolite: "Noise: Think the word please. It changes nothing in the drawing.",
-          cardContradictRoof: "Override: If there is a red-roof house, make the roof blue instead.",
-          cardContradictSun: "Override: If there is a sun, erase it and draw the moon instead.",
-          cardContradictCow: "Override: If there is a cow, remove the black spots."
+          cardNoiseWeather: "Noise: last year's weather. Draw nothing.",
+          cardNoiseBackstory: "Noise: an old story. Draw nothing.",
+          cardNoisePolite: "Noise: just be polite. Draw nothing.",
+          cardContradictRoof: "If there is a house, color the roof blue.",
+          cardContradictSun: "If there is a sun, remove it.",
+          cardContradictCow: "If there is a cow, remove it."
         }
       },
       hy: {
@@ -2032,60 +2119,60 @@
         cards: {
           cardPig: "Նկարիր խոզ։",
           cardPinkPig: "Եթե խոզ կա, գունավորիր այն վարդագույն։",
-          cardHouse: "Նկարիր փոքրիկ կարմիր տանիքով տուն։",
+          cardHouse: "Նկարիր տուն։",
           cardSmoke: "Նկարիր ծուխ։",
-          cardFence: "Նկարիր փայտե ցանկապատ։",
-          cardWell: "Նկարիր գյուղական ջրհոր։",
-          cardPath: "Նկարիր արահետ ձախից աջ։",
+          cardFence: "Նկարիր ցանկապատ։",
+          cardWell: "Նկարիր ջրհոր։",
+          cardPath: "Նկարիր արահետ։",
           cardChicken: "Նկարիր հավ։",
-          cardCow: "Նկարիր սև բծերով կով։",
-          cardHaystack: "Եթե ցանկապատ կա, ջնջիր մեկ մասը։",
-          cardScarecrow: "Եթե ամպ կա, ջնջիր մեկ ամպ։",
-          cardPond: "Նկարիր կապույտ լճակ։",
-          cardDucks: "Նկարիր բադեր։",
-          cardTree: "Նկարիր բարձր ծառ։",
-          cardApples: "Նկարիր խնձորներ։",
-          cardCart: "Նկարիր երկու անիվով սայլ։",
-          cardFarmerHat: "Նկարիր ֆերմերի գլխարկ։",
+          cardCow: "Նկարիր կով։",
+          cardHaystack: "Եթե ցանկապատ կա, ջնջիր այն։",
+          cardScarecrow: "Եթե ամպ կա, ջնջիր այն։",
+          cardPond: "Նկարիր լճակ։",
+          cardDucks: "Նկարիր բադ։",
+          cardTree: "Նկարիր ծառ։",
+          cardApples: "Նկարիր խնձոր։",
+          cardCart: "Նկարիր սայլ։",
+          cardFarmerHat: "Նկարիր գլխարկ։",
           cardBarnDoor: "Նկարիր դուռ։",
           cardMarketStall: "Նկարիր սեղան։",
-          cardFruitStall: "Նկարիր մրգեր։",
+          cardFruitStall: "Նկարիր տանձ։",
           cardWindmill: "Նկարիր հողմաղաց։",
           cardSheep: "Նկարիր ոչխար։",
-          cardWhiteSheep: "Եթե ոչխար կա, դարձրու այն սպիտակ։",
+          cardWhiteSheep: "Եթե ոչխար կա, գունավորիր այն սպիտակ։",
           cardGoat: "Նկարիր այծ։",
-          cardStoneBridge: "Նկարիր քարե կամուրջ։",
+          cardStoneBridge: "Նկարիր կամուրջ։",
           cardRiver: "Նկարիր գետ։",
-          cardFlowers: "Նկարիր ծաղիկներ։",
-          cardBeehive: "Նկարիր մրջյուններ։",
+          cardFlowers: "Նկարիր ծաղիկ։",
+          cardBeehive: "Նկարիր մրջյուն։",
           cardDog: "Նկարիր շուն։",
           cardCat: "Նկարիր կատու։",
-          cardLantern: "Նկարիր թռչուններ երկնքում։",
+          cardLantern: "Նկարիր թռչուն։",
           cardMailbox: "Նկարիր փոստարկղ։",
           cardPumpkins: "Նկարիր դդում։",
-          cardClouds: "Նկարիր երեք ամպ։",
-          cardSun: "Նկարիր արևը մի անկյունում։",
+          cardClouds: "Նկարիր ամպ։",
+          cardSun: "Նկարիր արև։",
           cardMoon: "Նկարիր լուսին։",
-          cardFirewood: "Նկարիր վառելափայտի կույտ։",
-          cardBucket: "Նկարիր ջրի դույլ։",
-          cardMushrooms: "Նկարիր սնկերի խումբ։",
+          cardFirewood: "Նկարիր գերան։",
+          cardBucket: "Նկարիր դույլ։",
+          cardMushrooms: "Նկարիր սունկ։",
           cardBell: "Նկարիր զանգ։",
           cardGate: "Նկարիր դարպաս։",
-          cardCarrots: "Նկարիր գազարներ։",
+          cardCarrots: "Նկարիր գազար։",
           cardCrow: "Նկարիր ագռավ։",
-          cardWheat: "Նկարիր դեղին ցորենի դաշտ։",
-          cardBoat: "Նկարիր փոքր նավակ։",
-          cardTower: "Եթե ծառ կա, ջնջիր ծառը։",
-          cardBakery: "Եթե սայլ կա, ջնջիր մեկ անիվ։",
+          cardWheat: "Նկարիր ցորեն։",
+          cardBoat: "Նկարիր նավակ։",
+          cardTower: "Եթե ծառ կա, ջնջիր այն։",
+          cardBakery: "Եթե սայլ կա, ջնջիր այն։",
           cardBread: "Նկարիր հաց։",
-          cardFootprints: "Եթե արահետ կա, ջնջիր արահետի մի մասը։",
+          cardFootprints: "Եթե արահետ կա, ջնջիր այն։",
           cardFlag: "Նկարիր դրոշ։",
-          cardNoiseWeather: "Աղմուկ․ գյուղում անցյալ տարի երեքշաբթի օրերը անձրևոտ էին։ Նկարելու կարիք չկա։",
-          cardNoiseBackstory: "Աղմուկ․ գյուղապետը հին քարտեզներ է հավաքում։ Նկարելու կարիք չկա։",
-          cardNoisePolite: "Աղմուկ․ մտքում ասա «խնդրում եմ»։ Նկարի վրա դա ոչինչ չի փոխում։",
-          cardContradictRoof: "Փոխարինում․ եթե կարմիր տանիքով տուն կա, տանիքը դարձրու կապույտ։",
-          cardContradictSun: "Փոխարինում․ եթե արև կա, ջնջիր այն և փոխարենը լուսին նկարիր։",
-          cardContradictCow: "Փոխարինում․ եթե կով կա, ջնջիր սև բծերը։"
+          cardNoiseWeather: "Աղմուկ․ անցյալ տարվա եղանակը։ Ոչինչ մի նկարիր։",
+          cardNoiseBackstory: "Աղմուկ․ հին պատմություն։ Ոչինչ մի նկարիր։",
+          cardNoisePolite: "Աղմուկ․ պարզապես եղիր քաղաքավարի։ Ոչինչ մի նկարիր։",
+          cardContradictRoof: "Եթե տուն կա, տանիքը գունավորիր կապույտ։",
+          cardContradictSun: "Եթե արև կա, ջնջիր այն։",
+          cardContradictCow: "Եթե կով կա, ջնջիր այն։"
         }
       },
       ru: {
@@ -2165,61 +2252,61 @@
         colorLabel: "Цвет {color}",
         cards: {
           cardPig: "Нарисуй свинью.",
-          cardPinkPig: "Если есть свинья, раскрась ее розовым.",
-          cardHouse: "Нарисуй маленький дом с красной крышей.",
+          cardPinkPig: "Если есть свинья, раскрась её розовым.",
+          cardHouse: "Нарисуй дом.",
           cardSmoke: "Нарисуй дым.",
-          cardFence: "Нарисуй деревянный забор.",
-          cardWell: "Нарисуй деревенский колодец.",
-          cardPath: "Нарисуй тропинку слева направо.",
+          cardFence: "Нарисуй забор.",
+          cardWell: "Нарисуй колодец.",
+          cardPath: "Нарисуй тропинку.",
           cardChicken: "Нарисуй курицу.",
-          cardCow: "Нарисуй корову с черными пятнами.",
-          cardHaystack: "Если есть забор, сотри одну часть.",
-          cardScarecrow: "Если есть облако, сотри одно облако.",
-          cardPond: "Нарисуй синий пруд.",
-          cardDucks: "Нарисуй уток.",
-          cardTree: "Нарисуй высокое дерево.",
-          cardApples: "Нарисуй яблоки.",
-          cardCart: "Нарисуй тележку с двумя колесами.",
-          cardFarmerHat: "Нарисуй фермерскую шляпу.",
+          cardCow: "Нарисуй корову.",
+          cardHaystack: "Если есть забор, сотри его.",
+          cardScarecrow: "Если есть облако, сотри его.",
+          cardPond: "Нарисуй пруд.",
+          cardDucks: "Нарисуй утку.",
+          cardTree: "Нарисуй дерево.",
+          cardApples: "Нарисуй яблоко.",
+          cardCart: "Нарисуй тележку.",
+          cardFarmerHat: "Нарисуй шляпу.",
           cardBarnDoor: "Нарисуй дверь.",
           cardMarketStall: "Нарисуй стол.",
-          cardFruitStall: "Нарисуй фрукты.",
+          cardFruitStall: "Нарисуй грушу.",
           cardWindmill: "Нарисуй мельницу.",
           cardSheep: "Нарисуй овцу.",
-          cardWhiteSheep: "Если есть овца, сделай ее белой.",
+          cardWhiteSheep: "Если есть овца, раскрась её белым.",
           cardGoat: "Нарисуй козу.",
-          cardStoneBridge: "Нарисуй каменный мост.",
+          cardStoneBridge: "Нарисуй мост.",
           cardRiver: "Нарисуй реку.",
-          cardFlowers: "Нарисуй цветы.",
-          cardBeehive: "Нарисуй муравьев.",
+          cardFlowers: "Нарисуй цветок.",
+          cardBeehive: "Нарисуй муравья.",
           cardDog: "Нарисуй собаку.",
           cardCat: "Нарисуй кошку.",
-          cardLantern: "Нарисуй птиц в небе.",
+          cardLantern: "Нарисуй птицу.",
           cardMailbox: "Нарисуй почтовый ящик.",
           cardPumpkins: "Нарисуй тыкву.",
-          cardClouds: "Нарисуй три облака.",
-          cardSun: "Нарисуй солнце в углу.",
+          cardClouds: "Нарисуй облако.",
+          cardSun: "Нарисуй солнце.",
           cardMoon: "Нарисуй луну.",
-          cardFirewood: "Нарисуй стопку дров.",
-          cardBucket: "Нарисуй ведро с водой.",
-          cardMushrooms: "Нарисуй грибную полянку.",
+          cardFirewood: "Нарисуй бревно.",
+          cardBucket: "Нарисуй ведро.",
+          cardMushrooms: "Нарисуй гриб.",
           cardBell: "Нарисуй колокол.",
           cardGate: "Нарисуй калитку.",
           cardCarrots: "Нарисуй морковь.",
           cardCrow: "Нарисуй ворону.",
-          cardWheat: "Нарисуй желтое пшеничное поле.",
-          cardBoat: "Нарисуй маленькую лодку.",
-          cardTower: "Если есть дерево, сотри дерево.",
-          cardBakery: "Если есть тележка, сотри одно колесо.",
+          cardWheat: "Нарисуй пшеницу.",
+          cardBoat: "Нарисуй лодку.",
+          cardTower: "Если есть дерево, сотри его.",
+          cardBakery: "Если есть тележка, сотри её.",
           cardBread: "Нарисуй хлеб.",
-          cardFootprints: "Если есть тропинка, сотри часть тропинки.",
+          cardFootprints: "Если есть тропинка, сотри её.",
           cardFlag: "Нарисуй флаг.",
-          cardNoiseWeather: "Шум: в прошлом году по вторникам в деревне шел дождь. Рисовать не нужно.",
-          cardNoiseBackstory: "Шум: мэр собирает старые карты. Рисовать не нужно.",
-          cardNoisePolite: "Шум: мысленно скажи «пожалуйста». Это не меняет рисунок.",
-          cardContradictRoof: "Замена: если есть дом с красной крышей, сделай крышу синей.",
-          cardContradictSun: "Замена: если есть солнце, сотри его и нарисуй луну.",
-          cardContradictCow: "Замена: если есть корова, убери черные пятна."
+          cardNoiseWeather: "Шум: прошлогодняя погода. Ничего не рисуй.",
+          cardNoiseBackstory: "Шум: старая история. Ничего не рисуй.",
+          cardNoisePolite: "Шум: просто будь вежлив. Ничего не рисуй.",
+          cardContradictRoof: "Если есть дом, раскрась крышу синим.",
+          cardContradictSun: "Если есть солнце, сотри его.",
+          cardContradictCow: "Если есть корова, сотри её."
         }
       }
     };
@@ -2278,6 +2365,7 @@
     const overlayMissedButton = document.getElementById("overlayMissedButton");
     const auditSummary = document.getElementById("auditSummary");
     const contextNotes = document.getElementById("contextNotes");
+    const revealDrawing = document.getElementById("revealDrawing");
     const langButtons = document.querySelectorAll(".language-flags button");
     const translatable = document.querySelectorAll("[data-i18n]");
     const ariaTranslatable = document.querySelectorAll("[data-i18n-aria]");
@@ -2951,28 +3039,8 @@
     }
 
     function renderAuditSummary() {
-      if (phase !== "reveal") {
-        auditSummary.hidden = true;
-        auditSummary.replaceChildren();
-        return;
-      }
-
-      const summary = getAuditSummary();
-      const allAudited = cardAuditMarks.size === stageCards.length;
-      const title = document.createElement("strong");
-      const body = document.createElement("span");
-      const verdict = document.createElement("span");
-
-      title.textContent = translate("auditSummaryTitle");
-      body.textContent = cardAuditMarks.size
-        ? translate("auditSummaryBody", summary)
-        : translate("auditSummaryEmpty");
-      verdict.textContent = allAudited
-        ? " " + translate(hasAuditProblem(summary) ? "auditSummaryLoss" : "auditSummaryWin")
-        : "";
-
-      auditSummary.hidden = false;
-      auditSummary.replaceChildren(title, body, verdict);
+      auditSummary.hidden = true;
+      auditSummary.replaceChildren();
     }
 
     function renderContextNotes() {
@@ -3111,6 +3179,7 @@
       if (phase !== "draw") {
         return;
       }
+      revealDrawing.src = canvas.toDataURL("image/png");
       cardAuditMarks = new Map();
       renderCards(true);
       renderOverlayCards(true);
