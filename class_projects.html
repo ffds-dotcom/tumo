@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Class Projects</title>
+  <link rel="icon" href="data:," />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --ink: #18181b;
+      --muted: #6b7280;
+      --line: #dedfe3;
+      --paper: #ffffff;
+      --soft: #f6f7f9;
+      --accent: #0f766e;
+      --accent-dark: #0b5f58;
+      --accent-soft: #e5f4f1;
+      --blue: #315f99;
+      --blue-soft: #eaf1fa;
+      --amber: #996b1f;
+      --amber-soft: #fff3d6;
+      --shadow: 0 14px 32px rgba(24, 24, 27, 0.08);
+    }
+
+    html {
+      min-height: 100%;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      min-height: 100vh;
+      background: var(--soft);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 240px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      border-right: 1px solid var(--line);
+      background: #ffffff;
+    }
+
+    .sidebar-inner {
+      display: grid;
+      gap: 14px;
+      padding: 24px 14px;
+    }
+
+    .sidebar-title {
+      display: block;
+      padding: 0 8px 12px;
+      border-bottom: 1px solid var(--line);
+      color: var(--ink);
+      font-size: 17px;
+      font-weight: 850;
+      line-height: 1.15;
+      text-decoration: none;
+    }
+
+    .sidebar-title:hover {
+      color: var(--accent-dark);
+    }
+
+    .student-nav {
+      display: grid;
+      gap: 4px;
+    }
+
+    .student-nav a {
+      display: block;
+      border: 1px solid transparent;
+      padding: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 750;
+      line-height: 1.25;
+      text-decoration: none;
+    }
+
+    .student-nav a:hover,
+    .student-nav a:focus-visible {
+      border-color: #9bd7ce;
+      background: var(--accent-soft);
+      color: var(--accent-dark);
+      outline: none;
+    }
+
+    .page {
+      width: min(1280px, 100%);
+      margin: 0 auto;
+      padding: 32px 18px 56px;
+    }
+
+    .page-header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 24px;
+      align-items: end;
+      padding: 28px 0 24px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 22px;
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin-top: 6px;
+      font-size: clamp(34px, 5vw, 58px);
+      line-height: 0.98;
+      font-weight: 850;
+      letter-spacing: 0;
+    }
+
+    .header-meta {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .meta-pill {
+      min-height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--line);
+      background: var(--paper);
+      padding: 0 11px;
+      white-space: nowrap;
+    }
+
+    .student-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .student-card {
+      min-width: 0;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: 14px;
+      border: 1px solid var(--line);
+      background: var(--paper);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      scroll-margin-top: 20px;
+    }
+
+    .student-head {
+      display: grid;
+      gap: 12px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .student-name {
+      font-size: 22px;
+      line-height: 1.15;
+      font-weight: 820;
+      letter-spacing: 0;
+    }
+
+    .student-name a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: inherit;
+      text-decoration: none;
+      text-underline-offset: 4px;
+      transition: color 0.15s ease, text-decoration-color 0.15s ease;
+    }
+
+    .student-name a::after {
+      content: "";
+      width: 18px;
+      height: 18px;
+      flex: 0 0 auto;
+      background: currentColor;
+      opacity: 0.72;
+      mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82A7.65 7.65 0 0 1 8 3.86c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z'/%3E%3C/svg%3E") center / contain no-repeat;
+      -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82A7.65 7.65 0 0 1 8 3.86c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z'/%3E%3C/svg%3E") center / contain no-repeat;
+    }
+
+    .student-name a:hover {
+      color: var(--accent-dark);
+      text-decoration: underline;
+      text-decoration-color: #9bd7ce;
+    }
+
+    .student-name a:hover::after {
+      opacity: 1;
+    }
+
+    .student-name a:focus-visible {
+      outline: 3px solid rgba(15, 118, 110, 0.22);
+      outline-offset: 3px;
+    }
+
+    .projects {
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .project-card {
+      min-width: 0;
+      border: 1px solid var(--line);
+      overflow: hidden;
+      background: #fbfbfc;
+    }
+
+    .project-visual-link {
+      display: block;
+      color: inherit;
+      text-decoration: none;
+      overflow: hidden;
+    }
+
+    .project-visual-link:hover .project-media {
+      filter: brightness(1.03);
+      transform: scale(1.035);
+    }
+
+    .project-visual-link:focus-visible {
+      outline: 3px solid rgba(15, 118, 110, 0.22);
+      outline-offset: -3px;
+    }
+
+    .project-visual {
+      background: #eef0f4;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .project-media {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      transition: filter 0.18s ease, transform 0.18s ease;
+    }
+
+    .project-media.placeholder {
+      display: grid;
+      place-items: center;
+      background:
+        linear-gradient(135deg, rgba(15, 118, 110, 0.12), transparent 36%),
+        linear-gradient(315deg, rgba(153, 107, 31, 0.18), transparent 38%),
+        #eef0f4;
+      color: #59606b;
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .project-body {
+      display: grid;
+      gap: 10px;
+      padding: 12px;
+    }
+
+    .project-title {
+      color: #343842;
+      font-size: 13px;
+      font-weight: 850;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .url-text {
+      color: var(--muted);
+      font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.4;
+      overflow-wrap: anywhere;
+    }
+
+    @media (max-width: 860px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        z-index: 10;
+        height: auto;
+        max-height: 34vh;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .sidebar-inner {
+        padding: 14px 12px;
+      }
+
+      .student-nav {
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(150px, 1fr);
+        overflow-x: auto;
+        padding-bottom: 2px;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .page {
+        padding: 22px 12px 38px;
+      }
+
+      .page-header {
+        grid-template-columns: 1fr;
+        gap: 14px;
+        padding-top: 14px;
+      }
+
+      .header-meta {
+        justify-content: flex-start;
+      }
+
+      .student-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .student-card {
+        padding: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" aria-label="Student navigation">
+      <div class="sidebar-inner">
+        <a class="sidebar-title" href="#top">Class Projects</a>
+        <nav class="student-nav" aria-label="Students">
+          <a href="#arame-barseghyan">Arame Barseghyan</a>
+          <a href="#adam-bensaid-1">Adam Bensaid</a>
+          <a href="#alen-petrosyan">Alen Petrosyan</a>
+          <a href="#alexandr-manukyan-1">Alexandr Manukyan</a>
+          <a href="#alisa-gurianova">Alisa Gurianova</a>
+          <a href="#angelina">Angelina</a>
+          <a href="#aram-muradyan">Aram Muradyan</a>
+          <a href="#areg-poghosyan">Areg Poghosyan</a>
+          <a href="#areg-simonyan">Areg Simonyan</a>
+          <a href="#avet-gyonjyan">Avet Gyonjyan</a>
+          <a href="#levon-harutyunyan">Levon Harutyunyan</a>
+          <a href="#adam-bensaid-2">Adam Bensaid</a>
+          <a href="#anahit-qananyan">Anahit Qananyan</a>
+          <a href="#mark-mirzoyan">Mark Mirzoyan</a>
+          <a href="#narek-karapetyan">Narek Karapetyan</a>
+          <a href="#gagik-sahakyan">Gagik Sahakyan</a>
+        </nav>
+      </div>
+    </aside>
+
+    <main class="page" id="top">
+    <header class="page-header">
+      <div>
+        <p class="eyebrow">TUMO Workshop</p>
+        <h1>Class Projects</h1>
+      </div>
+      <div class="header-meta" aria-label="Project list summary">
+        <span class="meta-pill">16 entries</span>
+        <span class="meta-pill">25 project links</span>
+      </div>
+    </header>
+
+    <!-- Image placeholders use .project-media.placeholder. Replace each placeholder div with:
+      <img class="project-media" src="IMAGE_URL" alt="Student name - Project name screenshot" />
+    -->
+    <section class="student-grid" aria-label="Student projects">
+      <article class="student-card" id="arame-barseghyan">
+        <header class="student-head">
+          <h2 class="student-name"><a href="https://github.com/aramebarseghyan4" target="_blank" rel="noopener">Arame Barseghyan</a></h2>
+        </header>
+        <div class="projects">
+          <section class="project-card">
+            <a class="project-visual-link" href="https://gamehubtumo.netlify.app/" target="_blank" rel="noopener" aria-label="Open game: Project 1">
+              <div class="project-visual">
+              <img class="project-media" src="project_images/Arame%20Barseghyan.png" alt="Arame Barseghyan - Project 1 screenshot" />
+              </div>
+            </a>
+            <div class="project-body">
+              <h3 class="project-title">Project 1</h3>
+              <p class="url-text">gamehubtumo.netlify.app</p>
+            </div>
+          </section>
+        </div>
+      </article>
+
+      <article class="student-card" id="adam-bensaid-1">
+        <header class="student-head">
+          <h2 class="student-name"><a href="https://github.com/AstwareDev" target="_blank" rel="noopener">Adam Bensaid</a></h2>
+        </header>
+        <div class="projects">
+          <section class="project-card">
+            <a class="project-visual-link" href="https://apex-overdrive-tumo.netlify.app/" target="_blank" rel="noopener" aria-label="Open game: Project 1">
+              <div class="project-visual">
+              <div class="project-media placeholder">Image pending</div>
+              </div>
+            </a>
+            <div class="project-body">
+              <h3 class="project-title">Project 1</h3>
+              <p class="url-text">apex-overdrive-tumo.netlify.app</p>
+            </div>
+          </section>
+          <section class="project-card">
+            <a class="project-visual-link" href="https://tidemail.vercel.app/" target="_blank" rel="noopener" aria-label="Open game: Project 2">
+              <div class="project-visual">
+              <div class="project-media placeholder">Image pending</div>
+              </div>
+            </a>
+            <div class="project-body">
+              <h3 class="project-title">Project 2</h3>
+              <p class="url-text">tidemail.vercel.app</p>
+            </div>
+          </section>
+        </div>
+      </article>
+
+      <article class="student-card" id="alen-petrosyan">
+        <header class="student-head">
+          <h2 class="student-name"><a href="https://github.com/ALEnn0/CITY-RACE--tumo-" target="_blank" rel="noopener">Alen Petrosyan</a></h2>
+        </header>
+        <div class="projects">
+          <section class="project-card">
+            <a class="project-visual-link" href="https://tumorace-game.netlify.app/" target="_blank" rel="noopener" aria-label="Open game: Project 1">
+              <div class="project-visual">
+              <img class="project-media" src="project_images/Alen(tumo-race.game).png" alt="Alen Petrosyan - Project 1 screenshot" />
+              </div>
+            </a>
+            <div class="project-body">
+              <h3 class="project-title">Project 1</h3>
+              <p class="url-text">tumorace-game.netlify.app</p>
+            </div>
+          </section>
+        </div>
+      </article>
+
+      <article class="student-card" id="alexandr-manukyan-1">
+        <header class="student-head">
+          <h2 class="student-name"><a href="https://github.com/alexandrm3-hash/windy_place" target="_blank" rel="noopener">Alexandr Manukyan</a></h2>
+        </header>
+        <div class="projects">
+          <section class="project-card">
+            <a class="project-visual-link" href="https://alexandrm3-hash.github.io/windy_place/" target="_blank" rel="noopener" aria-label="Open game: Project 1">
+              <div class="project-visual">
+              <img class="project-media" src="project_images/Alexandr%20Manukyan.png" alt="Alexandr Manukyan - Project 1 screenshot" />
+              </div>
+            </a>
+            <div class="project-body">
+              <h3 class="project-title">Project 1</h3>
+              <p class="url-text">alexandrm3-hash.github.io/windy_place</p>
+            </div>
+          </section>
+        </div>
+      </article>
+
+      <article class="student-card" id="alisa-gurianova">
+        <header class="student-head">
+          <h2 class="student-name"><a href="https://github.com/alisagurianova" target="_blank" rel="noopener">Alisa Gurianova</a></h2>
+        </header>
+        <div class="projects">
+          <section class="project-card">
+            <a class="project-visual-link" href="https://alisagurianova.github.io/platformer/" target="_blank" rel="noopener" aria-label="Open game: Project 1">
+              <div class="project-visual">
+              <img class="project-media" src="project_images/Alisa%20Gurianova(1).png" alt="Alisa Gurianova - Project 1 screenshot" />
+              </div>
+            </a>
+            <div class="project-body">
+              <h3 class="project-title">Project 1</h3>
+              <p class="url-text">alisagurianova.github.io/platformer</p>
+            </div>
+          </section>
+          <section class="project-card">
+            <a class="project-visual-link" href="https://alisagurianova.github.io/fantasy/" target="_blank" rel="noopener" aria-label="Open game: Project 2">
+              <div class="project-visual">
+              <img class="project-media" src="project_images/Alisa%20Gurianova.png" alt="Alisa Gurianova - Project 2 screenshot" />
+              </div>
+            </a>
+            <div class="project-body">
+              <h3 class="project-title">Project 2</h3>
+              <p class="url-text">alisagurianova.github.io/fantasy</p>
+            </div>
+          </section>
+        </div>
+      </article>
+
+      
+      <article class="student-card" id="angelina">
+        <header class="student-head">
+          <h2 class="student-name"><a href="https://github.com/Angelina-hak" target="_blank" rel="noopener">Angelina</a></h2>
+        </header>
+        <div class="projects">
+          <section class="project-card">
+            <a class="project-visual-link" href="https://angelina-hak.github.io/Flag-Quest/" target="_blank" rel="noopener" aria-label="Open game: Project 1">
+              <div class="project-visual">
+              <div class="project-media placeholder">Image pending</div>
+              </div>
+            </a>
+            <div class="project-body">
+              <h3 class="project-title">Project 1</h3>
+              <p class="url-text">angelina-hak.github.io/Flag-Quest</p>
+            </div>
+          </section>
+          <section class="project-card">
+            <a class="project-visual-link" href="https://angelina-hak.github.io/Zone.io/" target="_blank" rel="noopener" aria-label="Open game: Project 2">
+              <div class="project-visual">
+              <div class="project-media placeholder">Image pending</div>
+              </div>
+            </a>
+            <div class="project-body">
+              <h3 class="project-title">Project 2</h3>
+              <p class="url-text">angelina-hak.github.io/Zone.io</p>
+            </div>
+          </section>
+        </div>
+      </article>
+
+      <article class="student-card" id="aram-muradyan">
+        <header class="student-head">
+          <h2 class="student-name"><a href="https://github.com/ani1987aram2013-hub/stickman" target="_blank" rel="noopener">Aram Muradyan</a></h2>
+        </header>
+        <div class="projects">
+          <section class="project-card">
+            <a class="project-visual-link" href="https://ani1987aram2013-hub.github.io/stickman/" target="_blank" rel="noopener" aria-label="Open game: Project 1">
+              <div class="project-visual">
+              <img class="project-media" src="project_images/Aram%20Muradian%20-%20Stick%20man.png" alt="Aram Muradyan - Project 1 screenshot" />
+              </div>
+            </a>
+            <div class="project-body">
+              <h3 class="project-title">Project 1</h3>
+              <p class="url-text">ani1987aram2013-hub.github.io/stickman</p>
+            </div>
+          </section>
+          <section class="project-card">
+            <a class="project-visual-link" href="https://ani1987aram2013-hub.github.io/avto/" target="_blank" rel="noopener" aria-label="Open game: Project 2">
+              <div class="project-visual">
+              <div class="project-media placeholder">Image pending</div>
+              </div>
+            </a>
+            <div class="project-body">
+              <h3 class="project-title">Project 2</h3>
+              <p class="url-text">ani1987aram2013-hub.github.io/avto</p>
+            </div>
+          </section>
+        </div>
+      </article>
+
+      <article class="student-card" id="areg-poghosyan">
+        <header class="student-head">
+          <h2 class="student-name"><a href="https://github.com/Areg-Poghosyan" target="_blank" rel="noopener">Areg Poghosyan</a></h2>
+        </header>
+        <div class="projects">
+          <section class="project-card">
+            <a class="project-visual-link" href="https://areg-poghosyan.github.io/Stick---Run/" target="_blank" rel="noopener" aria-label="Open game: Project 1">
+              <div class="project-visual">
+              <img class="project-media" src="project_images/Areg_Poghosyan/Stick%20%26%20Run.png" alt="Areg Poghosyan - Project 1 screenshot" />
+              </div>
+            </a>
+            <div class="project-body">
+              <h3 class="project-title">Project 1</h3>
+              <p class="url-text">areg-poghosyan.github.io/Stick---Run</p>
+            </div>
+          </section>
+          <section class="project-card">
+            <a class="project-visual-link" href="https://areg-poghosyan.github.io/Football-Career/" target="_blank" rel="noopener" aria-label="Open game: Project 2">
+              <div class="project-visual">
+              <img class="project-media" src="project_images/Areg_Poghosyan/Football%20Career.png" alt="Areg Poghosyan - Project 2 screenshot" />
+              </div>
+            </a>
+            <div class="project-body">
+              <h3 class="project-title">Project 2</h3>
+              <p class="url-text">areg-poghosyan.github.io/Football-Career</p>
+            </div>
+          </section>
+        </div>
+      </article>
+
+      <article class="student-card" id="areg-simonyan">
+        <header class="student-head">
+          <h2 class="student-name"><a href="https://github.com/aregsimonyan5-co" target="_blank" rel="noopener">Areg Simonyan</a></h2>
+        </header>
+        <div class="projects">
+          <section class="project-card">
+            <a class="project-visual-link" href="https://aregsimonyan5-code.github.io/SticRush/" target="_blank" rel="noopener" aria-label="Open game: Project 1">
+              <div class="project-visual">
+              <img class="project-media" src="project_images/Areg%20Simonyan.png" alt="Areg Simonyan - Project 1 screenshot" />
+              </div>
+            </a>
+            <div class="project-body">
+              <h3 class="project-title">Project 1</h3>
+              <p class="url-text">aregsimonyan5-code.github.io/SticRush</p>
+            </div>
+          </section>
+        </div>
+      </article>
+
+      <article class="student-card" id="avet-gyonjyan">
+        <header class="student-head">
+          <h2 class="student-name"><a href="https://github.com/avet-1007" target="_blank" rel="noopener">Avet Gyonjyan</a></h2>
+        </header>
+        <div class="projects">
+          <section class="project-card">
+            <a class="project-visual-link" href="https://github.com/avet-1007/info-data/tree/main" target="_blank" rel="noopener" aria-label="Open game: Project 1">
+              <div class="project-visual">
+              <img class="project-media" src="project_images/Avet_Gyonjyan%20(%20%CD%A0%E2%9D%9B%E2%80%AF%CD%9C%CA%96%20%CD%A1%E2%9D%9B)/gZux4Eu_hJ7sWGEE5Yjz-spe60iCQv66PvBOOVbd13A.png" alt="Avet Gyonjyan - Project 1 screenshot" />
+              </div>
+            </a>
+            <div class="project-body">
+              <h3 class="project-title">Project 1</h3>
+              <p class="url-text">github.com/avet-1007/info-data/tree/main</p>
+            </div>
+          </section>
+          <section class="project-card">
+            <a class="project-visual-link" href="https://github.com/avet-1007/info-data/tree/main" target="_blank" rel="noopener" aria-label="Open game: Project 2">
+              <div class="project-visual">
+              <img class="project-media" src="project_images/Avet_Gyonjyan%20(%20%CD%A0%E2%9D%9B%E2%80%AF%CD%9C%CA%96%20%CD%A1%E2%9D%9B)/gZux4Eu_hJ7sWGEE5Yjz-spe60iCQv66PvBOOVbd13A.png" alt="Avet Gyonjyan - Project 2 screenshot" />
+              </div>
+            </a>
+            <div class="project-body">
+              <h3 class="project-title">Project 2</h3>
+              <p class="url-text">github.com/avet-1007/info-data/tree/main</p>
+            </div>
+          </section>
+        </div>
+      </article>
+
+      <article class="student-card" id="levon-harutyunyan">
+        <header class="student-head">
+          <h2 class="student-name"><a href="https://github.com/levonh40-ui" target="_blank" rel="noopener">Levon Harutyunyan</a></h2>
+        </header>
+        <div class="projects">
+          <section class="project-card">
+            <a class="project-visual-link" href="https://github.com/avet-1007" target="_blank" rel="noopener" aria-label="Open game: Project 1">
+              <div class="project-visual">
+              <img class="project-media" src="project_images/Levon%20%20Harutyunyan.png" alt="Levon Harutyunyan - Project 1 screenshot" />
+              </div>
+            </a>
+            <div class="project-body">
+              <h3 class="project-title">Project 1</h3>
+              <p class="url-text">github.com/avet-1007</p>
+            </div>
+          </section>
+        </div>
+      </article>
+
+      
+      <article class="student-card" id="adam-bensaid-2">
+        <header class="student-head">
+          <h2 class="student-name"><a href="https://github.com/AstwareDev" target="_blank" rel="noopener">Adam Bensaid</a></h2>
+        </header>
+        <div class="projects">
+          <section class="project-card">
+            <a class="project-visual-link" href="https://github.com/AstwareDev/Apex-Overdrive" target="_blank" rel="noopener" aria-label="Open game: Project 1">
+              <div class="project-visual">
+              <div class="project-media placeholder">Image pending</div>
+              </div>
+            </a>
+            <div class="project-body">
+              <h3 class="project-title">Project 1</h3>
+              <p class="url-text">github.com/AstwareDev/Apex-Overdrive</p>
+            </div>
+          </section>
+          <section class="project-card">
+            <a class="project-visual-link" href="https://github.com/AstwareDev/Tide" target="_blank" rel="noopener" aria-label="Open game: Project 2">
+              <div class="project-visual">
+              <div class="project-media placeholder">Image pending</div>
+              </div>
+            </a>
+            <div class="project-body">
+              <h3 class="project-title">Project 2</h3>
+              <p class="url-text">github.com/AstwareDev/Tide</p>
+            </div>
+          </section>
+        </div>
+      </article>
+
+      
+      <article class="student-card" id="anahit-qananyan">
+        <header class="student-head">
+          <h2 class="student-name"><a href="https://github.com/anahitqananyan" target="_blank" rel="noopener">Anahit Qananyan</a></h2>
+        </header>
+        <div class="projects">
+          <section class="project-card">
+            <a class="project-visual-link" href="https://anahitqananyan.github.io/platform-game/" target="_blank" rel="noopener" aria-label="Open game: Project 1">
+              <div class="project-visual">
+              <img class="project-media" src="project_images/Anahit%20Qananyan.png" alt="Anahit Qananyan - Project 1 screenshot" />
+              </div>
+            </a>
+            <div class="project-body">
+              <h3 class="project-title">Project 1</h3>
+              <p class="url-text">anahitqananyan.github.io/platform-game</p>
+            </div>
+          </section>
+          <section class="project-card">
+            <a class="project-visual-link" href="https://tfytgbuhnbhgv.netlify.app/" target="_blank" rel="noopener" aria-label="Open game: Project 2">
+              <div class="project-visual">
+              <div class="project-media placeholder">Image pending</div>
+              </div>
+            </a>
+            <div class="project-body">
+              <h3 class="project-title">Project 2</h3>
+              <p class="url-text">tfytgbuhnbhgv.netlify.app</p>
+            </div>
+          </section>
+        </div>
+      </article>
+
+      <article class="student-card" id="mark-mirzoyan">
+        <header class="student-head">
+          <h2 class="student-name"><a href="https://github.com/markmirzoyan-ops" target="_blank" rel="noopener">Mark Mirzoyan</a></h2>
+        </header>
+        <div class="projects">
+          <section class="project-card">
+            <a class="project-visual-link" href="https://markmirzoyan-ops.github.io/jamping/" target="_blank" rel="noopener" aria-label="Open game: Project 1">
+              <div class="project-visual">
+              <img class="project-media" src="project_images/mark%20mirzoyan/Screenshot%202026-07-03%20at%209.37.45%E2%80%AFAM.png" alt="Mark Mirzoyan - Project 1 screenshot" />
+              </div>
+            </a>
+            <div class="project-body">
+              <h3 class="project-title">Project 1</h3>
+              <p class="url-text">markmirzoyan-ops.github.io/jamping</p>
+            </div>
+          </section>
+        </div>
+      </article>
+
+      <article class="student-card" id="narek-karapetyan">
+        <header class="student-head">
+          <h2 class="student-name"><a href="https://github.com/narekkarapetyan18-coder" target="_blank" rel="noopener">Narek Karapetyan</a></h2>
+        </header>
+        <div class="projects">
+          <section class="project-card">
+            <a class="project-visual-link" href="https://github.com/narekkarapetyan18-coder/Minicraft" target="_blank" rel="noopener" aria-label="Open game: Project 1">
+              <div class="project-visual">
+              <div class="project-media placeholder">Image pending</div>
+              </div>
+            </a>
+            <div class="project-body">
+              <h3 class="project-title">Project 1</h3>
+              <p class="url-text">github.com/narekkarapetyan18-coder/Minicraft</p>
+            </div>
+          </section>
+          <section class="project-card">
+            <a class="project-visual-link" href="https://github.com/narekkarapetyan18-coder/f1-rase-game" target="_blank" rel="noopener" aria-label="Open game: Project 2">
+              <div class="project-visual">
+              <img class="project-media" src="project_images/narek%20f1.png" alt="Narek Karapetyan - Project 2 screenshot" />
+              </div>
+            </a>
+            <div class="project-body">
+              <h3 class="project-title">Project 2</h3>
+              <p class="url-text">github.com/narekkarapetyan18-coder/f1-rase-game</p>
+            </div>
+          </section>
+        </div>
+      </article>
+
+      <article class="student-card" id="gagik-sahakyan">
+        <header class="student-head">
+          <h2 class="student-name"><a href="https://github.com/gagiksahakyan3-bot/jump" target="_blank" rel="noopener">Gagik Sahakyan</a></h2>
+        </header>
+        <div class="projects">
+          <section class="project-card">
+            <a class="project-visual-link" href="https://gagiksahakyan3-bot.github.io/jump/" target="_blank" rel="noopener" aria-label="Open game: Project 1">
+              <div class="project-visual">
+              <img class="project-media" src="project_images/Gagik%20Sahakyan.png" alt="Gagik Sahakyan - Project 1 screenshot" />
+              </div>
+            </a>
+            <div class="project-body">
+              <h3 class="project-title">Project 1</h3>
+              <p class="url-text">gagiksahakyan3-bot.github.io/jump</p>
+            </div>
+          </section>
+        </div>
+      </article>
+    </section>
+    </main>
+  </div>
+</body>
+</html>

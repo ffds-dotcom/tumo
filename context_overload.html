@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Context Overload</title>
+  <title>Context Game</title>
   <link rel="icon" href="data:," />
   <style>
     * {
@@ -25,6 +25,7 @@
       --shadow: rgba(33, 38, 25, 0.25);
       --line: rgba(40, 55, 34, 0.18);
       --cell-size: 2px;
+      --bottom-card-bar-height: 256px;
     }
 
     html,
@@ -38,7 +39,7 @@
       overflow: hidden;
       color: var(--ink);
       font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
-      background: #fff;
+      background: #4db8e6;
     }
 
     button,
@@ -89,105 +90,36 @@
       position: relative;
       isolation: isolate;
       display: grid;
-      grid-template-rows: auto minmax(0, 1fr);
+      grid-template-rows: minmax(0, 1fr);
       gap: 0;
       overflow: hidden;
       padding: 0;
     }
 
-    .app::before,
+    .app::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 var(--bottom-card-bar-height) 0;
+      z-index: 0;
+      background: url("assets/context_game.jpg") center center / cover no-repeat;
+      pointer-events: none;
+    }
+
     .app::after {
       display: none;
     }
 
-    .app::before {
-      bottom: 0;
-      height: 118px;
-      background:
-        linear-gradient(90deg, transparent 0 8px, rgba(75, 52, 33, 0.16) 8px 10px, transparent 10px 20px),
-        linear-gradient(180deg, rgba(54, 88, 43, 0) 0, rgba(54, 88, 43, 0.15) 100%),
-        #5ea755;
-      background-size: 20px 20px, auto, auto;
-      border-top: 4px solid rgba(36, 92, 59, 0.28);
-    }
-
-    .app::after {
-      top: 80px;
-      height: 170px;
-      background:
-        linear-gradient(135deg, transparent 0 48%, rgba(55, 117, 79, 0.28) 48% 52%, transparent 52%),
-        linear-gradient(45deg, transparent 0 48%, rgba(55, 117, 79, 0.22) 48% 52%, transparent 52%);
-      background-size: 86px 86px;
-      opacity: 0.55;
-    }
-
-    .topbar {
-      position: sticky;
-      top: 0;
+    .stage-hud {
+      position: fixed;
+      top: 12px;
+      left: 12px;
       z-index: 30;
-      display: grid;
-      grid-template-columns: auto minmax(220px, 1fr) auto auto;
-      align-items: center;
-      gap: 12px;
-      max-width: 1440px;
-      width: 100%;
-      margin: 0 auto;
-      padding: 10px;
-      border: 3px solid #26381d;
-      background: rgba(255, 247, 220, 0.92);
-      box-shadow: 0 8px 0 rgba(31, 36, 24, 0.18);
-    }
-
-    .brand {
-      min-width: 0;
-    }
-
-    h1 {
-      font-size: clamp(22px, 3vw, 40px);
-      line-height: 0.95;
-      letter-spacing: 0;
-      text-transform: uppercase;
-      text-shadow: 3px 3px 0 #f0c34d;
-    }
-
-    .subtitle {
-      margin-top: 5px;
-      color: #4f613c;
-      font-size: 12px;
-      font-weight: 800;
-      text-transform: uppercase;
-    }
-
-    .meters {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(82px, 1fr));
-      gap: 6px;
-    }
-
-    .meter {
-      min-height: 48px;
-      padding: 6px 8px;
-      border: 2px solid #394629;
-      background: #f7e6a2;
-      box-shadow: inset -4px -4px 0 rgba(112, 79, 42, 0.12);
-    }
-
-    .meter span {
-      display: block;
-      color: #5b683b;
-      font-size: 10px;
-      font-weight: 900;
-      text-transform: uppercase;
-    }
-
-    .meter strong {
-      display: block;
-      margin-top: 2px;
-      font-size: 20px;
+      color: #26381d;
+      font-size: 34px;
+      font-weight: 950;
       line-height: 1;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      text-shadow: 3px 3px 0 #f0c34d;
+      pointer-events: none;
     }
 
     .primary-button,
@@ -225,6 +157,8 @@
     }
 
     .game-shell {
+      position: relative;
+      z-index: 1;
       display: grid;
       grid-template-columns: minmax(420px, 1fr);
       align-items: stretch;
@@ -345,19 +279,7 @@
     }
 
     .card::before {
-      content: attr(data-index);
-      position: absolute;
-      left: 8px;
-      top: 8px;
-      width: 24px;
-      height: 24px;
-      display: grid;
-      place-items: center;
-      border: 2px solid #26381d;
-      background: #e9b646;
-      color: #26381d;
-      font-size: 12px;
-      font-weight: 950;
+      display: none;
     }
 
     .card.hidden {
@@ -371,18 +293,20 @@
     }
 
     .card.hidden::after {
-      content: "";
+      content: "?";
       position: absolute;
       left: 50%;
       top: 50%;
-      width: 42px;
-      height: 30px;
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
       transform: translate(-50%, -50%);
-      background:
-        linear-gradient(45deg, transparent 0 47%, #fff7dc 47% 53%, transparent 53%),
-        linear-gradient(135deg, transparent 0 47%, #fff7dc 47% 53%, transparent 53%),
-        linear-gradient(#e9b646 0 0) 9px 14px / 24px 12px no-repeat;
-      image-rendering: pixelated;
+      color: #e9b646;
+      font-size: 46px;
+      font-weight: 950;
+      line-height: 1;
+      text-shadow: 3px 3px 0 rgba(38, 56, 29, 0.62);
     }
 
     .card-overlay {
@@ -391,7 +315,7 @@
       z-index: 24;
       display: none;
       padding: 0;
-      background: #fff;
+      background: transparent;
       pointer-events: none;
       overflow: hidden;
     }
@@ -420,31 +344,220 @@
       display: none;
       width: 100%;
       height: 100%;
-      padding: 124px 16px 33vh;
+      padding: 16px 18px 30vh;
       object-fit: contain;
-      background: #fff;
+      background: transparent;
       pointer-events: none;
     }
 
     .card-overlay.reveal .reveal-drawing {
       display: block;
+      padding-bottom: calc(var(--bottom-card-bar-height) + 36px);
+    }
+
+    .bottom-card-bar {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 32;
+      height: var(--bottom-card-bar-height);
+      padding: 10px 12px 12px;
+      border-top: 4px solid #26381d;
+      background: rgba(255, 247, 220, 0.98);
+      box-shadow: 0 -10px 0 rgba(38, 56, 29, 0.13);
+      overflow: visible;
+      pointer-events: auto;
+    }
+
+    .bottom-card-list {
+      box-sizing: border-box;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 12px;
+      overflow-x: auto;
+      overflow-y: visible;
+      padding: 29px 2px 10px 0;
+      scroll-snap-type: x proximity;
+    }
+
+    .bottom-card-bar[data-phase="draw"] .bottom-card-list {
+      display: none;
+    }
+
+    .bottom-card-tools {
+      box-sizing: border-box;
+      width: 100%;
+      height: 100%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 16px;
+      pointer-events: auto;
+    }
+
+    .bottom-card-bar[data-phase="draw"] .bottom-card-tools {
+      display: flex;
+    }
+
+    .bottom-card-list.is-many {
+      gap: 11px;
+    }
+
+    .bottom-card-list.is-packed {
+      gap: 10px;
+    }
+
+    .bottom-card-list.is-overflowing {
+      justify-content: flex-start;
+    }
+
+    .bottom-card-bar .instruction-card {
+      flex: 0 0 142px;
+      width: 142px;
+      min-height: 0;
+      height: 185px;
+      scroll-snap-align: start;
+      display: grid;
+      align-content: start;
+      padding: 10px 12px 12px;
+      border-width: 3px;
+      box-shadow:
+        7px 7px 0 rgba(76, 52, 28, 0.26),
+        inset -7px -7px 0 rgba(112, 79, 42, 0.1);
+      font-size: 15px;
+      line-height: 1.18;
+      transform: none;
+      animation: bottom-card-flip 260ms ease-out both;
+    }
+
+    .bottom-card-bar[data-phase="preview"] .bottom-card {
+      transform-origin: center 86%;
+      animation: bottom-card-sway 1s ease-in-out infinite;
+    }
+
+    .bottom-card-bar[data-phase="preview"] .bottom-card:nth-child(even) {
+      animation-delay: -0.5s;
+    }
+
+    .bottom-card-bar[data-phase="preview"] .bottom-card:nth-child(3n) {
+      animation-delay: -0.25s;
+    }
+
+    .bottom-card-bar .bottom-card-list.is-many .instruction-card {
+      flex-basis: 127px;
+      width: 127px;
+      height: 178px;
+      padding: 10px 11px 11px;
+      font-size: 14px;
+    }
+
+    .bottom-card-bar .bottom-card-list.is-packed .instruction-card {
+      flex-basis: 110px;
+      width: 110px;
+      height: 166px;
+      padding: 9px 9px 10px;
+      font-size: 12px;
+      line-height: 1.12;
+    }
+
+    .bottom-card-bar .instruction-card::before {
+      display: none;
+    }
+
+    .bottom-card-bar .bottom-card-list.is-packed .instruction-card::before {
+      display: none;
+    }
+
+    .bottom-card-bar .instruction-card.has-questionnaire {
+      padding-top: 55px;
+    }
+
+    .bottom-card-bar .bottom-card-list.is-packed .instruction-card.has-questionnaire {
+      padding-top: 47px;
+    }
+
+    .bottom-card-bar .card-question-controls {
+      top: 10px;
+      left: 8px;
+      right: 8px;
+      gap: 6px;
+    }
+
+    .bottom-card-bar .bottom-card-list.is-packed .card-question-controls {
+      top: 8px;
+      left: 6px;
+      right: 6px;
+      gap: 4px;
+    }
+
+    .bottom-card-bar .card-choice-button {
+      height: 42px;
+      border-width: 4px;
+      font-size: 16px;
+    }
+
+    .bottom-card-bar .bottom-card-list.is-packed .card-choice-button {
+      height: 34px;
+      border-width: 3px;
+      font-size: 13px;
+    }
+
+    .bottom-card-back {
+      background:
+        linear-gradient(90deg, transparent 0 10px, rgba(255, 247, 220, 0.25) 10px 13px, transparent 13px 24px),
+        linear-gradient(0deg, transparent 0 10px, rgba(255, 247, 220, 0.18) 10px 13px, transparent 13px 24px),
+        #2b5e42;
+      color: transparent;
+      overflow: hidden;
+    }
+
+    .bottom-card-back .card-prompt-text {
+      color: transparent;
+    }
+
+    .bottom-card-back::after {
+      content: "?";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 50px;
+      height: 50px;
+      display: grid;
+      place-items: center;
+      transform: translate(-50%, -50%);
+      color: #e9b646;
+      font-size: 50px;
+      font-weight: 950;
+      line-height: 1;
+      text-shadow: 3px 3px 0 rgba(38, 56, 29, 0.62);
+    }
+
+    .bottom-card-not-auditable {
+      opacity: 0.76;
+      filter: grayscale(0.25);
     }
 
     .overlay-status {
       position: absolute;
       top: 16px;
-      left: 50%;
-      width: min(860px, calc(100vw - 32px));
+      left: 0;
+      right: 0;
+      box-sizing: border-box;
+      width: auto;
       display: grid;
-      grid-template-columns: auto minmax(0, 1fr);
+      grid-template-columns: minmax(0, 860px);
+      justify-content: center;
       align-items: start;
       gap: 12px;
-      translate: -50% 0;
+      padding: 0 16px;
       pointer-events: none;
     }
 
-    .overlay-clock,
-    .overlay-prompt {
+    .overlay-clock {
       min-width: 118px;
       padding: 10px 12px;
       border: 3px solid #26381d;
@@ -453,7 +566,10 @@
 
     .overlay-clock {
       --clock-tilt: -2.5deg;
-      position: relative;
+      position: fixed;
+      top: 22px;
+      right: 22px;
+      z-index: 3;
       min-height: 96px;
       display: grid;
       place-items: center;
@@ -470,15 +586,7 @@
     }
 
     .overlay-prompt {
-      position: relative;
-      width: 100%;
-      background: #fff1a8;
-      color: var(--ink);
-      box-shadow:
-        0 10px 0 rgba(38, 56, 29, 0.22),
-        inset -7px -7px 0 rgba(112, 79, 42, 0.16);
-      animation: panel-pop-in 280ms 80ms cubic-bezier(0.2, 0.9, 0.25, 1.12) both;
-      pointer-events: auto;
+      display: none;
     }
 
     .overlay-timer {
@@ -564,7 +672,8 @@
     }
 
     .preview-card-list {
-      width: min(100%, 1280px);
+      width: max-content;
+      max-width: min(100%, 1280px);
       min-height: 0;
       display: flex;
       align-items: flex-start;
@@ -581,21 +690,21 @@
       --card-delay: 0ms;
       --card-tilt: 0deg;
       position: relative;
-      flex: 0 1 190px;
-      min-height: 240px;
+      flex: 0 1 228px;
+      min-height: 288px;
       display: grid;
-      align-content: center;
-      padding: 54px 18px 18px;
-      border: 4px solid #26381d;
+      align-content: start;
+      padding: 16px 24px 22px;
+      border: 5px solid #26381d;
       background:
         linear-gradient(90deg, rgba(38, 56, 29, 0.08) 0 8px, transparent 8px),
         linear-gradient(180deg, rgba(255, 255, 255, 0.65), transparent 44%),
         #fff8de;
       box-shadow:
-        8px 8px 0 rgba(76, 52, 28, 0.28),
-        inset -8px -8px 0 rgba(112, 79, 42, 0.11);
+        10px 10px 0 rgba(76, 52, 28, 0.28),
+        inset -10px -10px 0 rgba(112, 79, 42, 0.11);
       color: #26381d;
-      font-size: 18px;
+      font-size: 25px;
       font-weight: 950;
       line-height: 1.24;
       text-align: center;
@@ -608,30 +717,18 @@
     }
 
     .instruction-card::before {
-      content: attr(data-index);
-      position: absolute;
-      left: 14px;
-      top: 14px;
-      width: 30px;
-      height: 30px;
-      display: grid;
-      place-items: center;
-      border: 3px solid #26381d;
-      background: #e9b646;
-      color: #26381d;
-      font-size: 14px;
-      font-weight: 950;
+      display: none;
     }
 
     .instruction-card.has-questionnaire {
-      padding-top: 76px;
+      padding-top: 91px;
     }
 
     .card-prompt-text {
       display: block;
+      margin-top: 0;
     }
 
-    .card-type-badge,
     .card-pin-badge {
       display: inline-block;
       width: max-content;
@@ -655,19 +752,6 @@
       top: 14px;
       margin: 0;
       background: #7dbde8;
-    }
-
-    .instruction-card[data-kind="modifier"] .card-type-badge {
-      background: #7dbde8;
-    }
-
-    .instruction-card[data-kind="conflict"] .card-type-badge {
-      background: #e0715f;
-      color: #fffdf1;
-    }
-
-    .instruction-card[data-kind="noise"] .card-type-badge {
-      background: #cbd3c9;
     }
 
     .instruction-card.context-faded {
@@ -696,24 +780,43 @@
 
     .card-question-controls {
       position: absolute;
-      top: 12px;
-      left: 58px;
-      right: 12px;
+      top: 14px;
+      left: 70px;
+      right: 14px;
       z-index: 2;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 6px;
+      gap: 7px;
     }
 
     .card-choice-button {
-      height: 30px;
-      border: 3px solid #26381d;
+      height: 36px;
+      border: 4px solid #26381d;
       color: #1f2418;
       font: inherit;
-      font-size: 10px;
+      font-size: 12px;
       font-weight: 950;
       cursor: pointer;
       box-shadow: inset -3px -3px 0 rgba(38, 56, 29, 0.16);
+      transform-origin: center;
+      transition: background 120ms ease, box-shadow 120ms ease, filter 120ms ease, transform 120ms ease;
+    }
+
+    .card-choice-button:hover {
+      filter: brightness(1.08);
+      transform: translateY(-2px) scale(1.04);
+      box-shadow:
+        0 5px 0 rgba(38, 56, 29, 0.26),
+        inset -3px -3px 0 rgba(38, 56, 29, 0.16);
+      outline: 3px solid #fff7dc;
+      outline-offset: -6px;
+    }
+
+    .card-choice-button:active {
+      transform: translateY(1px) scale(1.01);
+      box-shadow:
+        0 2px 0 rgba(38, 56, 29, 0.24),
+        inset -3px -3px 0 rgba(38, 56, 29, 0.16);
     }
 
     .card-choice-button:focus-visible {
@@ -725,8 +828,16 @@
       background: #8ccd65;
     }
 
+    .card-choice-included:hover {
+      background: #a8e17c;
+    }
+
     .card-choice-dropped {
       background: #d87968;
+    }
+
+    .card-choice-dropped:hover {
+      background: #ef917d;
     }
 
     .card-choice-button.is-selected {
@@ -734,8 +845,16 @@
       color: #fffdf1;
     }
 
+    .card-choice-button.is-selected:hover {
+      background: #6fc352;
+    }
+
     .card-choice-dropped.is-selected {
       background: #c84637;
+    }
+
+    .card-choice-dropped.is-selected:hover {
+      background: #df5848;
     }
 
     .instruction-card:nth-child(3n + 1) {
@@ -757,7 +876,6 @@
     }
 
     .overlay-go {
-      position: static;
       z-index: 2;
       min-width: 98px;
       pointer-events: auto;
@@ -766,15 +884,102 @@
     }
 
     .overlay-next-turn {
-      position: static;
       z-index: 2;
       min-width: 156px;
       pointer-events: auto;
     }
 
+    .phase-action-button {
+      position: fixed;
+      left: 50%;
+      bottom: clamp(96px, calc(var(--bottom-card-bar-height) + 22px), calc(100vh - 112px));
+      z-index: 42;
+      min-width: 312px;
+      min-height: 88px;
+      padding: 0 36px;
+      border-width: 6px;
+      box-shadow: 0 10px 0 #8d6426;
+      font-size: 26px;
+      line-height: 1;
+      white-space: nowrap;
+      translate: -50% 0;
+      pointer-events: auto;
+    }
+
+    .phase-action-button:hover {
+      transform: translateY(-2px);
+    }
+
+    .phase-action-button:active {
+      transform: translateY(6px);
+      box-shadow: 0 4px 0 #8d6426;
+    }
+
+    .phase-action-button:disabled {
+      display: none;
+    }
+
+    .draw-action-bar {
+      position: fixed;
+      top: 22px;
+      right: 22px;
+      z-index: 46;
+      display: flex;
+      align-items: stretch;
+      gap: 10px;
+      pointer-events: auto;
+    }
+
+    .draw-action-bar[hidden] {
+      display: none;
+    }
+
+    .draw-done-button {
+      min-width: 178px;
+      min-height: 72px;
+      padding: 0 28px;
+      border-width: 5px;
+      box-shadow: 0 8px 0 #8d6426;
+      font-size: 24px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .draw-done-button:active {
+      box-shadow: 0 3px 0 #8d6426;
+    }
+
+    .draw-countdown {
+      min-width: 96px;
+      min-height: 72px;
+      display: grid;
+      place-items: center;
+      padding: 0 16px;
+      border: 5px solid #26381d;
+      background: #d84938;
+      color: #fff7dc;
+      box-shadow: inset -6px -6px 0 rgba(76, 34, 25, 0.28);
+      font-size: 34px;
+      font-weight: 950;
+      line-height: 1;
+      text-shadow: 3px 3px 0 rgba(59, 25, 22, 0.4);
+    }
+
+    .success-button.phase-action-button {
+      box-shadow: 0 10px 0 #3f7e45;
+    }
+
+    .success-button.phase-action-button:active {
+      box-shadow: 0 4px 0 #3f7e45;
+    }
+
     .overlay-next-turn.needs-retry {
       background: #e0715f;
-      box-shadow: 0 5px 0 #91392f;
+      box-shadow: 0 10px 0 #91392f;
+    }
+
+    .overlay-next-turn.needs-retry:active {
+      box-shadow: 0 4px 0 #91392f;
     }
 
     .overlay-next-turn[hidden] {
@@ -807,22 +1012,19 @@
 
     .card-overlay.reveal .preview-stack {
       top: auto;
-      bottom: 0;
+      bottom: var(--bottom-card-bar-height);
       height: auto;
-      max-height: 33vh;
-      justify-content: flex-start;
+      max-height: 30vh;
+      justify-content: center;
       gap: 10px;
-      padding: 12px 16px 14px;
-      background: rgba(255, 247, 220, 0.96);
-      border-top: 3px solid #26381d;
+      padding: 12px 16px 18px;
+      background: transparent;
+      border-top: 0;
+      overflow: visible;
     }
 
     .card-overlay.reveal .overlay-status {
-      top: 12px;
-    }
-
-    .card-overlay.reveal .overlay-prompt {
-      padding: 8px 12px;
+      display: none;
     }
 
     .card-overlay.reveal .overlay-prompt-title {
@@ -838,8 +1040,8 @@
       cursor: default;
       flex: 0 1 172px;
       min-height: 0;
-      padding: 44px 10px 10px;
-      font-size: 12px;
+      padding: 10px 12px 10px;
+      font-size: 14px;
       line-height: 1.2;
       box-shadow: 5px 5px 0 rgba(76, 52, 28, 0.28);
       animation-duration: 280ms;
@@ -850,28 +1052,24 @@
     }
 
     .card-overlay.reveal .instruction-card::before {
-      left: 8px;
-      top: 8px;
-      width: 22px;
-      height: 22px;
-      border-width: 2px;
-      font-size: 11px;
-    }
-
-    .card-overlay.reveal .card-type-badge {
       display: none;
     }
 
     .card-overlay.reveal .card-question-controls {
       top: 8px;
-      left: 36px;
+      left: 8px;
       right: 8px;
-      gap: 5px;
+      gap: 6px;
     }
 
     .card-overlay.reveal .card-choice-button {
-      height: 26px;
-      font-size: 9px;
+      height: 40px;
+      border-width: 4px;
+      font-size: 15px;
+    }
+
+    .app.has-bottom-cards .context-notes {
+      max-height: calc(100% - var(--bottom-card-bar-height) - 132px);
     }
 
     .audit-summary {
@@ -899,7 +1097,9 @@
       display: none;
     }
 
-    .card-overlay.reveal .instruction-card.card-correct {
+    .card-overlay.reveal .instruction-card.card-correct,
+    .bottom-card-bar .instruction-card.card-correct {
+      border-width: 5px;
       border-color: #2f6f3f;
       background:
         linear-gradient(90deg, rgba(47, 111, 63, 0.12) 0 8px, transparent 8px),
@@ -910,7 +1110,9 @@
         inset -8px -8px 0 rgba(47, 111, 63, 0.11);
     }
 
-    .card-overlay.reveal .instruction-card.card-dropped {
+    .card-overlay.reveal .instruction-card.card-dropped,
+    .bottom-card-bar .instruction-card.card-dropped {
+      border-width: 5px;
       border-color: #91392f;
       background:
         linear-gradient(90deg, rgba(200, 70, 55, 0.14) 0 8px, transparent 8px),
@@ -918,12 +1120,32 @@
         #ffe6df;
     }
 
+    .card-overlay.reveal .instruction-card.card-correct,
+    .card-overlay.reveal .instruction-card.card-dropped {
+      border-width: 6px;
+    }
+
+    .click-me-state {
+      transform-origin: center;
+      animation: click-me-control 780ms ease-in-out both;
+    }
+
+    .instruction-card.click-me-state {
+      animation: click-me-card 780ms ease-in-out both;
+    }
+
+    .instruction-card:hover,
+    .bottom-card-bar[data-phase="preview"] .bottom-card:hover {
+      animation: card-hover-wiggle 520ms ease-in-out infinite;
+      transform-origin: center 86%;
+    }
+
     @keyframes overlay-fade-in {
       from {
-        background: #fff;
+        background: transparent;
       }
       to {
-        background: #fff;
+        background: transparent;
       }
     }
 
@@ -994,6 +1216,27 @@
       }
     }
 
+    @keyframes bottom-card-flip {
+      from {
+        opacity: 0.25;
+        transform: rotateY(82deg) translateY(4px);
+      }
+      to {
+        opacity: 1;
+        transform: rotateY(0deg) translateY(0);
+      }
+    }
+
+    @keyframes bottom-card-sway {
+      0%,
+      100% {
+        transform: rotate(-2deg);
+      }
+      50% {
+        transform: rotate(2deg);
+      }
+    }
+
     @keyframes go-wobble {
       0%,
       100% {
@@ -1010,6 +1253,60 @@
       }
       80% {
         transform: translateY(0) rotate(1deg) scale(1);
+      }
+    }
+
+    @keyframes click-me-control {
+      0%,
+      100% {
+        transform: translateY(0) rotate(0deg) scale(1);
+      }
+      18% {
+        transform: translateY(-2px) rotate(-2deg) scale(1.03);
+      }
+      38% {
+        transform: translateY(1px) rotate(2.4deg) scale(1.03);
+      }
+      58% {
+        transform: translateY(-1px) rotate(-1.4deg) scale(1.02);
+      }
+      78% {
+        transform: translateY(0) rotate(1deg) scale(1);
+      }
+    }
+
+    @keyframes click-me-card {
+      0%,
+      100% {
+        transform: translateY(0) scale(1) rotate(var(--card-tilt));
+      }
+      18% {
+        transform: translateY(-3px) scale(1.02) rotate(calc(var(--card-tilt) - 3deg));
+      }
+      38% {
+        transform: translateY(1px) scale(1.02) rotate(calc(var(--card-tilt) + 3deg));
+      }
+      58% {
+        transform: translateY(-1px) scale(1.01) rotate(calc(var(--card-tilt) - 1.8deg));
+      }
+      78% {
+        transform: translateY(0) scale(1) rotate(calc(var(--card-tilt) + 1deg));
+      }
+    }
+
+    @keyframes card-hover-wiggle {
+      0%,
+      100% {
+        transform: translateY(-4px) scale(1.035) rotate(var(--card-tilt));
+      }
+      25% {
+        transform: translateY(-5px) scale(1.04) rotate(calc(var(--card-tilt) - 3deg));
+      }
+      50% {
+        transform: translateY(-3px) scale(1.04) rotate(calc(var(--card-tilt) + 3deg));
+      }
+      75% {
+        transform: translateY(-5px) scale(1.035) rotate(calc(var(--card-tilt) - 1.5deg));
       }
     }
 
@@ -1032,7 +1329,13 @@
       .overlay-timebar,
       .instruction-card,
       .overlay-go,
-      .card-overlay.reveal .overlay-actions .action-button {
+      .card-overlay.reveal .overlay-actions .action-button,
+      .click-me-state {
+        animation: none;
+      }
+
+      .instruction-card:hover,
+      .bottom-card-bar[data-phase="preview"] .bottom-card:hover {
         animation: none;
       }
     }
@@ -1065,15 +1368,7 @@
     }
 
     .board-head {
-      position: absolute;
-      top: 12px;
-      left: 12px;
-      right: 12px;
-      z-index: 8;
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 10px;
+      display: contents;
       margin: 0;
       pointer-events: none;
     }
@@ -1091,7 +1386,7 @@
       min-height: 0;
       overflow: hidden;
       border: 0;
-      background: #fff;
+      background: transparent;
       box-shadow: none;
     }
 
@@ -1165,47 +1460,25 @@
       display: none;
     }
 
-    .tool-dock {
-      position: absolute;
-      left: 12px;
-      right: 12px;
-      bottom: 12px;
-      z-index: 8;
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      align-items: end;
-      gap: 10px;
-      margin: 0;
-      padding: 0;
-      pointer-events: none;
-    }
-
-    .tool-group,
     .swatches {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 10px;
       flex-wrap: wrap;
-    }
-
-    .tool-group {
-      justify-self: start;
-      pointer-events: auto;
     }
 
     .swatches {
       display: grid;
-      grid-template-columns: repeat(12, 38px);
-      grid-column: 2;
+      grid-template-columns: repeat(13, 64px);
       justify-self: center;
       justify-content: center;
-      width: 540px;
+      width: max-content;
       min-width: 0;
-      max-width: min(100%, 560px);
-      padding: 6px;
+      max-width: 100%;
+      padding: 14px;
       border: 3px solid #26381d;
       background: rgba(255, 247, 220, 0.84);
-      box-shadow: 0 6px 0 rgba(31, 36, 24, 0.18);
+      box-shadow: 0 8px 0 rgba(31, 36, 24, 0.18);
       pointer-events: auto;
     }
 
@@ -1213,11 +1486,11 @@
     .swatch {
       display: grid;
       place-items: center;
-      width: 38px;
-      height: 38px;
+      width: 64px;
+      height: 64px;
       border: 3px solid #26381d;
       background: #fff7dc;
-      box-shadow: 0 4px 0 rgba(38, 56, 29, 0.3);
+      box-shadow: 0 6px 0 rgba(38, 56, 29, 0.3);
       cursor: pointer;
     }
 
@@ -1244,14 +1517,17 @@
 
     .swatch {
       background: var(--swatch);
+      transform-origin: center;
+      transition: transform 120ms ease, box-shadow 120ms ease, outline-offset 120ms ease;
     }
 
     .swatch.active {
       background: var(--swatch);
-      transform: translateY(2px);
-      box-shadow: 0 2px 0 rgba(38, 56, 29, 0.3);
+      transform: scale(1.18);
+      box-shadow: 0 7px 0 rgba(38, 56, 29, 0.32);
       outline: 4px solid #fff7dc;
-      outline-offset: -8px;
+      outline-offset: -7px;
+      z-index: 1;
     }
 
     .sr-only {
@@ -1333,26 +1609,16 @@
     }
 
     .modal-language-flags {
-      justify-self: center;
-      margin-bottom: 6px;
+      margin: 0 auto 6px;
     }
 
     @media (max-width: 1080px) {
-      .topbar {
-        grid-template-columns: auto minmax(0, 1fr) auto;
-        gap: 8px;
-      }
-
       .card-overlay {
         padding: 0;
       }
 
       .card-table {
         max-height: none;
-      }
-
-      .meters {
-        grid-column: 1 / -1;
       }
 
       .game-shell {
@@ -1369,6 +1635,10 @@
     }
 
     @media (max-width: 760px) {
+      :root {
+        --bottom-card-bar-height: 252px;
+      }
+
       .app {
         gap: 0;
         padding: 0;
@@ -1384,20 +1654,24 @@
         padding: 0;
       }
 
-      .overlay-clock,
-      .overlay-prompt {
+      .overlay-clock {
         min-width: 0;
         padding: 7px 8px;
       }
 
       .overlay-status {
         top: 8px;
-        width: calc(100vw - 12px);
-        grid-template-columns: 86px minmax(0, 1fr);
+        left: 0;
+        right: 0;
+        width: auto;
+        grid-template-columns: minmax(0, 1fr);
         gap: 6px;
+        padding: 0 118px 0 8px;
       }
 
       .overlay-clock {
+        top: 10px;
+        right: 10px;
         min-height: 76px;
       }
 
@@ -1437,13 +1711,98 @@
         padding: 0 8px;
       }
 
+      .phase-action-button {
+        bottom: clamp(84px, calc(var(--bottom-card-bar-height) + 14px), calc(100vh - 96px));
+        min-width: 256px;
+        min-height: 72px;
+        padding: 0 24px;
+        border-width: 5px;
+        box-shadow: 0 8px 0 #8d6426;
+        font-size: 22px;
+      }
+
+      .success-button.phase-action-button {
+        box-shadow: 0 8px 0 #3f7e45;
+      }
+
+      .overlay-next-turn.needs-retry {
+        box-shadow: 0 8px 0 #91392f;
+      }
+
+      .draw-action-bar {
+        top: 10px;
+        right: 10px;
+        gap: 6px;
+      }
+
+      .draw-done-button {
+        min-width: 112px;
+        min-height: 54px;
+        padding: 0 16px;
+        border-width: 4px;
+        box-shadow: 0 6px 0 #8d6426;
+        font-size: 18px;
+      }
+
+      .draw-countdown {
+        min-width: 72px;
+        min-height: 54px;
+        padding: 0 10px;
+        border-width: 4px;
+        font-size: 26px;
+      }
+
       .card-overlay.reveal .preview-stack {
-        max-height: 40vh;
+        max-height: 35vh;
         padding: 10px 8px 12px;
       }
 
       .reveal-drawing {
-        padding: 100px 8px 40vh;
+        padding: 12px 8px calc(var(--bottom-card-bar-height) + 30px);
+      }
+
+      .bottom-card-bar {
+        padding: 8px;
+      }
+
+      .bottom-card-tools {
+        padding: 12px 8px;
+      }
+
+      .bottom-card-list {
+        gap: 8px;
+        padding-top: 20px;
+      }
+
+      .bottom-card-list.is-packed {
+        gap: 7px;
+      }
+
+      .bottom-card-bar .instruction-card {
+        flex-basis: 94px;
+        width: 94px;
+        height: 142px;
+        padding: 8px 8px 8px;
+        font-size: 10px;
+        line-height: 1.1;
+        border-width: 2px;
+      }
+
+      .bottom-card-bar .instruction-card::before {
+        display: none;
+      }
+
+      .bottom-card-bar .card-question-controls {
+        top: 7px;
+        left: 6px;
+        right: 6px;
+        gap: 4px;
+      }
+
+      .bottom-card-bar .card-choice-button {
+        height: 30px;
+        border-width: 3px;
+        font-size: 11px;
       }
 
       .card-overlay.reveal .instruction-card {
@@ -1453,8 +1812,8 @@
       .instruction-card {
         flex-basis: min(155px, 44vw);
         min-height: 188px;
-        padding: 46px 12px 14px;
-        font-size: 13px;
+        padding: 12px 14px 14px;
+        font-size: 15px;
         box-shadow: 5px 5px 0 rgba(76, 52, 28, 0.28);
       }
 
@@ -1463,18 +1822,17 @@
       }
 
       .card-question-controls {
-        left: 44px;
-        right: 8px;
+        left: 6px;
+        right: 6px;
         gap: 4px;
       }
 
       .card-choice-button {
-        height: 26px;
-        border-width: 2px;
-        font-size: 8px;
+        height: 34px;
+        border-width: 3px;
+        font-size: 12px;
       }
 
-      .card-type-badge,
       .card-pin-badge {
         padding: 3px 5px;
         font-size: 8px;
@@ -1486,29 +1844,11 @@
         font-size: 11px;
       }
 
-      .topbar {
-        grid-template-columns: auto minmax(0, 1fr);
-        gap: 6px;
-        padding: 6px;
-      }
-
-      h1 {
-        font-size: 20px;
+      .stage-hud {
+        top: 8px;
+        left: 8px;
+        font-size: 26px;
         text-shadow: 2px 2px 0 #f0c34d;
-      }
-
-      .subtitle {
-        margin-top: 3px;
-        font-size: 10px;
-      }
-
-      .meters {
-        grid-column: 1 / -1;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-      }
-
-      #newRunButton {
-        grid-column: 1 / -1;
       }
 
       .game-shell {
@@ -1557,16 +1897,12 @@
       .card {
         flex-basis: min(190px, 66vw);
         min-height: 48px;
-        padding: 7px 7px 7px 35px;
+        padding: 7px;
         font-size: 10px;
       }
 
       .card::before {
-        left: 6px;
-        top: 6px;
-        width: 20px;
-        height: 20px;
-        font-size: 10px;
+        display: none;
       }
 
       .check-copy {
@@ -1583,21 +1919,7 @@
       }
 
       .board-head {
-        top: 8px;
-        left: 8px;
-        right: 8px;
         margin: 0;
-      }
-
-      .tool-dock {
-        grid-template-columns: 1fr;
-        justify-items: center;
-        gap: 6px;
-        left: 8px;
-        right: 8px;
-        bottom: 8px;
-        margin: 0;
-        padding: 0;
       }
 
       .context-notes {
@@ -1609,40 +1931,32 @@
         font-size: 10px;
       }
 
-      .tool-group,
       .swatches {
         justify-content: center;
-        gap: 4px;
+        gap: 8px;
       }
 
-      .tool-group,
       .swatches {
         justify-self: center;
       }
 
       .swatches {
-        grid-column: auto;
-        grid-template-columns: repeat(6, 30px);
-        width: 216px;
+        grid-template-columns: repeat(7, 50px);
+        width: max-content;
         max-width: 100%;
-        padding: 5px;
+        padding: 11px;
       }
 
       .icon-button,
       .swatch {
-        width: 30px;
-        height: 30px;
-        border-width: 2px;
+        width: 50px;
+        height: 50px;
+        border-width: 3px;
       }
 
       .icon-button svg {
         width: 19px;
         height: 19px;
-      }
-
-      .board-head {
-        align-items: stretch;
-        flex-direction: row;
       }
 
       .primary-button,
@@ -1652,46 +1966,14 @@
         font-size: 11px;
       }
 
-      .meter {
-        min-height: 38px;
-        padding: 4px 6px;
-      }
-
-      .meter strong {
-        font-size: 16px;
-      }
-
     }
   </style>
 </head>
 <body>
   <div class="app">
-    <header class="topbar">
-      <div class="language-flags" aria-label="Language selector">
-        <button type="button" class="active" data-lang="en" aria-label="English">🇬🇧</button>
-        <button type="button" data-lang="hy" aria-label="Armenian">🇦🇲</button>
-        <button type="button" data-lang="ru" aria-label="Russian">🇷🇺</button>
-      </div>
-      <div class="brand">
-        <h1>Context Overload</h1>
-        <div class="subtitle" data-i18n="subtitle">A game about what AI drops when the prompt has too much context</div>
-      </div>
-      <div class="meters" aria-label="Run status">
-        <div class="meter">
-          <span data-i18n="stageLabel">Stage</span>
-          <strong id="stageNumber">1</strong>
-        </div>
-        <div class="meter">
-          <span data-i18n="cardsLabel">Cards</span>
-          <strong id="cardCount">2</strong>
-        </div>
-        <div class="meter">
-          <span data-i18n="bestLabel">Best</span>
-          <strong id="bestStage">0</strong>
-        </div>
-      </div>
-      <button class="primary-button" id="newRunButton" type="button" data-i18n="newRunButton">New Run</button>
-    </header>
+    <div class="stage-hud" aria-label="Stage">
+      <strong id="stageNumber">1</strong>
+    </div>
 
     <main class="game-shell">
       <section class="board-panel">
@@ -1727,32 +2009,25 @@
           </div>
         </div>
         <div class="board-head">
-          <button class="action-button" id="doneButton" type="button" disabled data-i18n="doneButton">Done</button>
+          <div class="draw-action-bar" id="drawActionBar" hidden>
+            <button class="action-button draw-done-button" id="doneButton" type="button" disabled data-i18n="doneButton">Done</button>
+            <div class="draw-countdown" id="drawTimerNumber" aria-live="polite">30</div>
+          </div>
         </div>
         <div class="canvas-frame locked" id="canvasFrame">
           <canvas id="pixelCanvas" width="1024" height="672" aria-label="Drawing canvas" data-i18n-aria="pixelCanvasAria"></canvas>
           <div class="canvas-lock" id="canvasLock"></div>
           <div class="context-notes" id="contextNotes" hidden></div>
         </div>
-        <div class="tool-dock" aria-label="Drawing tools" data-i18n-aria="drawingToolsAria">
-          <div class="tool-group">
-            <button class="icon-button active" type="button" data-tool="pencil" title="Pencil" aria-label="Pencil" data-i18n-title="pencilTool" data-i18n-aria="pencilTool">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M5 19h4l10-10-4-4L5 15v4z"></path>
-                <path d="M13 7l4 4"></path>
-              </svg>
-            </button>
-            <button class="icon-button" type="button" data-tool="eraser" title="Eraser" aria-label="Eraser" data-i18n-title="eraserTool" data-i18n-aria="eraserTool">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M4 15l8-8 8 8-5 5H9l-5-5z"></path>
-                <path d="M9 20h11"></path>
-              </svg>
-            </button>
-          </div>
-          <div class="swatches" id="swatches" aria-label="Colors" data-i18n-aria="colorsAria"></div>
-        </div>
       </section>
     </main>
+  </div>
+
+  <div class="bottom-card-bar" id="bottomCardBar" aria-label="Current context cards" data-i18n-aria="memoryCardsAria">
+    <div class="bottom-card-list" id="bottomCardList" aria-live="polite"></div>
+    <div class="bottom-card-tools" id="bottomCardTools" aria-label="Drawing tools" data-i18n-aria="drawingToolsAria">
+      <div class="swatches" id="swatches" aria-label="Colors" data-i18n-aria="colorsAria"></div>
+    </div>
   </div>
 
   <div class="card-overlay" id="cardOverlay" aria-label="Instruction cards" data-i18n-aria="memoryCardsAria">
@@ -1773,8 +2048,8 @@
       <div class="preview-stack">
         <div class="preview-card-list" id="previewCardList" aria-live="polite"></div>
         <div class="audit-summary" id="auditSummary" hidden></div>
-        <button class="action-button overlay-go" id="overlayGoButton" type="button" data-i18n="timerGo">DO PROMPTS</button>
-        <button class="action-button success-button overlay-next-turn" id="overlayNextTurnButton" type="button" data-i18n="nextTurnButton" hidden>NEXT TURN</button>
+        <button class="action-button overlay-go phase-action-button" id="overlayGoButton" type="button" data-i18n="timerGo">START</button>
+        <button class="action-button success-button overlay-next-turn phase-action-button" id="overlayNextTurnButton" type="button" data-i18n="nextTurnButton" hidden>NEXT TURN</button>
       </div>
       <div class="overlay-actions" id="overlayActions">
         <button class="action-button success-button" id="overlayCorrectButton" type="button" data-i18n="correctButton">Correct</button>
@@ -1785,7 +2060,7 @@
 
   <div class="overlay show" id="overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal">
-      <h2 id="modalTitle">Context Overload</h2>
+      <h2 id="modalTitle">Context Game</h2>
       <p id="modalCopy">
         Read the prompt context, send it to memory, then draw what survived.
       </p>
@@ -1802,11 +2077,15 @@
     const GRID_COLS = 512;
     const GRID_ROWS = 336;
     const CELL_SIZE = 2;
-    const BRUSH_SIZE = 4;
+    const BRUSH_SIZE = 2;
     const PREVIEW_SECONDS = 15;
+    const DRAW_SECONDS = 30;
     const STARTING_CARD_COUNT = 2;
     const CONTEXT_WINDOW_SIZE = 5;
     const SUMMARY_KEEP_LIMIT = 3;
+    const CLICK_ME_STATE_CLASS = "click-me-state";
+    const CLICK_ME_INTERVAL_MS = 3600;
+    const CLICK_ME_DELAY_MS = 1200;
 
     const roundModes = [
       { key: "normal", titleKey: "promptsTitle", taskKey: "promptsTask", seconds: 15, cardDelta: 0 },
@@ -1817,9 +2096,8 @@
       { key: "summary", titleKey: "summaryRoundTitle", taskKey: "summaryRoundTask", seconds: 12, cardDelta: 1, summaryLimit: SUMMARY_KEEP_LIMIT }
     ];
 
-    const cardKeys = [
+    const baseDrawCardKeys = [
       "cardPig",
-      "cardPinkPig",
       "cardHouse",
       "cardSmoke",
       "cardFence",
@@ -1827,8 +2105,6 @@
       "cardPath",
       "cardChicken",
       "cardCow",
-      "cardHaystack",
-      "cardScarecrow",
       "cardPond",
       "cardDucks",
       "cardTree",
@@ -1840,7 +2116,6 @@
       "cardFruitStall",
       "cardWindmill",
       "cardSheep",
-      "cardWhiteSheep",
       "cardGoat",
       "cardStoneBridge",
       "cardRiver",
@@ -1863,55 +2138,72 @@
       "cardCrow",
       "cardWheat",
       "cardBoat",
-      "cardTower",
-      "cardBakery",
       "cardBread",
-      "cardFootprints",
-      "cardFlag",
-      "cardNoiseWeather",
-      "cardNoiseBackstory",
-      "cardNoisePolite",
-      "cardContradictRoof",
-      "cardContradictSun",
-      "cardContradictCow"
+      "cardFlag"
     ];
 
-    const counterCardKeys = new Set([
-      "cardHaystack",
-      "cardScarecrow",
-      "cardTower",
-      "cardBakery",
-      "cardFootprints",
-      "cardContradictRoof",
-      "cardContradictSun",
-      "cardContradictCow"
-    ]);
+    const promptCardDefinitions = [
+      { key: "cardNoiseHello", type: "prompt", minStage: 1, weight: 3.2, order: "front" },
+      { key: "cardNoisePlease", type: "prompt", minStage: 1, weight: 2.8, order: "body" },
+      { key: "cardNoiseThanks", type: "prompt", minStage: 1, weight: 2.6, order: "end" },
+      { key: "cardNoiseWeather", type: "prompt", minStage: 2, weight: 1.4, order: "body" },
+      { key: "cardNoiseBackstory", type: "prompt", minStage: 2, weight: 1.4, order: "body" },
+      { key: "cardNoisePolite", type: "prompt", minStage: 2, weight: 1.3, order: "body" },
+      { key: "cardNoiseUrgent", type: "prompt", minStage: 2, weight: 1.3, order: "body" },
+      { key: "cardNoisePerfect", type: "prompt", minStage: 2, weight: 1.3, order: "body" },
+      { key: "cardNoiseFriendly", type: "prompt", minStage: 2, weight: 1.3, order: "body" },
+      { key: "cardNoiseAsMentioned", type: "prompt", minStage: 2, weight: 1.3, order: "body" },
+      { key: "cardNoiseBestEffort", type: "prompt", minStage: 2, weight: 1.3, order: "body" },
+      { key: "cardNoiseNoRush", type: "prompt", minStage: 2, weight: 1.3, order: "body" },
+      { key: "cardNoiseLongIntro", type: "prompt", minStage: 2, weight: 1.2, order: "body" },
+      { key: "cardNoiseApology", type: "prompt", minStage: 2, weight: 1.2, order: "body" },
+      { key: "cardNoiseFormat", type: "prompt", minStage: 2, weight: 1.2, order: "body" },
+      { key: "cardNoiseReminder", type: "prompt", minStage: 2, weight: 1.2, order: "body" },
+      { key: "cardNoiseCompliment", type: "prompt", minStage: 2, weight: 1.2, order: "body" },
+      { key: "cardNoiseVagueQuality", type: "prompt", minStage: 2, weight: 1.2, order: "body" }
+    ];
 
-    const noiseCardKeys = new Set([
-      "cardNoiseWeather",
-      "cardNoiseBackstory",
-      "cardNoisePolite"
-    ]);
+    const chainCardDefinitions = [
+      { key: "cardPinkPig", type: "chain", minStage: 2, weight: 8, parents: ["cardPig"] },
+      { key: "cardPigMud", type: "chain", minStage: 2, weight: 7.5, parents: ["cardPig"] },
+      { key: "cardWhiteSheep", type: "chain", minStage: 2, weight: 8, parents: ["cardSheep"] },
+      { key: "cardSheepWool", type: "chain", minStage: 2, weight: 7.5, parents: ["cardSheep"] },
+      { key: "cardDogBlue", type: "chain", minStage: 2, weight: 8, parents: ["cardDog"] },
+      { key: "cardDogCollar", type: "chain", minStage: 2, weight: 7.5, parents: ["cardDog"] },
+      { key: "cardHouseWindow", type: "chain", minStage: 2, weight: 7.5, parents: ["cardHouse"] },
+      { key: "cardTreeNest", type: "chain", minStage: 2, weight: 7.5, parents: ["cardTree"] },
+      { key: "cardCowSpots", type: "chain", minStage: 2, weight: 7.5, parents: ["cardCow"] },
+      { key: "cardPathFlowers", type: "chain", minStage: 2, weight: 7.5, parents: ["cardPath"] },
+      { key: "cardPondDuck", type: "chain", minStage: 2, weight: 7.5, parents: ["cardPond"] },
+      { key: "cardRiverBridge", type: "chain", minStage: 2, weight: 7.5, parents: ["cardRiver"] },
+      { key: "cardBoatFlag", type: "chain", minStage: 2, weight: 7.5, parents: ["cardBoat"] },
+      { key: "cardSunRays", type: "chain", minStage: 2, weight: 7.5, parents: ["cardSun"] },
+      { key: "cardHaystack", type: "chain", minStage: 3, weight: 5.8, parents: ["cardFence"] },
+      { key: "cardScarecrow", type: "chain", minStage: 3, weight: 5.8, parents: ["cardClouds"] },
+      { key: "cardTower", type: "chain", minStage: 3, weight: 5.8, parents: ["cardTree"] },
+      { key: "cardBakery", type: "chain", minStage: 3, weight: 5.8, parents: ["cardCart"] },
+      { key: "cardFootprints", type: "chain", minStage: 3, weight: 5.8, parents: ["cardPath"] },
+      { key: "cardContradictRoof", type: "chain", minStage: 3, weight: 5.8, parents: ["cardHouse"] },
+      { key: "cardContradictSun", type: "chain", minStage: 3, weight: 5.8, parents: ["cardSun"] },
+      { key: "cardContradictCow", type: "chain", minStage: 3, weight: 5.8, parents: ["cardCow"] }
+    ];
 
-    const cardPrerequisites = {
-      cardPinkPig: ["cardPig"],
-      cardHaystack: ["cardFence"],
-      cardScarecrow: ["cardClouds"],
-      cardWhiteSheep: ["cardSheep"],
-      cardTower: ["cardTree"],
-      cardBakery: ["cardCart"],
-      cardFootprints: ["cardPath"],
-      cardContradictRoof: ["cardHouse"],
-      cardContradictSun: ["cardSun"],
-      cardContradictCow: ["cardCow"]
-    };
+    const graphCardDefinitions = [
+      ...baseDrawCardKeys.map((key) => ({ key, type: "base", minStage: 1, weight: 6, order: "body" })),
+      ...promptCardDefinitions,
+      ...chainCardDefinitions
+    ];
+
+    const cardKeys = graphCardDefinitions.map(({ key }) => key);
+    const cardDefinitionByKey = new Map(graphCardDefinitions.map((card) => [card.key, card]));
+    const noiseCardKeys = new Set(promptCardDefinitions.map(({ key }) => key));
 
     const translations = {
       en: {
         subtitle: "A game about what AI drops when the prompt has too much context",
         stageLabel: "Stage",
         promptsTitle: "DRAW THESE PROMPTS",
-        promptsTask: "Keep the important details in memory",
+        promptsTask: "",
         shortRoundTitle: "Fast Prompt",
         shortRoundTask: "Less time, same context",
         overloadRoundTitle: "Overload",
@@ -1937,10 +2229,6 @@
         retryRunButton: "TRY AGAIN",
         includedButton: "YES",
         droppedButton: "NO",
-        cardKindDetail: "detail",
-        cardKindModifier: "modifier",
-        cardKindConflict: "override",
-        cardKindNoise: "noise",
         pinnedBadge: "kept",
         canvasTitle: "Village Canvas",
         selfCheckTitle: "Context Check",
@@ -1952,13 +2240,13 @@
         stateWatch: "Read",
         stateDraw: "Draw",
         stateCheck: "Audit",
-        timerGo: "DO PROMPTS",
+        timerGo: "START",
         timerOk: "OK",
         hiddenCard: "Context hidden",
         fadedContext: "Older context faded out",
         contextNotesTitle: "Kept context notes",
         checkStart: "Start a run to read the first prompt context. After the timer, draw what survived.",
-        checkMemorize: "Read the prompt. Details, noise, and overrides are mixed together.",
+        checkMemorize: "Read the prompt. Details, filler, and overrides are mixed together.",
         checkSummarize: "Click up to {limit} important cards to keep as notes before sending the prompt.",
         checkDraw: "The prompt is gone. Draw what you think the AI kept.",
         checkReveal: "Mark each card: YES if it survived, NO if it was missing.",
@@ -1967,7 +2255,7 @@
         auditSummaryBody: "{included} yes, {dropped} no.",
         auditSummaryWin: "Clean context survived. The next prompt will be harder.",
         auditSummaryLoss: "This is context overload: too many details made important instructions disappear.",
-        modalStartTitle: "Context Overload",
+        modalStartTitle: "Context Game",
         modalStartCopy: "Read prompt cards, send them to memory, then draw what survived. Too much context will hide, collide, and distract.",
         modalVictoryTitle: "Village Complete",
         modalVictoryCopy: "You kept the whole prompt deck under control.",
@@ -1978,25 +2266,28 @@
         drawingToolsAria: "Drawing tools",
         colorsAria: "Colors",
         selfCheckAria: "Self check",
-        pencilTool: "Pencil",
-        eraserTool: "Eraser",
-        fillTool: "Fill",
         colorLabel: "Color {color}",
         cards: {
           cardPig: "Draw a pig.",
-          cardPinkPig: "If there is a pig, color it pink.",
+          cardPinkPig: "Color the pig pink.",
+          cardPigMud: "Draw mud under the pig.",
           cardHouse: "Draw a house.",
+          cardHouseWindow: "Add a window to the house.",
           cardSmoke: "Draw smoke.",
           cardFence: "Draw a fence.",
           cardWell: "Draw a well.",
           cardPath: "Draw a path.",
+          cardPathFlowers: "Draw flowers beside the path.",
           cardChicken: "Draw a chicken.",
           cardCow: "Draw a cow.",
-          cardHaystack: "If there is a fence, remove it.",
-          cardScarecrow: "If there is a cloud, remove it.",
+          cardCowSpots: "Add black spots to the cow.",
+          cardHaystack: "Remove the fence.",
+          cardScarecrow: "Remove the cloud.",
           cardPond: "Draw a pond.",
+          cardPondDuck: "Draw a duck in the pond.",
           cardDucks: "Draw a duck.",
           cardTree: "Draw a tree.",
+          cardTreeNest: "Draw a nest in the tree.",
           cardApples: "Draw an apple.",
           cardCart: "Draw a cart.",
           cardFarmerHat: "Draw a hat.",
@@ -2005,19 +2296,24 @@
           cardFruitStall: "Draw a pear.",
           cardWindmill: "Draw a windmill.",
           cardSheep: "Draw a sheep.",
-          cardWhiteSheep: "If there is a sheep, color it white.",
+          cardWhiteSheep: "Color the sheep white.",
+          cardSheepWool: "Make the sheep's wool curly.",
           cardGoat: "Draw a goat.",
           cardStoneBridge: "Draw a bridge.",
           cardRiver: "Draw a river.",
+          cardRiverBridge: "Draw a bridge over the river.",
           cardFlowers: "Draw a flower.",
           cardBeehive: "Draw an ant.",
           cardDog: "Draw a dog.",
+          cardDogBlue: "Color the dog blue.",
+          cardDogCollar: "Add a collar to the dog.",
           cardCat: "Draw a cat.",
           cardLantern: "Draw a bird.",
           cardMailbox: "Draw a mailbox.",
           cardPumpkins: "Draw a pumpkin.",
           cardClouds: "Draw a cloud.",
           cardSun: "Draw a sun.",
+          cardSunRays: "Add long rays to the sun.",
           cardMoon: "Draw a moon.",
           cardFirewood: "Draw a log.",
           cardBucket: "Draw a bucket.",
@@ -2028,24 +2324,40 @@
           cardCrow: "Draw a crow.",
           cardWheat: "Draw wheat.",
           cardBoat: "Draw a boat.",
-          cardTower: "If there is a tree, remove it.",
-          cardBakery: "If there is a cart, remove it.",
+          cardBoatFlag: "Add a flag to the boat.",
+          cardTower: "Remove the tree.",
+          cardBakery: "Remove the cart.",
           cardBread: "Draw bread.",
-          cardFootprints: "If there is a path, remove it.",
+          cardFootprints: "Remove the path.",
           cardFlag: "Draw a flag.",
-          cardNoiseWeather: "Noise: last year's weather. Draw nothing.",
-          cardNoiseBackstory: "Noise: an old story. Draw nothing.",
-          cardNoisePolite: "Noise: just be polite. Draw nothing.",
-          cardContradictRoof: "If there is a house, color the roof blue.",
-          cardContradictSun: "If there is a sun, remove it.",
-          cardContradictCow: "If there is a cow, remove it."
+          cardNoiseWeather: "Last year's weather report said Tuesday was windy, cloudy, and oddly warm.",
+          cardNoiseBackstory: "A village receipt lists three spoons, a blue ribbon, and a clock stuck at 4:17.",
+          cardNoisePolite: "The mayor's notebook says everyone thanked the delivery driver twice.",
+          cardNoiseHello: "Hello.",
+          cardNoisePlease: "Please.",
+          cardNoiseThanks: "Thank you.",
+          cardNoiseUrgent: "This is urgent and I need the best possible answer.",
+          cardNoisePerfect: "Make it perfect, polished, professional, and amazing.",
+          cardNoiseFriendly: "Use a friendly tone and be nice about everything.",
+          cardNoiseAsMentioned: "As mentioned earlier, remember the thing we talked about before.",
+          cardNoiseBestEffort: "Try your best and think carefully before responding.",
+          cardNoiseNoRush: "No rush, but please finish this as soon as possible.",
+          cardNoiseLongIntro: "I have been working on this project for a while and it matters a lot.",
+          cardNoiseApology: "Sorry if this is confusing, I am still figuring it out.",
+          cardNoiseFormat: "Use whatever format you think looks best.",
+          cardNoiseReminder: "Just a reminder that clear answers are usually better.",
+          cardNoiseCompliment: "You are really good at this kind of task.",
+          cardNoiseVagueQuality: "Make it more interesting, but not too different.",
+          cardContradictRoof: "Color the house roof blue.",
+          cardContradictSun: "Remove the sun.",
+          cardContradictCow: "Remove the cow."
         }
       },
       hy: {
         subtitle: "Խաղ այն մասին, թե ինչ է AI-ը կորցնում, երբ հուշումը չափազանց շատ համատեքստ ունի",
         stageLabel: "Փուլ",
         promptsTitle: "ՆԿԱՐԻՐ ԱՅՍ ՀՈՒՇՈՒՄՆԵՐԸ",
-        promptsTask: "Պահիր կարևոր մանրամասները հիշողության մեջ",
+        promptsTask: "",
         shortRoundTitle: "Արագ հուշում",
         shortRoundTask: "Քիչ ժամանակ, նույն համատեքստը",
         overloadRoundTitle: "Ծանրաբեռնում",
@@ -2071,10 +2383,6 @@
         retryRunButton: "ԿՐԿԻՆ ՓՈՐՁԻՐ",
         includedButton: "ԱՅՈ",
         droppedButton: "ՈՉ",
-        cardKindDetail: "մանրամասն",
-        cardKindModifier: "փոփոխիչ",
-        cardKindConflict: "փոխարինում",
-        cardKindNoise: "աղմուկ",
         pinnedBadge: "պահված",
         canvasTitle: "Գյուղի կտավ",
         selfCheckTitle: "Համատեքստի ստուգում",
@@ -2086,13 +2394,13 @@
         stateWatch: "Կարդա",
         stateDraw: "Նկարիր",
         stateCheck: "Ստուգիր",
-        timerGo: "DO PROMPTS",
+        timerGo: "START",
         timerOk: "OK",
         hiddenCard: "Համատեքստը թաքնված է",
         fadedContext: "Հին համատեքստը մարեց",
         contextNotesTitle: "Պահված համատեքստի նշումներ",
         checkStart: "Սկսիր խաղը՝ առաջին հուշման համատեքստը կարդալու համար։ Ժամաչափից հետո նկարիր մնացածը։",
-        checkMemorize: "Կարդա հուշումը․ մանրամասները, աղմուկը և փոխարինումները խառնված են։",
+        checkMemorize: "Կարդա հուշումը․ մանրամասները, ավելորդ տեքստը և փոխարինումները խառնված են։",
         checkSummarize: "Սեղմիր մինչև {limit} կարևոր քարտ՝ որպես նշում պահելու համար։",
         checkDraw: "Հուշումը չկա։ Նկարիր այն, ինչ կարծում ես՝ AI-ը պահեց։",
         checkReveal: "Նշիր յուրաքանչյուր քարտ՝ ԱՅՈ, եթե մնաց, ՈՉ, եթե կորավ։",
@@ -2101,7 +2409,7 @@
         auditSummaryBody: "{included} այո, {dropped} ոչ։",
         auditSummaryWin: "Մաքուր համատեքստը պահպանվեց։ Հաջորդ հուշումը դժվար կլինի։",
         auditSummaryLoss: "Սա համատեքստի ծանրաբեռնում է․ չափազանց շատ մանրամասներ կորցնում են կարևոր հրահանգները։",
-        modalStartTitle: "Context Overload",
+        modalStartTitle: "Context Game",
         modalStartCopy: "Կարդա հուշման քարտերը, ուղարկիր հիշողություն, հետո նկարիր մնացածը։ Շատ համատեքստը կթաքցնի, կխառնի և կշեղի։",
         modalVictoryTitle: "Գյուղը ավարտված է",
         modalVictoryCopy: "Դու վերահսկեցիր ամբողջ հուշման կապոցը։",
@@ -2112,25 +2420,28 @@
         drawingToolsAria: "Նկարչական գործիքներ",
         colorsAria: "Գույներ",
         selfCheckAria: "Ինքնաստուգում",
-        pencilTool: "Մատիտ",
-        eraserTool: "Ռետին",
-        fillTool: "Լցնել",
         colorLabel: "Գույն {color}",
         cards: {
           cardPig: "Նկարիր խոզ։",
-          cardPinkPig: "Եթե խոզ կա, գունավորիր այն վարդագույն։",
+          cardPinkPig: "Գունավորիր խոզը վարդագույն։",
+          cardPigMud: "Նկարիր ցեխ խոզի տակ։",
           cardHouse: "Նկարիր տուն։",
+          cardHouseWindow: "Ավելացրու պատուհան տանը։",
           cardSmoke: "Նկարիր ծուխ։",
           cardFence: "Նկարիր ցանկապատ։",
           cardWell: "Նկարիր ջրհոր։",
           cardPath: "Նկարիր արահետ։",
+          cardPathFlowers: "Նկարիր ծաղիկներ արահետի կողքին։",
           cardChicken: "Նկարիր հավ։",
           cardCow: "Նկարիր կով։",
-          cardHaystack: "Եթե ցանկապատ կա, ջնջիր այն։",
-          cardScarecrow: "Եթե ամպ կա, ջնջիր այն։",
+          cardCowSpots: "Ավելացրու սև բծեր կովին։",
+          cardHaystack: "Ջնջիր ցանկապատը։",
+          cardScarecrow: "Ջնջիր ամպը։",
           cardPond: "Նկարիր լճակ։",
+          cardPondDuck: "Նկարիր բադ լճակում։",
           cardDucks: "Նկարիր բադ։",
           cardTree: "Նկարիր ծառ։",
+          cardTreeNest: "Նկարիր բույն ծառի վրա։",
           cardApples: "Նկարիր խնձոր։",
           cardCart: "Նկարիր սայլ։",
           cardFarmerHat: "Նկարիր գլխարկ։",
@@ -2139,19 +2450,24 @@
           cardFruitStall: "Նկարիր տանձ։",
           cardWindmill: "Նկարիր հողմաղաց։",
           cardSheep: "Նկարիր ոչխար։",
-          cardWhiteSheep: "Եթե ոչխար կա, գունավորիր այն սպիտակ։",
+          cardWhiteSheep: "Գունավորիր ոչխարը սպիտակ։",
+          cardSheepWool: "Դարձրու ոչխարի բուրդը գանգուր։",
           cardGoat: "Նկարիր այծ։",
           cardStoneBridge: "Նկարիր կամուրջ։",
           cardRiver: "Նկարիր գետ։",
+          cardRiverBridge: "Նկարիր կամուրջ գետի վրա։",
           cardFlowers: "Նկարիր ծաղիկ։",
           cardBeehive: "Նկարիր մրջյուն։",
           cardDog: "Նկարիր շուն։",
+          cardDogBlue: "Գունավորիր շանը կապույտ։",
+          cardDogCollar: "Ավելացրու օձիք շանը։",
           cardCat: "Նկարիր կատու։",
           cardLantern: "Նկարիր թռչուն։",
           cardMailbox: "Նկարիր փոստարկղ։",
           cardPumpkins: "Նկարիր դդում։",
           cardClouds: "Նկարիր ամպ։",
           cardSun: "Նկարիր արև։",
+          cardSunRays: "Ավելացրու երկար ճառագայթներ արևին։",
           cardMoon: "Նկարիր լուսին։",
           cardFirewood: "Նկարիր գերան։",
           cardBucket: "Նկարիր դույլ։",
@@ -2162,24 +2478,40 @@
           cardCrow: "Նկարիր ագռավ։",
           cardWheat: "Նկարիր ցորեն։",
           cardBoat: "Նկարիր նավակ։",
-          cardTower: "Եթե ծառ կա, ջնջիր այն։",
-          cardBakery: "Եթե սայլ կա, ջնջիր այն։",
+          cardBoatFlag: "Ավելացրու դրոշ նավակին։",
+          cardTower: "Ջնջիր ծառը։",
+          cardBakery: "Ջնջիր սայլը։",
           cardBread: "Նկարիր հաց։",
-          cardFootprints: "Եթե արահետ կա, ջնջիր այն։",
+          cardFootprints: "Ջնջիր արահետը։",
           cardFlag: "Նկարիր դրոշ։",
-          cardNoiseWeather: "Աղմուկ․ անցյալ տարվա եղանակը։ Ոչինչ մի նկարիր։",
-          cardNoiseBackstory: "Աղմուկ․ հին պատմություն։ Ոչինչ մի նկարիր։",
-          cardNoisePolite: "Աղմուկ․ պարզապես եղիր քաղաքավարի։ Ոչինչ մի նկարիր։",
-          cardContradictRoof: "Եթե տուն կա, տանիքը գունավորիր կապույտ։",
-          cardContradictSun: "Եթե արև կա, ջնջիր այն։",
-          cardContradictCow: "Եթե կով կա, ջնջիր այն։"
+          cardNoiseWeather: "Անցյալ տարվա եղանակի գրառման մեջ ասվում էր, որ երեքշաբթին քամոտ, ամպամած և անսովոր տաք էր։",
+          cardNoiseBackstory: "Գյուղի կտրոնում նշված են երեք գդալ, կապույտ ժապավեն և 4:17-ի վրա կանգնած ժամացույց։",
+          cardNoisePolite: "Գյուղապետի նոթատետրում գրված է, որ բոլորը երկու անգամ շնորհակալություն հայտնեցին առաքիչին։",
+          cardNoiseHello: "Բարև։",
+          cardNoisePlease: "Խնդրում եմ։",
+          cardNoiseThanks: "Շնորհակալություն։",
+          cardNoiseUrgent: "Սա շտապ է, և ինձ պետք է հնարավոր լավագույն պատասխանը։",
+          cardNoisePerfect: "Դարձրու այն կատարյալ, հղկված, պրոֆեսիոնալ և հիանալի։",
+          cardNoiseFriendly: "Օգտագործիր ընկերական տոն և ամեն ինչի մասին բարի եղիր։",
+          cardNoiseAsMentioned: "Ինչպես արդեն ասվել էր, հիշիր այն բանը, որի մասին առաջ խոսել էինք։",
+          cardNoiseBestEffort: "Փորձիր լավագույնդ և ուշադիր մտածիր պատասխանելուց առաջ։",
+          cardNoiseNoRush: "Չկա շտապելու կարիք, բայց խնդրում եմ ավարտիր որքան հնարավոր է շուտ։",
+          cardNoiseLongIntro: "Ես այս նախագծի վրա երկար ժամանակ եմ աշխատում, և այն շատ կարևոր է։",
+          cardNoiseApology: "Կներես, եթե սա շփոթեցնող է, ես դեռ փորձում եմ հասկանալ։",
+          cardNoiseFormat: "Օգտագործիր այն ձևաչափը, որը քեզ ամենալավն է թվում։",
+          cardNoiseReminder: "Պարզապես հիշեցում՝ հստակ պատասխանները սովորաբար ավելի լավն են։",
+          cardNoiseCompliment: "Դու շատ լավ ես այս տեսակի առաջադրանքներում։",
+          cardNoiseVagueQuality: "Դարձրու այն ավելի հետաքրքիր, բայց շատ տարբեր մի արա։",
+          cardContradictRoof: "Գունավորիր տան տանիքը կապույտ։",
+          cardContradictSun: "Ջնջիր արևը։",
+          cardContradictCow: "Ջնջիր կովը։"
         }
       },
       ru: {
         subtitle: "Игра о том, что ИИ теряет, когда в запросе слишком много контекста",
         stageLabel: "Этап",
         promptsTitle: "НАРИСУЙ ЭТИ ЗАПРОСЫ",
-        promptsTask: "Удержи важные детали в памяти",
+        promptsTask: "",
         shortRoundTitle: "Быстрый запрос",
         shortRoundTask: "Меньше времени, тот же контекст",
         overloadRoundTitle: "Перегрузка",
@@ -2205,10 +2537,6 @@
         retryRunButton: "ПОПРОБОВАТЬ СНОВА",
         includedButton: "ДА",
         droppedButton: "НЕТ",
-        cardKindDetail: "деталь",
-        cardKindModifier: "правка",
-        cardKindConflict: "замена",
-        cardKindNoise: "шум",
         pinnedBadge: "важно",
         canvasTitle: "Деревенский холст",
         selfCheckTitle: "Проверка контекста",
@@ -2220,13 +2548,13 @@
         stateWatch: "Читай",
         stateDraw: "Рисуй",
         stateCheck: "Аудит",
-        timerGo: "DO PROMPTS",
+        timerGo: "START",
         timerOk: "OK",
         hiddenCard: "Контекст скрыт",
         fadedContext: "Старый контекст исчез",
         contextNotesTitle: "Сохраненные заметки",
         checkStart: "Начни игру, чтобы прочитать первый контекст запроса. После таймера нарисуй то, что выжило.",
-        checkMemorize: "Читай запрос. Детали, шум и замены перемешаны.",
+        checkMemorize: "Читай запрос. Детали, лишний текст и замены перемешаны.",
         checkSummarize: "Нажми до {limit} важных карт, чтобы оставить заметки перед отправкой.",
         checkDraw: "Запрос исчез. Нарисуй то, что, по-твоему, ИИ удержал.",
         checkReveal: "Отметь каждую карту: ДА, если она выжила, НЕТ, если пропала.",
@@ -2235,7 +2563,7 @@
         auditSummaryBody: "{included} да, {dropped} нет.",
         auditSummaryWin: "Чистый контекст выжил. Следующий запрос будет сложнее.",
         auditSummaryLoss: "Это перегрузка контекста: лишние детали заставляют важные инструкции исчезать.",
-        modalStartTitle: "Context Overload",
+        modalStartTitle: "Context Game",
         modalStartCopy: "Прочитай карты запроса, отправь их в память, затем нарисуй то, что выжило. Лишний контекст скрывает, конфликтует и отвлекает.",
         modalVictoryTitle: "Деревня готова",
         modalVictoryCopy: "Ты удержал всю колоду запроса под контролем.",
@@ -2246,25 +2574,28 @@
         drawingToolsAria: "Инструменты рисования",
         colorsAria: "Цвета",
         selfCheckAria: "Самопроверка",
-        pencilTool: "Карандаш",
-        eraserTool: "Ластик",
-        fillTool: "Заливка",
         colorLabel: "Цвет {color}",
         cards: {
           cardPig: "Нарисуй свинью.",
-          cardPinkPig: "Если есть свинья, раскрась её розовым.",
+          cardPinkPig: "Раскрась свинью розовым.",
+          cardPigMud: "Нарисуй грязь под свиньей.",
           cardHouse: "Нарисуй дом.",
+          cardHouseWindow: "Добавь окно в дом.",
           cardSmoke: "Нарисуй дым.",
           cardFence: "Нарисуй забор.",
           cardWell: "Нарисуй колодец.",
           cardPath: "Нарисуй тропинку.",
+          cardPathFlowers: "Нарисуй цветы рядом с тропинкой.",
           cardChicken: "Нарисуй курицу.",
           cardCow: "Нарисуй корову.",
-          cardHaystack: "Если есть забор, сотри его.",
-          cardScarecrow: "Если есть облако, сотри его.",
+          cardCowSpots: "Добавь черные пятна корове.",
+          cardHaystack: "Сотри забор.",
+          cardScarecrow: "Сотри облако.",
           cardPond: "Нарисуй пруд.",
+          cardPondDuck: "Нарисуй утку в пруду.",
           cardDucks: "Нарисуй утку.",
           cardTree: "Нарисуй дерево.",
+          cardTreeNest: "Нарисуй гнездо на дереве.",
           cardApples: "Нарисуй яблоко.",
           cardCart: "Нарисуй тележку.",
           cardFarmerHat: "Нарисуй шляпу.",
@@ -2273,19 +2604,24 @@
           cardFruitStall: "Нарисуй грушу.",
           cardWindmill: "Нарисуй мельницу.",
           cardSheep: "Нарисуй овцу.",
-          cardWhiteSheep: "Если есть овца, раскрась её белым.",
+          cardWhiteSheep: "Раскрась овцу белым.",
+          cardSheepWool: "Сделай шерсть овцы кудрявой.",
           cardGoat: "Нарисуй козу.",
           cardStoneBridge: "Нарисуй мост.",
           cardRiver: "Нарисуй реку.",
+          cardRiverBridge: "Нарисуй мост через реку.",
           cardFlowers: "Нарисуй цветок.",
           cardBeehive: "Нарисуй муравья.",
           cardDog: "Нарисуй собаку.",
+          cardDogBlue: "Раскрась собаку синим.",
+          cardDogCollar: "Добавь собаке ошейник.",
           cardCat: "Нарисуй кошку.",
           cardLantern: "Нарисуй птицу.",
           cardMailbox: "Нарисуй почтовый ящик.",
           cardPumpkins: "Нарисуй тыкву.",
           cardClouds: "Нарисуй облако.",
           cardSun: "Нарисуй солнце.",
+          cardSunRays: "Добавь длинные лучи солнцу.",
           cardMoon: "Нарисуй луну.",
           cardFirewood: "Нарисуй бревно.",
           cardBucket: "Нарисуй ведро.",
@@ -2296,17 +2632,33 @@
           cardCrow: "Нарисуй ворону.",
           cardWheat: "Нарисуй пшеницу.",
           cardBoat: "Нарисуй лодку.",
-          cardTower: "Если есть дерево, сотри его.",
-          cardBakery: "Если есть тележка, сотри её.",
+          cardBoatFlag: "Добавь флаг к лодке.",
+          cardTower: "Сотри дерево.",
+          cardBakery: "Сотри тележку.",
           cardBread: "Нарисуй хлеб.",
-          cardFootprints: "Если есть тропинка, сотри её.",
+          cardFootprints: "Сотри тропинку.",
           cardFlag: "Нарисуй флаг.",
-          cardNoiseWeather: "Шум: прошлогодняя погода. Ничего не рисуй.",
-          cardNoiseBackstory: "Шум: старая история. Ничего не рисуй.",
-          cardNoisePolite: "Шум: просто будь вежлив. Ничего не рисуй.",
-          cardContradictRoof: "Если есть дом, раскрась крышу синим.",
-          cardContradictSun: "Если есть солнце, сотри его.",
-          cardContradictCow: "Если есть корова, сотри её."
+          cardNoiseWeather: "В прошлогодней сводке погоды сказано, что вторник был ветреным, облачным и странно теплым.",
+          cardNoiseBackstory: "В деревенском чеке записаны три ложки, синяя лента и часы, застрявшие на 4:17.",
+          cardNoisePolite: "В блокноте мэра написано, что все дважды поблагодарили курьера.",
+          cardNoiseHello: "Привет.",
+          cardNoisePlease: "Пожалуйста.",
+          cardNoiseThanks: "Спасибо.",
+          cardNoiseUrgent: "Это срочно, и мне нужен лучший возможный ответ.",
+          cardNoisePerfect: "Сделай это идеально, аккуратно, профессионально и потрясающе.",
+          cardNoiseFriendly: "Используй дружелюбный тон и будь добрым во всем.",
+          cardNoiseAsMentioned: "Как уже говорилось раньше, помни то, о чем мы говорили до этого.",
+          cardNoiseBestEffort: "Постарайся как можно лучше и внимательно подумай перед ответом.",
+          cardNoiseNoRush: "Не спеши, но, пожалуйста, закончи как можно скорее.",
+          cardNoiseLongIntro: "Я давно работаю над этим проектом, и он очень важен.",
+          cardNoiseApology: "Извини, если это сбивает с толку, я еще разбираюсь.",
+          cardNoiseFormat: "Используй любой формат, который кажется тебе лучшим.",
+          cardNoiseReminder: "Просто напоминание: ясные ответы обычно лучше.",
+          cardNoiseCompliment: "Ты очень хорошо справляешься с такими задачами.",
+          cardNoiseVagueQuality: "Сделай это интереснее, но не слишком другим.",
+          cardContradictRoof: "Раскрась крышу дома синим.",
+          cardContradictSun: "Сотри солнце.",
+          cardContradictCow: "Сотри корову."
         }
       }
     };
@@ -2323,6 +2675,7 @@
       "#7dbde8",
       "#f2a3bc",
       "#f7f1df",
+      "#8b9198",
       "#3f4a5a"
     ];
 
@@ -2339,6 +2692,8 @@
     const runState = document.getElementById("runState");
     const checkCopy = document.getElementById("checkCopy");
     const revealActions = document.getElementById("revealActions");
+    const drawActionBar = document.getElementById("drawActionBar");
+    const drawTimerNumber = document.getElementById("drawTimerNumber");
     const doneButton = document.getElementById("doneButton");
     const correctButton = document.getElementById("correctButton");
     const missedButton = document.getElementById("missedButton");
@@ -2355,6 +2710,8 @@
     const cardOverlay = document.getElementById("cardOverlay");
     const overlayClock = document.querySelector(".overlay-clock");
     const previewCardList = document.getElementById("previewCardList");
+    const bottomCardBar = document.getElementById("bottomCardBar");
+    const bottomCardList = document.getElementById("bottomCardList");
     const overlayTimerNumber = document.getElementById("overlayTimerNumber");
     const overlayPhaseLabel = document.getElementById("overlayPhaseLabel");
     const overlayTimebarFill = document.getElementById("overlayTimebarFill");
@@ -2380,8 +2737,12 @@
     let drawnCardKeys = new Set();
     let cardsVisible = false;
     let previewEndAt = 0;
+    let drawEndAt = 0;
     let timerFrame = 0;
     let timerToken = 0;
+    let drawTimerFrame = 0;
+    let drawTimerToken = 0;
+    let lastDrawTimerSecond = null;
     let lastOverlayTimerSecond = null;
     let activeTool = "pencil";
     let activeColor = palette[0];
@@ -2396,6 +2757,8 @@
     let scratchNode = null;
     let scratchGain = null;
     let cardPopTimers = [];
+    let clickMeDelayTimer = 0;
+    let clickMeIntervalTimer = 0;
     let currentLang = "en";
     let checkCopyKey = "checkStart";
     let checkCopyParams = {};
@@ -2423,29 +2786,6 @@
       return getRoundConfig().seconds || PREVIEW_SECONDS;
     }
 
-    function getCardKind(cardKey) {
-      if (noiseCardKeys.has(cardKey)) {
-        return "noise";
-      }
-      if (counterCardKeys.has(cardKey)) {
-        return "conflict";
-      }
-      if (cardPrerequisites[cardKey]) {
-        return "modifier";
-      }
-      return "detail";
-    }
-
-    function translateCardKind(kind) {
-      const keys = {
-        detail: "cardKindDetail",
-        modifier: "cardKindModifier",
-        conflict: "cardKindConflict",
-        noise: "cardKindNoise"
-      };
-      return translate(keys[kind] || "cardKindDetail");
-    }
-
     function isContextFaded(index) {
       const { windowSize } = getRoundConfig();
       return Boolean(windowSize && stageCards.length > windowSize && index < stageCards.length - windowSize);
@@ -2453,6 +2793,14 @@
 
     function canPinContext() {
       return Boolean(getRoundConfig().summaryLimit);
+    }
+
+    function isAuditableCard(cardKey) {
+      return !noiseCardKeys.has(cardKey);
+    }
+
+    function getAuditableCardCount() {
+      return stageCards.filter(isAuditableCard).length;
     }
 
     function getAuditSummary() {
@@ -2498,7 +2846,7 @@
       }
     }
 
-    function playCardPop(index = 0) {
+    function playPopSound({ frequency = 720, type = "triangle", volume = 0.08, duration = 0.07 } = {}) {
       const context = getAudioContext();
       if (!context || context.state !== "running") {
         return;
@@ -2507,22 +2855,22 @@
       const now = context.currentTime;
       const oscillator = context.createOscillator();
       const gain = context.createGain();
-      const filter = context.createBiquadFilter();
 
-      oscillator.type = "triangle";
-      oscillator.frequency.setValueAtTime(220 + (index % 5) * 22, now);
-      oscillator.frequency.exponentialRampToValueAtTime(92, now + 0.09);
-      filter.type = "lowpass";
-      filter.frequency.value = 1400;
+      oscillator.type = type;
+      oscillator.frequency.setValueAtTime(frequency, now);
+      oscillator.frequency.exponentialRampToValueAtTime(Math.max(80, frequency * 0.58), now + duration);
       gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.exponentialRampToValueAtTime(0.15, now + 0.012);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.11);
+      gain.gain.exponentialRampToValueAtTime(volume, now + 0.006);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
 
-      oscillator.connect(filter);
-      filter.connect(gain);
+      oscillator.connect(gain);
       gain.connect(masterGain);
       oscillator.start(now);
-      oscillator.stop(now + 0.12);
+      oscillator.stop(now + duration + 0.01);
+    }
+
+    function playCardPop(index = 0) {
+      playPopSound({ frequency: 520 + (index % 4) * 36, volume: 0.05, duration: 0.045 });
     }
 
     function clearScheduledCardPops() {
@@ -2532,13 +2880,54 @@
 
     function scheduleCardPops(count) {
       clearScheduledCardPops();
-      resumeAudio();
-      for (let index = 0; index < count; index += 1) {
-        const timer = setTimeout(() => {
-          playCardPop(index);
-        }, 40 + Math.min(index * 70, 700));
-        cardPopTimers.push(timer);
+      // Card entrance is visual-only; avoid automatic sound when a stage opens.
+    }
+
+    function clearClickMeState() {
+      document.querySelectorAll(`.${CLICK_ME_STATE_CLASS}`).forEach((element) => {
+        element.classList.remove(CLICK_ME_STATE_CLASS);
+      });
+    }
+
+    function isVisibleClickMeTarget(element) {
+      return !element.disabled && !element.hidden && element.getClientRects().length > 0;
+    }
+
+    function getClickMeTargets() {
+      const selectors = [
+        "#overlay.show #modalButton",
+        ".card-overlay.show:not(.reveal) .overlay-go:not([hidden])",
+        ".card-overlay.show:not(.reveal) .instruction-card.is-pinnable",
+        ".bottom-card-bar:not([hidden]) .instruction-card.is-pinnable",
+        ".card-overlay.reveal .instruction-card.has-questionnaire:not(.card-correct):not(.card-dropped)",
+        ".bottom-card-bar[data-mode='audit'] .instruction-card.has-questionnaire:not(.card-correct):not(.card-dropped)",
+        ".card-overlay.reveal .overlay-next-turn:not([hidden])",
+        "#doneButton:not(:disabled)"
+      ];
+
+      const targets = selectors.flatMap((selector) => Array.from(document.querySelectorAll(selector)));
+      return [...new Set(targets)].filter(isVisibleClickMeTarget);
+    }
+
+    function pulseClickMeState() {
+      clearClickMeState();
+      getClickMeTargets().forEach((element) => {
+        void element.offsetWidth;
+        element.classList.add(CLICK_ME_STATE_CLASS);
+      });
+    }
+
+    function scheduleClickMeStatePulse(delay = CLICK_ME_DELAY_MS) {
+      clearTimeout(clickMeDelayTimer);
+      clickMeDelayTimer = setTimeout(pulseClickMeState, delay);
+    }
+
+    function startClickMeState() {
+      if (clickMeIntervalTimer) {
+        return;
       }
+      scheduleClickMeStatePulse();
+      clickMeIntervalTimer = setInterval(pulseClickMeState, CLICK_ME_INTERVAL_MS);
     }
 
     function createScratchBuffer(context) {
@@ -2556,110 +2945,22 @@
     }
 
     function startScratchSound() {
-      const context = getAudioContext();
-      if (!context || context.state !== "running" || scratchNode) {
-        return;
-      }
-
-      const source = context.createBufferSource();
-      const filter = context.createBiquadFilter();
-      const gain = context.createGain();
-      const now = context.currentTime;
-
-      source.buffer = createScratchBuffer(context);
-      source.loop = true;
-      filter.type = "bandpass";
-      filter.frequency.value = 1250;
-      filter.Q.value = 3.5;
-      gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.exponentialRampToValueAtTime(0.045, now + 0.025);
-
-      source.connect(filter);
-      filter.connect(gain);
-      gain.connect(masterGain);
-      source.start(now);
-      scratchNode = source;
-      scratchGain = gain;
+      playPopSound({ frequency: 420, type: "square", volume: 0.035, duration: 0.035 });
     }
 
     function stopScratchSound() {
-      if (!scratchNode || !audioContext) {
-        return;
-      }
-
-      const node = scratchNode;
-      const gain = scratchGain;
-      const now = audioContext.currentTime;
       scratchNode = null;
       scratchGain = null;
-
-      if (gain) {
-        gain.gain.cancelScheduledValues(now);
-        gain.gain.setValueAtTime(Math.max(gain.gain.value, 0.0001), now);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.06);
-      }
-
-      node.stop(now + 0.07);
     }
 
     function playCoinSound() {
       resumeAudio();
-      const context = getAudioContext();
-      if (!context || context.state !== "running") {
-        return;
-      }
-
-      const now = context.currentTime;
-      const tones = [
-        { frequency: 988, offset: 0, volume: 0.075 },
-        { frequency: 1568, offset: 0.065, volume: 0.09 }
-      ];
-
-      tones.forEach(({ frequency, offset, volume }) => {
-        const oscillator = context.createOscillator();
-        const gain = context.createGain();
-        const start = now + offset;
-
-        oscillator.type = "square";
-        oscillator.frequency.setValueAtTime(frequency, start);
-        gain.gain.setValueAtTime(0.0001, start);
-        gain.gain.exponentialRampToValueAtTime(volume, start + 0.008);
-        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.085);
-
-        oscillator.connect(gain);
-        gain.connect(masterGain);
-        oscillator.start(start);
-        oscillator.stop(start + 0.095);
-      });
+      playPopSound({ frequency: 980, type: "square", volume: 0.055, duration: 0.05 });
     }
 
     function playNegativeSound() {
       resumeAudio();
-      const context = getAudioContext();
-      if (!context || context.state !== "running") {
-        return;
-      }
-
-      const now = context.currentTime;
-      const oscillator = context.createOscillator();
-      const filter = context.createBiquadFilter();
-      const gain = context.createGain();
-
-      oscillator.type = "sawtooth";
-      oscillator.frequency.setValueAtTime(190, now);
-      oscillator.frequency.exponentialRampToValueAtTime(78, now + 0.28);
-      filter.type = "lowpass";
-      filter.frequency.setValueAtTime(650, now);
-      filter.frequency.exponentialRampToValueAtTime(260, now + 0.28);
-      gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.exponentialRampToValueAtTime(0.13, now + 0.018);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.31);
-
-      oscillator.connect(filter);
-      filter.connect(gain);
-      gain.connect(masterGain);
-      oscillator.start(now);
-      oscillator.stop(now + 0.33);
+      playPopSound({ frequency: 210, type: "triangle", volume: 0.06, duration: 0.065 });
     }
 
     function setCheckCopy(key, params = {}) {
@@ -2739,6 +3040,7 @@
       applyModalContent();
       if (stageCards.length) {
         renderCards(cardsVisible);
+        renderBottomCards();
         renderOverlayCards();
         renderContextNotes();
         renderAuditSummary();
@@ -2759,9 +3061,10 @@
       detail.className = "overlay-prompt-detail";
 
       title.textContent = translate(isReveal ? "checkTitle" : round.titleKey);
-      detail.textContent = translate(isReveal ? "checkTask" : round.taskKey);
+      const detailText = translate(isReveal ? "checkTask" : round.taskKey);
+      detail.textContent = detailText;
 
-      overlayPromptLabel.replaceChildren(title, detail);
+      overlayPromptLabel.replaceChildren(...(detailText ? [title, detail] : [title]));
     }
 
     function resetOverlayScroll() {
@@ -2793,13 +3096,16 @@
 
     function setPhase(nextPhase) {
       phase = nextPhase;
+      clearClickMeState();
       const canDraw = phase === "draw";
       canvasFrame.classList.toggle("locked", !canDraw);
       doneButton.disabled = !canDraw;
+      drawActionBar.hidden = !canDraw;
       stageStrip.hidden = true;
       boardPanel.classList.remove("stage-active");
       cardOverlay.classList.toggle("show", phase === "preview" || phase === "reveal");
       cardOverlay.classList.toggle("reveal", phase === "reveal");
+      renderBottomCards();
       applyPhaseText();
       updateOverlayPromptLabel();
 
@@ -2810,6 +3116,7 @@
 
       if (phase !== "draw") {
         stopScratchSound();
+        stopDrawTimer();
       }
       renderContextNotes();
       if (phase !== "preview" && phase !== "reveal") {
@@ -2819,6 +3126,7 @@
       if (phase === "draw") {
         timebarFill.style.transform = "scaleX(0)";
         overlayTimebarFill.style.transform = "scaleX(0)";
+        startDrawTimer();
       } else if (phase !== "preview") {
         timebarFill.style.transform = "scaleX(1)";
         overlayTimebarFill.style.transform = "scaleX(1)";
@@ -2828,13 +3136,18 @@
         resetOverlayScroll();
       }
       updateRevealCompletion();
+      scheduleClickMeStatePulse();
     }
 
     function updateMeters() {
       stageNumber.textContent = stage;
       updateOverlayPromptLabel();
-      cardCount.textContent = stageCards.length || currentCardTarget();
-      bestStage.textContent = best;
+      if (cardCount) {
+        cardCount.textContent = stageCards.length || currentCardTarget();
+      }
+      if (bestStage) {
+        bestStage.textContent = best;
+      }
     }
 
     function currentCardTarget() {
@@ -2856,25 +3169,132 @@
       drawnCardKeys = new Set();
     }
 
+    function getCardDefinition(cardKey) {
+      return cardDefinitionByKey.get(cardKey) || { key: cardKey, type: "base", minStage: 1, weight: 1, order: "body" };
+    }
+
     function canDrawFromPile(cardKey, selectedSet) {
-      if (currentCardTarget() <= 5 && counterCardKeys.has(cardKey)) {
+      const card = getCardDefinition(cardKey);
+      if (stage < (card.minStage || 1)) {
         return false;
       }
 
-      const prerequisites = cardPrerequisites[cardKey] || [];
-      return prerequisites.every((requiredKey) => drawnCardKeys.has(requiredKey) || selectedSet.has(requiredKey));
+      const parents = card.parents || [];
+      return parents.every((requiredKey) => drawnCardKeys.has(requiredKey) || selectedSet.has(requiredKey));
+    }
+
+    function getCardSelectionWeight(cardKey, selectedSet) {
+      const card = getCardDefinition(cardKey);
+      let weight = card.weight || 1;
+
+      if (card.type === "chain") {
+        const parents = card.parents || [];
+        if (parents.some((parentKey) => selectedSet.has(parentKey))) {
+          weight *= 2.1;
+        } else if (parents.some((parentKey) => drawnCardKeys.has(parentKey))) {
+          weight *= 1.45;
+        }
+      }
+
+      return weight;
     }
 
     function takeNextCardFromPile(selectedSet) {
-      const cardIndex = drawPile.findIndex((cardKey) => canDrawFromPile(cardKey, selectedSet));
-      if (cardIndex === -1) {
+      const candidates = drawPile
+        .map((cardKey, index) => ({
+          cardKey,
+          index,
+          weight: canDrawFromPile(cardKey, selectedSet) ? getCardSelectionWeight(cardKey, selectedSet) : 0
+        }))
+        .filter(({ weight }) => weight > 0);
+
+      if (!candidates.length) {
         return "";
       }
 
+      const totalWeight = candidates.reduce((sum, { weight }) => sum + weight, 0);
+      let roll = Math.random() * totalWeight;
+      const picked = candidates.find(({ weight }) => {
+        roll -= weight;
+        return roll <= 0;
+      }) || candidates[candidates.length - 1];
+      const cardIndex = picked.index;
       const [cardKey] = drawPile.splice(cardIndex, 1);
       drawnCardKeys.add(cardKey);
       selectedSet.add(cardKey);
       return cardKey;
+    }
+
+    function moveCard(arranged, fromIndex, toIndex) {
+      if (fromIndex < 0 || fromIndex === toIndex) {
+        return;
+      }
+      const [cardKey] = arranged.splice(fromIndex, 1);
+      arranged.splice(Math.max(0, Math.min(toIndex, arranged.length)), 0, cardKey);
+    }
+
+    function moveCardKey(arranged, cardKey, toIndex) {
+      moveCard(arranged, arranged.indexOf(cardKey), toIndex);
+    }
+
+    function moveCardKeyToEnd(arranged, cardKey) {
+      const fromIndex = arranged.indexOf(cardKey);
+      if (fromIndex < 0) {
+        return;
+      }
+      const [movedCardKey] = arranged.splice(fromIndex, 1);
+      arranged.push(movedCardKey);
+    }
+
+    function orderChainsAfterParents(cards) {
+      const arranged = cards.slice();
+      for (let pass = 0; pass < arranged.length; pass += 1) {
+        let changed = false;
+        arranged.slice().forEach((cardKey) => {
+          const parents = getCardDefinition(cardKey).parents || [];
+          const parentIndexes = parents
+            .map((parentKey) => arranged.indexOf(parentKey))
+            .filter((index) => index >= 0);
+
+          if (!parentIndexes.length) {
+            return;
+          }
+
+          const childIndex = arranged.indexOf(cardKey);
+          const lastParentIndex = Math.max(...parentIndexes);
+          if (childIndex >= 0 && childIndex < lastParentIndex) {
+            const [movedCardKey] = arranged.splice(childIndex, 1);
+            const updatedParentIndex = Math.max(...parents
+              .map((parentKey) => arranged.indexOf(parentKey))
+              .filter((index) => index >= 0));
+            arranged.splice(updatedParentIndex + 1, 0, movedCardKey);
+            changed = true;
+          }
+        });
+
+        if (!changed) {
+          break;
+        }
+      }
+      return arranged;
+    }
+
+    function arrangePromptCards(cards) {
+      let arranged = orderChainsAfterParents(shuffle(cards));
+      const frontCards = arranged.filter((cardKey) => getCardDefinition(cardKey).order === "front");
+      frontCards.forEach((cardKey) => {
+        if (Math.random() < 0.85) {
+          moveCardKey(arranged, cardKey, Math.floor(Math.random() * Math.min(3, arranged.length)));
+        }
+      });
+
+      arranged = orderChainsAfterParents(arranged);
+
+      arranged
+        .filter((cardKey) => getCardDefinition(cardKey).order === "end")
+        .forEach((cardKey) => moveCardKeyToEnd(arranged, cardKey));
+
+      return arranged;
     }
 
     function drawStageCards() {
@@ -2890,16 +3310,15 @@
         selected.push(nextCard);
       }
 
-      stageCards = selected;
+      stageCards = arrangePromptCards(selected);
     }
 
     function createCardElement(cardKey, index, className, showText = true, showQuestionnaire = false, options = {}) {
-      const { faded = false, pinnable = false } = options;
-      const kind = getCardKind(cardKey);
+      const { faded = false, pinnable = false, displayIndex = index } = options;
       const card = document.createElement("article");
       card.className = className;
-      card.dataset.index = index + 1;
-      card.dataset.kind = kind;
+      card.dataset.index = displayIndex + 1;
+      card.dataset.cardIndex = index;
       if (faded) {
         card.classList.add("context-faded");
       }
@@ -2918,10 +3337,6 @@
           }
         });
       }
-
-      const typeBadge = document.createElement("span");
-      typeBadge.className = "card-type-badge";
-      typeBadge.textContent = translateCardKind(kind);
 
       const pinBadge = document.createElement("span");
       pinBadge.className = "card-pin-badge";
@@ -2952,13 +3367,13 @@
           controls.appendChild(button);
         });
 
-        card.append(controls, typeBadge, pinBadge, promptText);
+        card.append(controls, pinBadge, promptText);
       } else {
-        card.append(typeBadge, pinBadge, promptText);
+        card.append(pinBadge, promptText);
       }
 
       if (className.includes("instruction-card")) {
-        card.style.setProperty("--card-delay", `${Math.min(index * 70, 700)}ms`);
+        card.style.setProperty("--card-delay", `${Math.min(displayIndex * 70, 700)}ms`);
         syncRevealCardState(card, index);
         syncPinnedCardState(card, index);
       }
@@ -2987,7 +3402,8 @@
     }
 
     function syncRevealCardStates() {
-      document.querySelectorAll(".instruction-card").forEach((card, index) => {
+      document.querySelectorAll(".instruction-card").forEach((card) => {
+        const index = Number(card.dataset.cardIndex);
         syncRevealCardState(card, index);
         syncPinnedCardState(card, index);
       });
@@ -2996,15 +3412,20 @@
     }
 
     function updateRevealCompletion() {
-      const allAudited = phase === "reveal" && stageCards.length > 0 && cardAuditMarks.size === stageCards.length;
+      const auditTargetCount = getAuditableCardCount();
+      const allAudited = phase === "reveal" && cardAuditMarks.size === auditTargetCount;
       const needsRetry = allAudited && hasAuditProblem();
       overlayNextTurnButton.hidden = !allAudited;
       overlayNextTurnButton.classList.toggle("needs-retry", needsRetry);
       overlayNextTurnButton.textContent = translate(needsRetry ? "retryRunButton" : "nextTurnButton");
+      scheduleClickMeStatePulse(allAudited ? 220 : CLICK_ME_DELAY_MS);
     }
 
     function setAuditMark(index, mark) {
       if (phase !== "reveal") {
+        return;
+      }
+      if (!isAuditableCard(stageCards[index])) {
         return;
       }
       if (cardAuditMarks.get(index) === mark) {
@@ -3035,6 +3456,7 @@
         playNegativeSound();
       }
       renderOverlayCards(false);
+      renderBottomCards("front");
       renderContextNotes();
     }
 
@@ -3073,13 +3495,74 @@
       });
     }
 
-    function renderOverlayCards(showQuestionnaire = phase === "reveal") {
-      previewCardList.innerHTML = "";
-      stageCards.forEach((cardKey, index) => {
-        const faded = !showQuestionnaire && isContextFaded(index);
-        const pinnable = !showQuestionnaire && canPinContext() && !faded;
-        previewCardList.appendChild(createCardElement(cardKey, index, "instruction-card", !faded, showQuestionnaire, { faded, pinnable }));
+    function getBottomCardMode() {
+      if (phase === "reveal") {
+        return "audit";
+      }
+      if (phase === "draw") {
+        return "tools";
+      }
+      return "front";
+    }
+
+    function setBottomCardDensity() {
+      bottomCardList.classList.toggle("is-many", stageCards.length > 8);
+      bottomCardList.classList.toggle("is-packed", stageCards.length > 14);
+    }
+
+    function updateBottomCardAlignment() {
+      requestAnimationFrame(() => {
+        const isOverflowing = bottomCardList.scrollWidth > bottomCardList.clientWidth + 1;
+        bottomCardList.classList.toggle("is-overflowing", isOverflowing);
       });
+    }
+
+    function hideBottomCards() {
+      bottomCardBar.hidden = true;
+      delete bottomCardBar.dataset.phase;
+      delete bottomCardBar.dataset.mode;
+      bottomCardList.replaceChildren();
+      document.querySelector(".app").classList.remove("has-bottom-cards");
+    }
+
+    function renderBottomCards(mode = getBottomCardMode()) {
+      const shouldShow = phase === "idle" || (stageCards.length && (phase === "preview" || phase === "draw" || phase === "reveal"));
+      if (!shouldShow) {
+        hideBottomCards();
+        return;
+      }
+
+      bottomCardBar.hidden = false;
+      bottomCardBar.dataset.mode = stageCards.length ? mode : "empty";
+      bottomCardBar.dataset.phase = phase;
+      document.querySelector(".app").classList.add("has-bottom-cards");
+      bottomCardList.replaceChildren();
+      setBottomCardDensity();
+
+      if (!stageCards.length || phase === "draw") {
+        updateBottomCardAlignment();
+        return;
+      }
+
+      stageCards.forEach((cardKey, index) => {
+        const isAuditMode = mode === "audit";
+        const auditable = isAuditableCard(cardKey);
+        const showQuestionnaire = isAuditMode && auditable;
+        const faded = mode === "front" && isContextFaded(index);
+        const pinnable = mode === "front" && phase === "preview" && canPinContext() && !faded;
+        const showCardText = mode !== "back" && !faded;
+        const card = createCardElement(cardKey, index, "instruction-card bottom-card", showCardText, showQuestionnaire, { faded, pinnable });
+
+        card.classList.toggle("bottom-card-back", mode === "back");
+        card.classList.toggle("bottom-card-audit", isAuditMode);
+        card.classList.toggle("bottom-card-not-auditable", isAuditMode && !auditable);
+        bottomCardList.appendChild(card);
+      });
+      updateBottomCardAlignment();
+    }
+
+    function renderOverlayCards(showQuestionnaire = phase === "reveal") {
+      previewCardList.replaceChildren();
       resetOverlayScroll();
     }
 
@@ -3088,6 +3571,7 @@
       applyModalContent();
       overlay.classList.add("show");
       updateMeters();
+      scheduleClickMeStatePulse();
     }
 
     function closeModal() {
@@ -3158,6 +3642,46 @@
       timerFrame = requestAnimationFrame(() => tickTimer(activeTimerToken));
     }
 
+    function setDrawTimerDisplay(seconds) {
+      drawTimerNumber.textContent = String(seconds).padStart(2, "0");
+    }
+
+    function stopDrawTimer() {
+      cancelAnimationFrame(drawTimerFrame);
+      drawTimerFrame = 0;
+      drawTimerToken += 1;
+      lastDrawTimerSecond = null;
+      setDrawTimerDisplay(DRAW_SECONDS);
+    }
+
+    function startDrawTimer() {
+      cancelAnimationFrame(drawTimerFrame);
+      drawTimerToken += 1;
+      lastDrawTimerSecond = null;
+      drawEndAt = performance.now() + DRAW_SECONDS * 1000;
+      tickDrawTimer(drawTimerToken);
+    }
+
+    function tickDrawTimer(activeDrawTimerToken) {
+      if (phase !== "draw" || activeDrawTimerToken !== drawTimerToken) {
+        return;
+      }
+
+      const remaining = Math.max(0, drawEndAt - performance.now());
+      const seconds = Math.ceil(remaining / 1000);
+      if (seconds !== lastDrawTimerSecond) {
+        setDrawTimerDisplay(seconds);
+        lastDrawTimerSecond = seconds;
+      }
+
+      if (remaining <= 0) {
+        finishDrawing();
+        return;
+      }
+
+      drawTimerFrame = requestAnimationFrame(() => tickDrawTimer(activeDrawTimerToken));
+    }
+
     function hideCardsForDrawing() {
       cancelAnimationFrame(timerFrame);
       timerToken += 1;
@@ -3179,6 +3703,7 @@
       if (phase !== "draw") {
         return;
       }
+      const auditTargetCount = getAuditableCardCount();
       revealDrawing.src = canvas.toDataURL("image/png");
       cardAuditMarks = new Map();
       renderCards(true);
@@ -3188,11 +3713,11 @@
       setCheckCopy("checkReveal");
       setPhase("reveal");
       renderAuditSummary();
-      scheduleCardPops(stageCards.length);
+      scheduleCardPops(auditTargetCount);
     }
 
     function finishAudit() {
-      if (phase !== "reveal" || cardAuditMarks.size !== stageCards.length) {
+      if (phase !== "reveal" || cardAuditMarks.size !== getAuditableCardCount()) {
         return;
       }
       if (hasAuditProblem()) {
@@ -3247,20 +3772,6 @@
         }
       }
 
-      ctx.strokeStyle = "rgba(31, 36, 24, 0.08)";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      for (let col = 0; col <= GRID_COLS; col += 1) {
-        const x = col * CELL_SIZE + 0.5;
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
-      }
-      for (let row = 0; row <= GRID_ROWS; row += 1) {
-        const y = row * CELL_SIZE + 0.5;
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvas.width, y);
-      }
-      ctx.stroke();
     }
 
     function cellFromPointer(event) {
@@ -3441,7 +3952,9 @@
     overlayNextTurnButton.addEventListener("click", finishAudit);
     overlayCorrectButton.addEventListener("click", markCorrect);
     overlayMissedButton.addEventListener("click", markMissed);
-    newRunButton.addEventListener("click", startRun);
+    if (newRunButton) {
+      newRunButton.addEventListener("click", startRun);
+    }
     modalButton.addEventListener("click", startRun);
     langButtons.forEach((button) => {
       button.addEventListener("click", () => setLanguage(button.dataset.lang));
@@ -3453,6 +3966,7 @@
     setCheckCopy("checkStart");
     setLanguage("en");
     renderCanvas();
+    startClickMeState();
   </script>
 </body>
 </html>

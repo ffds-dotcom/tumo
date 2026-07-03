@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prompt Drill</title>
+  <link rel="icon" href="data:," />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --ink: #171717;
+      --muted: #656a73;
+      --line: #deded8;
+      --soft: #f5f6f3;
+      --panel: #ffffff;
+      --teal: #0f766e;
+      --teal-soft: #e4f4f1;
+      --green: #15803d;
+      --green-soft: #e4f6ea;
+      --red: #b91c1c;
+      --red-soft: #fee2e2;
+      --blue: #2563eb;
+      --blue-soft: #e9efff;
+      --amber: #b45309;
+      --amber-soft: #fff1d7;
+      --shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
+    }
+
+    html,
+    body {
+      min-height: 100%;
+    }
+
+    body {
+      min-height: 100vh;
+      background: var(--soft);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.45;
+    }
+
+    button,
+    select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    .page {
+      width: min(1360px, 100%);
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 12px;
+      display: grid;
+      grid-template-rows: minmax(0, 1fr);
+    }
+
+    .topbar,
+    .drill,
+    .side-panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .topbar {
+      display: none;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 16px;
+    }
+
+    .brand h1 {
+      font-size: 34px;
+      line-height: 1;
+      font-weight: 850;
+      letter-spacing: 0;
+    }
+
+    .brand p {
+      max-width: 780px;
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .language-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 44px);
+      gap: 5px;
+      padding: 5px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfbfa;
+    }
+
+    .language-tabs button {
+      height: 34px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .language-tabs button:hover,
+    .language-tabs button.active {
+      background: var(--teal-soft);
+      border-color: #99d8cf;
+      color: #0b5f58;
+    }
+
+    .layout {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      align-items: start;
+    }
+
+    .drill {
+      min-height: calc(100vh - 24px);
+      display: grid;
+      grid-template-rows: minmax(260px, auto) auto;
+      overflow: hidden;
+    }
+
+    .toolbar {
+      display: none;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
+      background: #fbfbfa;
+    }
+
+    .stat {
+      min-height: 58px;
+      padding: 10px;
+      border: 1px solid #e5e5df;
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .stat strong {
+      display: block;
+      margin-top: 2px;
+      font-size: 22px;
+      line-height: 1.1;
+    }
+
+    .controls {
+      display: none;
+      grid-template-columns: 1fr auto auto;
+      gap: 8px;
+      align-items: center;
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .select-wrap {
+      display: grid;
+      grid-template-columns: auto minmax(0, 220px);
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    select,
+    .button {
+      min-height: 38px;
+      border: 1px solid #d1d1ca;
+      border-radius: 7px;
+      background: #fff;
+      color: #27272a;
+      outline: none;
+    }
+
+    select {
+      width: 100%;
+      padding: 0 10px;
+    }
+
+    .button {
+      padding: 0 13px;
+      font-size: 13px;
+      font-weight: 850;
+      white-space: nowrap;
+    }
+
+    .button:hover {
+      border-color: #99d8cf;
+      background: var(--teal-soft);
+      color: #0b5f58;
+    }
+
+    .button.primary {
+      border-color: var(--teal);
+      background: var(--teal);
+      color: #fff;
+    }
+
+    .button.primary:hover {
+      border-color: #0b5f58;
+      background: #0b5f58;
+      color: #fff;
+    }
+
+    .prompt-area {
+      display: grid;
+      gap: 12px;
+      padding: 16px;
+      align-content: start;
+    }
+
+    .prompt-meta {
+      display: none;
+      flex-wrap: wrap;
+      gap: 7px;
+      align-items: center;
+    }
+
+    .pill {
+      display: inline-flex;
+      min-height: 28px;
+      align-items: center;
+      padding: 5px 9px;
+      border: 1px solid #d7d7d1;
+      border-radius: 999px;
+      background: #fff;
+      color: #3f3f46;
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    .pill.topic {
+      border-color: #b8c7ff;
+      background: var(--blue-soft);
+      color: #1d4ed8;
+    }
+
+    .pill.good {
+      border-color: #9fd9b1;
+      background: var(--green-soft);
+      color: #166534;
+    }
+
+    .pill.bad {
+      border-color: #f3b4b4;
+      background: var(--red-soft);
+      color: #991b1b;
+    }
+
+    .prompt-text {
+      min-height: 230px;
+      padding: 18px;
+      border: 1px solid #e2e2dc;
+      border-radius: 8px;
+      background: #fafaf8;
+      color: #171717;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      font: 32px/1.3 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-weight: 750;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .grade-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) auto auto;
+      gap: 8px;
+      padding: 0 16px 16px;
+    }
+
+    .grade-button {
+      min-height: 58px;
+      border: 2px solid transparent;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .grade-button.good {
+      background: var(--green);
+    }
+
+    .grade-button.good:hover,
+    .grade-button.good.selected {
+      border-color: #052e16;
+      background: #166534;
+    }
+
+    .grade-button.bad {
+      background: var(--red);
+    }
+
+    .grade-button.bad:hover,
+    .grade-button.bad.selected {
+      border-color: #450a0a;
+      background: #991b1b;
+    }
+
+    .answer {
+      margin: 0 16px 16px;
+      padding: 13px;
+      border: 1px solid #deded8;
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .answer.correct {
+      border-color: #9fd9b1;
+      background: var(--green-soft);
+    }
+
+    .answer.incorrect {
+      border-color: #f3b4b4;
+      background: var(--red-soft);
+    }
+
+    .answer h2 {
+      font-size: 18px;
+      line-height: 1.2;
+      margin-bottom: 7px;
+    }
+
+    .answer p {
+      color: #303036;
+      font-size: 14px;
+    }
+
+    .fix {
+      margin-top: 10px;
+      padding: 10px;
+      border: 1px solid #e5d19d;
+      border-radius: 7px;
+      background: var(--amber-soft);
+    }
+
+    .fix h3 {
+      font-size: 13px;
+      margin-bottom: 6px;
+      color: #78350f;
+    }
+
+    .fix pre {
+      color: #27272a;
+      font: 13px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .side-panel {
+      display: none;
+      position: sticky;
+      top: 12px;
+      gap: 12px;
+      padding: 12px;
+    }
+
+    .side-section {
+      padding: 11px;
+      border: 1px solid #e5e5df;
+      border-radius: 8px;
+      background: #fafaf8;
+    }
+
+    .side-section h2 {
+      font-size: 15px;
+      margin-bottom: 8px;
+    }
+
+    .side-section ul {
+      list-style: none;
+      display: grid;
+      gap: 7px;
+    }
+
+    .side-section li {
+      position: relative;
+      padding-left: 14px;
+      color: #3f3f46;
+      font-size: 13px;
+    }
+
+    .side-section li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 8px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--teal);
+    }
+
+    .mini-bank {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 7px;
+    }
+
+    .mini-stat {
+      min-height: 44px;
+      padding: 8px;
+      border-radius: 7px;
+      background: #fff;
+      border: 1px solid #e5e5df;
+    }
+
+    .mini-stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .mini-stat strong {
+      display: block;
+      margin-top: 1px;
+      font-size: 18px;
+      line-height: 1.1;
+    }
+
+    @media (max-width: 960px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .side-panel {
+        position: static;
+      }
+
+      .drill {
+        min-height: auto;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .page {
+        padding: 8px;
+      }
+
+      .topbar,
+      .controls,
+      .grade-row,
+      .toolbar {
+        grid-template-columns: 1fr;
+      }
+
+      .brand h1 {
+        font-size: 28px;
+      }
+
+      .language-tabs {
+        width: 100%;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .select-wrap {
+        grid-template-columns: 1fr;
+      }
+
+      .prompt-text {
+        min-height: 260px;
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="topbar">
+      <div class="brand">
+        <h1 data-i18n="title">Prompt Drill</h1>
+        <p data-i18n="subtitle">Grade prompts fast until good and bad prompting patterns become obvious.</p>
+      </div>
+      <div class="language-tabs" aria-label="Language">
+        <button type="button" class="active" data-lang="en">EN</button>
+        <button type="button" data-lang="hy">HY</button>
+        <button type="button" data-lang="ru">RU</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="drill" aria-live="polite">
+        <div class="toolbar">
+          <div class="stat">
+            <span data-i18n="statCard">Card</span>
+            <strong id="cardStat">1/1</strong>
+          </div>
+          <div class="stat">
+            <span data-i18n="statCorrect">Correct</span>
+            <strong id="correctStat">0</strong>
+          </div>
+          <div class="stat">
+            <span data-i18n="statStreak">Streak</span>
+            <strong id="streakStat">0</strong>
+          </div>
+          <div class="stat">
+            <span data-i18n="statAccuracy">Accuracy</span>
+            <strong id="accuracyStat">0%</strong>
+          </div>
+        </div>
+
+        <div class="controls">
+          <label class="select-wrap">
+            <span data-i18n="filterLabel">Deck</span>
+            <select id="deckSelect">
+              <option value="all" data-i18n="deckAll">Mixed: good and bad</option>
+              <option value="bad" data-i18n="deckBad">Bad prompts only</option>
+              <option value="good" data-i18n="deckGood">Good prompts only</option>
+            </select>
+          </label>
+          <button type="button" class="button" id="shuffleButton" data-i18n="shuffleButton">Shuffle</button>
+          <button type="button" class="button primary" id="nextButton" data-i18n="nextButton">Next prompt</button>
+        </div>
+
+        <div class="prompt-area">
+          <div class="prompt-meta">
+            <span class="pill topic" id="topicPill">Topic</span>
+            <span class="pill" id="difficultyPill">Level</span>
+            <span class="pill" id="answerPill" hidden></span>
+          </div>
+          <div class="prompt-text" id="promptText"></div>
+        </div>
+
+        <div class="grade-row">
+          <button type="button" class="grade-button bad" data-grade="bad" data-i18n="badButton">Bad prompt</button>
+          <button type="button" class="grade-button good" data-grade="good" data-i18n="goodButton">Good prompt</button>
+          <button type="button" class="button" id="revealButton" data-i18n="revealButton">Reveal</button>
+          <button type="button" class="button primary" id="nextButtonMain" data-i18n="nextButton">Next prompt</button>
+        </div>
+
+        <div class="answer" id="answerPanel" hidden>
+          <h2 id="answerTitle"></h2>
+          <p id="answerReason"></p>
+          <div class="fix" id="fixPanel" hidden>
+            <h3 data-i18n="betterPromptTitle">Better version</h3>
+            <pre id="fixText"></pre>
+          </div>
+        </div>
+      </section>
+
+      <aside class="side-panel">
+        <section class="side-section">
+          <h2 data-i18n="rulesTitle">How students grade</h2>
+          <ul>
+            <li data-i18n="ruleGoal">Good prompts ask for one clear change.</li>
+            <li data-i18n="ruleContext">Good prompts explain the current state.</li>
+            <li data-i18n="ruleExpected">Good prompts define expected behavior.</li>
+            <li data-i18n="ruleLimits">Good prompts include useful limits.</li>
+            <li data-i18n="ruleTest">Good prompts say how to test success.</li>
+          </ul>
+        </section>
+
+        <section class="side-section">
+          <h2 data-i18n="badSignsTitle">Bad prompt warning signs</h2>
+          <ul>
+            <li data-i18n="badSignVague">Vague words: better, cool, nice, fix it.</li>
+            <li data-i18n="badSignMany">Too many unrelated tasks at once.</li>
+            <li data-i18n="badSignNoContext">No current behavior or file context.</li>
+            <li data-i18n="badSignNoTest">No way to verify the result.</li>
+            <li data-i18n="badSignRewrite">Asks AI to rewrite everything blindly.</li>
+          </ul>
+        </section>
+
+        <section class="side-section">
+          <h2 data-i18n="bankTitle">Prompt bank</h2>
+          <div class="mini-bank">
+            <div class="mini-stat">
+              <span data-i18n="bankTotal">Total</span>
+              <strong id="bankTotal">0</strong>
+            </div>
+            <div class="mini-stat">
+              <span data-i18n="bankGood">Good</span>
+              <strong id="bankGood">0</strong>
+            </div>
+            <div class="mini-stat">
+              <span data-i18n="bankBad">Bad</span>
+              <strong id="bankBad">0</strong>
+            </div>
+            <div class="mini-stat">
+              <span data-i18n="bankLeft">Left</span>
+              <strong id="bankLeft">0</strong>
+            </div>
+          </div>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    const translations = {
+      en: {
+        title: "Prompt Drill",
+        subtitle: "Grade prompts fast until good and bad prompting patterns become obvious.",
+        statCard: "Card",
+        statCorrect: "Correct",
+        statStreak: "Streak",
+        statAccuracy: "Accuracy",
+        filterLabel: "Deck",
+        deckAll: "Mixed: good and bad",
+        deckBad: "Bad prompts only",
+        deckGood: "Good prompts only",
+        shuffleButton: "Shuffle",
+        nextButton: "Next prompt",
+        badButton: "Bad prompt",
+        goodButton: "Good prompt",
+        revealButton: "Reveal",
+        goodLabel: "Good prompt",
+        badLabel: "Bad prompt",
+        correctTitle: "Correct.",
+        incorrectTitle: "Not quite.",
+        answerWas: "Answer:",
+        betterPromptTitle: "Better version",
+        rulesTitle: "How students grade",
+        ruleGoal: "Good prompts ask for one clear change.",
+        ruleContext: "Good prompts explain the current state.",
+        ruleExpected: "Good prompts define expected behavior.",
+        ruleLimits: "Good prompts include useful limits.",
+        ruleTest: "Good prompts say how to test success.",
+        badSignsTitle: "Bad prompt warning signs",
+        badSignVague: "Vague words: better, cool, nice, fix it.",
+        badSignMany: "Too many unrelated tasks at once.",
+        badSignNoContext: "No current behavior or file context.",
+        badSignNoTest: "No way to verify the result.",
+        badSignRewrite: "Asks AI to rewrite everything blindly.",
+        bankTitle: "Prompt bank",
+        bankTotal: "Total",
+        bankGood: "Good",
+        bankBad: "Bad",
+        bankLeft: "Left",
+        topicChess: "Chess",
+        topicPlatformer: "Platformer",
+        topicDebugging: "Debugging",
+        topicUI: "UI",
+        topicGit: "Git",
+        topicTesting: "Testing",
+        topicRefactor: "Refactor",
+        topicGame: "Game feature",
+        levelEasy: "Easy",
+        levelMedium: "Medium",
+        levelHard: "Hard"
+      },
+      hy: {
+        title: "Prompt Drill",
+        subtitle: "Արագ գնահատեք prompt-ները, մինչև լավ և վատ prompt-ի տարբերությունը դառնա ակնհայտ։",
+        statCard: "Քարտ",
+        statCorrect: "Ճիշտ",
+        statStreak: "Շարք",
+        statAccuracy: "Ճշգրտություն",
+        filterLabel: "Deck",
+        deckAll: "Խառը՝ լավ և վատ",
+        deckBad: "Միայն վատ prompt-ներ",
+        deckGood: "Միայն լավ prompt-ներ",
+        shuffleButton: "Խառնել",
+        nextButton: "Հաջորդ prompt",
+        badButton: "Վատ prompt",
+        goodButton: "Լավ prompt",
+        revealButton: "Ցույց տալ",
+        goodLabel: "Լավ prompt",
+        badLabel: "Վատ prompt",
+        correctTitle: "Ճիշտ է։",
+        incorrectTitle: "Ոչ լրիվ։",
+        answerWas: "Պատասխան՝",
+        betterPromptTitle: "Ավելի լավ տարբերակ",
+        rulesTitle: "Ինչպես գնահատել",
+        ruleGoal: "Լավ prompt-ը խնդրում է մեկ հստակ փոփոխություն։",
+        ruleContext: "Լավ prompt-ը բացատրում է ներկա վիճակը։",
+        ruleExpected: "Լավ prompt-ը նկարագրում է սպասվող վարքագիծը։",
+        ruleLimits: "Լավ prompt-ը ունի օգտակար սահմանափակումներ։",
+        ruleTest: "Լավ prompt-ը ասում է՝ ինչպես ստուգել հաջողությունը։",
+        badSignsTitle: "Վատ prompt-ի նշաններ",
+        badSignVague: "Անորոշ բառեր՝ better, cool, nice, fix it։",
+        badSignMany: "Շատ կապ չունեցող առաջադրանքներ միանգամից։",
+        badSignNoContext: "Չկա ներկա վարքագիծ կամ file context։",
+        badSignNoTest: "Չկա արդյունքը ստուգելու ձև։",
+        badSignRewrite: "Խնդրում է AI-ին կուրորեն վերագրել ամեն ինչ։",
+        bankTitle: "Prompt bank",
+        bankTotal: "Ընդամենը",
+        bankGood: "Լավ",
+        bankBad: "Վատ",
+        bankLeft: "Մնաց",
+        topicChess: "Շախմատ",
+        topicPlatformer: "Platformer",
+        topicDebugging: "Debugging",
+        topicUI: "UI",
+        topicGit: "Git",
+        topicTesting: "Testing",
+        topicRefactor: "Refactor",
+        topicGame: "Game feature",
+        levelEasy: "Հեշտ",
+        levelMedium: "Միջին",
+        levelHard: "Բարդ"
+      },
+      ru: {
+        title: "Prompt Drill",
+        subtitle: "Быстро оценивай prompt-ы, пока разница между хорошими и плохими не станет очевидной.",
+        statCard: "Карта",
+        statCorrect: "Верно",
+        statStreak: "Серия",
+        statAccuracy: "Точность",
+        filterLabel: "Deck",
+        deckAll: "Смешано: хорошие и плохие",
+        deckBad: "Только плохие prompt-ы",
+        deckGood: "Только хорошие prompt-ы",
+        shuffleButton: "Перемешать",
+        nextButton: "Следующий prompt",
+        badButton: "Плохой prompt",
+        goodButton: "Хороший prompt",
+        revealButton: "Показать",
+        goodLabel: "Хороший prompt",
+        badLabel: "Плохой prompt",
+        correctTitle: "Верно.",
+        incorrectTitle: "Не совсем.",
+        answerWas: "Ответ:",
+        betterPromptTitle: "Лучший вариант",
+        rulesTitle: "Как оценивать",
+        ruleGoal: "Хороший prompt просит одно четкое изменение.",
+        ruleContext: "Хороший prompt объясняет текущее состояние.",
+        ruleExpected: "Хороший prompt описывает ожидаемое поведение.",
+        ruleLimits: "Хороший prompt дает полезные ограничения.",
+        ruleTest: "Хороший prompt говорит, как проверить успех.",
+        badSignsTitle: "Признаки плохого prompt-а",
+        badSignVague: "Расплывчатые слова: better, cool, nice, fix it.",
+        badSignMany: "Слишком много несвязанных задач сразу.",
+        badSignNoContext: "Нет текущего поведения или file context.",
+        badSignNoTest: "Нет способа проверить результат.",
+        badSignRewrite: "Просит AI вслепую переписать все.",
+        bankTitle: "Prompt bank",
+        bankTotal: "Всего",
+        bankGood: "Хорошие",
+        bankBad: "Плохие",
+        bankLeft: "Осталось",
+        topicChess: "Шахматы",
+        topicPlatformer: "Platformer",
+        topicDebugging: "Debugging",
+        topicUI: "UI",
+        topicGit: "Git",
+        topicTesting: "Testing",
+        topicRefactor: "Refactor",
+        topicGame: "Game feature",
+        levelEasy: "Легко",
+        levelMedium: "Средне",
+        levelHard: "Сложно"
+      }
+    };
+
+    const promptBank = [
+      {
+        type: "bad",
+        topic: "topicChess",
+        level: "levelEasy",
+        prompt: "Make my chess game better.",
+        reason: "Too vague. It does not say what feature, bug, file, or success result matters.",
+        better: "In my HTML/CSS/JavaScript chess game, add one feature: highlight legal moves for the selected piece. Current state: pieces can be clicked and moved, but legal squares are not shown. Expected behavior: when I click a piece, legal destination squares get a subtle highlight. Constraint: do not change piece movement rules. Test: click a knight on b1 and confirm only a3/c3/d2-style legal squares are highlighted."
+      },
+      {
+        type: "good",
+        topic: "topicChess",
+        level: "levelMedium",
+        prompt: "In my JavaScript chess game, fix castling validation only. Current state: the king and rook can move normally, but castling is allowed even when the king passes through check. Expected behavior: castling is legal only if neither piece has moved, the path is clear, the king is not in check, and the king does not pass through or land on an attacked square. Do not redesign the board UI. After the change, tell me how to test kingside and queenside castling.",
+        reason: "Good. It gives one task, current behavior, exact rules, limits, and test expectations."
+      },
+      {
+        type: "bad",
+        topic: "topicChess",
+        level: "levelMedium",
+        prompt: "Add all chess rules and a bot and make it look professional.",
+        reason: "Too many tasks at once. It mixes rules, AI, and visual polish, so mistakes will be hard to find.",
+        better: "In my chess game, add only pawn promotion. Current state: pawns can move to the final rank but stay as pawns. Expected behavior: when a white pawn reaches rank 8 or a black pawn reaches rank 1, show a small choice for queen, rook, bishop, or knight and replace the pawn. Do not add a bot or change the board design. Test with a white pawn moving to a8."
+      },
+      {
+        type: "good",
+        topic: "topicChess",
+        level: "levelHard",
+        prompt: "Review my en passant implementation for one bug only. Current behavior: en passant sometimes works two turns after the pawn moves two squares. Expected behavior: en passant is available only on the immediately following move. Keep the existing move-history data structure if possible. Explain the condition you changed and give me two manual tests: one where en passant is legal and one where it is no longer legal.",
+        reason: "Good. It is narrow, describes expected vs actual behavior, and asks for verification."
+      },
+      {
+        type: "bad",
+        topic: "topicChess",
+        level: "levelEasy",
+        prompt: "The chess pieces are broken. Fix it.",
+        reason: "No useful context. The AI does not know which pieces, what broken means, or how success should look.",
+        better: "In my chess game, fix bishop movement only. Current behavior: bishops can move horizontally. Expected behavior: bishops can move only diagonally and cannot jump over pieces. Constraint: do not change rook, queen, or knight movement. Test: bishop c1 to h6 should work if clear; bishop c1 to c4 should fail."
+      },
+      {
+        type: "good",
+        topic: "topicChess",
+        level: "levelEasy",
+        prompt: "Add turn tracking to my two-player chess board. Current state: either player can move any piece at any time. Expected behavior: white moves first, then turns alternate; a player cannot move the opponent's pieces. Keep the existing board and piece rendering unchanged. Test by trying to move a black pawn before white moves and confirm it is blocked.",
+        reason: "Good. It targets one behavior and gives a simple test."
+      },
+      {
+        type: "bad",
+        topic: "topicChess",
+        level: "levelHard",
+        prompt: "Rewrite the entire chess app from scratch using best practices.",
+        reason: "Dangerous and unfocused. It risks losing working code and gives no acceptance criteria.",
+        better: "Refactor only the move-validation code in my chess app. Current state: each piece has duplicated validation logic inside the click handler. Goal: move that logic into separate functions like isLegalKnightMove and isLegalBishopMove without changing behavior. Test: run the existing manual moves for rook, bishop, knight, and pawn and confirm they still work."
+      },
+      {
+        type: "good",
+        topic: "topicChess",
+        level: "levelMedium",
+        prompt: "Add check detection, but do not add checkmate yet. Current state: players can capture kings, which should not happen. Expected behavior: after each move, detect whether the opponent's king is attacked and display 'Check' near the board. Constraint: do not block moves yet and do not add a bot. Test with a rook attacking a king on the same open file.",
+        reason: "Good. It explicitly excludes extra work and separates check from checkmate."
+      },
+      {
+        type: "bad",
+        topic: "topicPlatformer",
+        level: "levelEasy",
+        prompt: "Make the jumping feel good.",
+        reason: "Subjective and vague. It does not define the current problem or measurable result.",
+        better: "In my canvas platformer, adjust jump height only. Current behavior: the player barely reaches platforms that are 90px above. Expected behavior: the player should comfortably reach a platform 110px above with one jump. Do not change gravity or horizontal speed. Test by jumping from the start platform to the first raised platform."
+      },
+      {
+        type: "good",
+        topic: "topicPlatformer",
+        level: "levelMedium",
+        prompt: "Add coyote time to my platformer jump. Current state: if the player walks off a platform and presses jump a moment later, nothing happens. Expected behavior: allow jumping for 120ms after leaving a platform. Constraint: do not change normal jump height or gravity. Test by walking off an edge and pressing jump immediately after.",
+        reason: "Good. It defines a specific game-feel feature with a clear timing value and test."
+      },
+      {
+        type: "bad",
+        topic: "topicPlatformer",
+        level: "levelMedium",
+        prompt: "Add enemies, coins, levels, powerups, better graphics, mobile controls, sound, and a leaderboard.",
+        reason: "Too many unrelated changes. This would be impossible to test cleanly in one step.",
+        better: "Add only coins to my platformer. Current state: the player can move and jump on platforms. Expected behavior: coins appear at fixed positions, disappear when collected, and increase a score counter by 1. Do not add enemies, sound, or new levels yet. Test by collecting the first coin and confirming the score changes from 0 to 1."
+      },
+      {
+        type: "good",
+        topic: "topicPlatformer",
+        level: "levelEasy",
+        prompt: "Fix horizontal screen wrapping in my platformer. Current behavior: when the player moves past the right edge, they disappear. Expected behavior: the player should stop at the left and right canvas edges. Do not change jumping, gravity, or platform collision. Test by holding the right arrow for 5 seconds and confirming the player stays visible.",
+        reason: "Good. It gives actual behavior, expected behavior, boundaries, and a test."
+      },
+      {
+        type: "bad",
+        topic: "topicPlatformer",
+        level: "levelHard",
+        prompt: "The collisions are bad. Make them normal like real games.",
+        reason: "Vague. It gives no collision case, no expected behavior, and no specific test.",
+        better: "Fix top-surface platform collision only. Current behavior: the player sometimes snaps to the top of a platform when touching its side. Expected behavior: the player lands only when falling from above; side contact should not teleport them. Keep platform positions unchanged. Test by jumping into the left side of a platform and confirming the player slides/falls instead of snapping upward."
+      },
+      {
+        type: "good",
+        topic: "topicPlatformer",
+        level: "levelMedium",
+        prompt: "Add a respawn after falling. Current state: if the player falls below the canvas, the game continues with the player off-screen. Expected behavior: when player.y is more than 200px below the canvas, move the player back to the start position and reset velocity to 0. Do not reset score yet. Test by walking off the lowest platform.",
+        reason: "Good. It is small, technical enough, and testable."
+      },
+      {
+        type: "bad",
+        topic: "topicPlatformer",
+        level: "levelEasy",
+        prompt: "Can you make this game awesome?",
+        reason: "No goal. 'Awesome' is not an implementation instruction.",
+        better: "Add one polish feature to my platformer: a score label in the top-left corner. Current state: coins can be collected but the score is not visible. Expected behavior: show 'Score: 0' and update it when coins are collected. Do not change gameplay. Test by collecting two coins and confirming the label says 'Score: 2'."
+      },
+      {
+        type: "good",
+        topic: "topicPlatformer",
+        level: "levelHard",
+        prompt: "Add moving platforms with the smallest change possible. Current state: all platforms are static rectangles in an array. Expected behavior: platforms may optionally have vx, minX, and maxX; moving platforms slide horizontally and carry the player when standing on top. Do not modify existing static platform behavior. Test with one platform moving between x=200 and x=360.",
+        reason: "Good. It extends the existing data model carefully and preserves old behavior."
+      },
+      {
+        type: "bad",
+        topic: "topicDebugging",
+        level: "levelEasy",
+        prompt: "My game has a bug. Find it.",
+        reason: "No symptom, reproduction steps, or expected behavior.",
+        better: "Debug one issue in my browser game. Current behavior: after clicking Restart, the score resets but the timer keeps counting down from the old value. Expected behavior: Restart should reset score to 0 and timer to 60. Look only at the restartGame function first. Test by playing for 5 seconds, clicking Restart, and confirming the timer shows 60."
+      },
+      {
+        type: "good",
+        topic: "topicDebugging",
+        level: "levelMedium",
+        prompt: "Fix one bug in my Snake game. Current behavior: when the snake eats food, the score increases but the snake does not grow. Expected behavior: after eating food, the snake length increases by exactly one segment. Do not change movement speed or wall collision. Test by eating one food and checking the segment count.",
+        reason: "Good. It gives the symptom, expected result, constraints, and test."
+      },
+      {
+        type: "bad",
+        topic: "topicDebugging",
+        level: "levelMedium",
+        prompt: "This code is messy and broken, clean it up and fix everything.",
+        reason: "Combines refactoring and debugging with no clear target. It invites a huge risky rewrite.",
+        better: "Fix only the score bug first. Current behavior: the score shows NaN after the first coin is collected. Expected behavior: score starts at 0 and increases by 1 per coin. Do not refactor unrelated functions. Test by collecting three coins and confirming the score reads 3."
+      },
+      {
+        type: "good",
+        topic: "topicDebugging",
+        level: "levelHard",
+        prompt: "Find why my tic-tac-toe win detection misses diagonal wins. Current behavior: rows and columns work, but X in top-left, center, bottom-right does not trigger a win. Expected behavior: both diagonals should be checked after every move. Change only the winner-checking logic. Test with X at indexes 0, 4, and 8.",
+        reason: "Good. It includes exact reproduction data and limits the fix."
+      },
+      {
+        type: "bad",
+        topic: "topicDebugging",
+        level: "levelEasy",
+        prompt: "It doesn't work.",
+        reason: "This gives the AI almost nothing. It cannot infer the game, symptom, or expected result.",
+        better: "My Rock Paper Scissors game does not update the result text. Current behavior: after choosing Rock, Paper, or Scissors, the score changes but the result message stays blank. Expected behavior: show Win, Lose, or Draw after each round. Do not change the scoring rules. Test by playing one round with each choice."
+      },
+      {
+        type: "good",
+        topic: "topicDebugging",
+        level: "levelMedium",
+        prompt: "Fix the restart button event listener. Current behavior: the Restart button works the first time, but after restarting once it stops responding. Expected behavior: clicking Restart should always reset the game state. Do not create duplicate buttons. Explain whether the issue was duplicate listeners, removed DOM nodes, or stale state. Test by restarting three times.",
+        reason: "Good. It narrows the problem and asks for a diagnosis."
+      },
+      {
+        type: "bad",
+        topic: "topicDebugging",
+        level: "levelHard",
+        prompt: "Fix every bug you see and improve the architecture.",
+        reason: "Too broad. It makes review hard because you cannot tell what changed or why.",
+        better: "Fix one bug: the enemy keeps moving after game over. Current behavior: after lives reach 0, the game-over text appears but enemies continue moving and collisions keep subtracting lives. Expected behavior: when gameOver is true, stop enemy updates and collision checks. Do not change rendering. Test by losing all lives and waiting 5 seconds."
+      },
+      {
+        type: "good",
+        topic: "topicDebugging",
+        level: "levelEasy",
+        prompt: "Help me debug why the Start button does nothing. Current state: the page loads, the button is visible, and there are no visible errors. Please first check whether the button id in HTML matches the id used in JavaScript. If you change anything, keep the button text and layout the same. Test by clicking Start and confirming the game loop begins.",
+        reason: "Good. It tells the AI where to inspect first and how to verify."
+      },
+      {
+        type: "bad",
+        topic: "topicUI",
+        level: "levelEasy",
+        prompt: "Make the UI prettier.",
+        reason: "Subjective and vague. It does not say which part of the UI or what style to use.",
+        better: "Improve only the game-over panel UI. Current state: it is plain black text on the canvas. Expected behavior: show a centered white panel with final score, Restart button, and 8px border radius. Do not change gameplay logic. Test by losing the game and checking the panel is readable on desktop and mobile."
+      },
+      {
+        type: "good",
+        topic: "topicUI",
+        level: "levelMedium",
+        prompt: "Add a pause button to the top-right of my canvas game. Current state: the game starts immediately and cannot be paused. Expected behavior: clicking Pause stops movement and timer updates; clicking Resume continues from the same state. Do not reset score or player position. Test by pausing while an enemy is moving and confirming it freezes.",
+        reason: "Good. It defines UI placement, state behavior, and a test."
+      },
+      {
+        type: "bad",
+        topic: "topicUI",
+        level: "levelMedium",
+        prompt: "Use better colors and fonts and make it modern.",
+        reason: "No concrete design target. The AI may make random style changes.",
+        better: "Update only the scoreboard styling. Current state: score and lives are small black text. Expected behavior: create a top bar with score on the left and lives on the right, 14px font, white background, and a thin gray border. Do not change canvas size or gameplay. Test at 390px and 1200px widths."
+      },
+      {
+        type: "good",
+        topic: "topicUI",
+        level: "levelHard",
+        prompt: "Make the inventory panel responsive. Current state: it is a fixed 420px wide panel and overflows on phones. Expected behavior: on screens under 600px, the panel should use full width, items should wrap into two columns, and buttons should remain readable. Do not change item data or inventory logic. Test at 390px and 1024px viewport widths.",
+        reason: "Good. It gives exact responsive behavior and test sizes."
+      },
+      {
+        type: "bad",
+        topic: "topicUI",
+        level: "levelEasy",
+        prompt: "Add a bunch of animations everywhere.",
+        reason: "Too broad and likely distracting. It does not say which state should animate.",
+        better: "Add one animation: when the player collects a coin, show a small '+1' text that floats upward and fades out over 500ms. Do not animate the player, platforms, or score label. Test by collecting a coin and confirming the text disappears."
+      },
+      {
+        type: "good",
+        topic: "topicUI",
+        level: "levelMedium",
+        prompt: "Add keyboard instructions under the canvas. Current state: students forget which keys move the player. Expected behavior: show 'Move: A/D or arrows · Jump: Space/W' below the game area in 13px text. Keep the canvas and controls unchanged. Test on mobile width to make sure the text wraps cleanly.",
+        reason: "Good. It is small, user-focused, and easy to verify."
+      },
+      {
+        type: "bad",
+        topic: "topicUI",
+        level: "levelHard",
+        prompt: "Redesign this whole website however you think is best.",
+        reason: "Hands too much control to the AI and gives no product goals or constraints.",
+        better: "Redesign only the level-select screen for faster scanning. Current state: levels are plain text links. Expected behavior: show levels in a 3-column grid on desktop and 1-column on mobile, with locked levels disabled. Keep existing route names and unlock logic. Test by resizing the browser and clicking an unlocked level."
+      },
+      {
+        type: "good",
+        topic: "topicUI",
+        level: "levelEasy",
+        prompt: "Improve the Start screen copy only. Current state: the button says 'Go' and students are confused. Expected behavior: change the button text to 'Start Game' and add one short line below the title: 'Collect coins and avoid enemies.' Do not change layout, colors, or gameplay. Test by refreshing the page and reading the start screen.",
+        reason: "Good. It is very narrow and avoids unnecessary edits."
+      },
+      {
+        type: "bad",
+        topic: "topicGit",
+        level: "levelEasy",
+        prompt: "Git is broken. Help.",
+        reason: "No command, error message, or goal. The helper cannot know what happened.",
+        better: "Help me understand this Git error. I ran `git push origin main` and got `rejected because the remote contains work that you do not have locally`. Goal: safely push my local changes without deleting remote work. First explain what the error means, then give the next command. Do not suggest reset --hard."
+      },
+      {
+        type: "good",
+        topic: "topicGit",
+        level: "levelMedium",
+        prompt: "I want to make a clean commit for one feature. Current state: I added coin collection to my platformer and verified it works. Please help me inspect changed files, stage only the files related to coin collection, and write a clear commit message. Do not stage unrelated files or run destructive Git commands.",
+        reason: "Good. It gives a goal, current state, and safety constraints."
+      },
+      {
+        type: "bad",
+        topic: "topicGit",
+        level: "levelMedium",
+        prompt: "Delete all the Git problems and make my repo clean.",
+        reason: "Dangerous. It could lead to data loss and does not define what clean means.",
+        better: "Help me clean up untracked build files without deleting source code. Current state: `git status` shows `dist/`, `.DS_Store`, and `index.html` changed. Goal: ignore generated files but keep my source changes. First explain which files are safe to ignore, then suggest `.gitignore` entries."
+      },
+      {
+        type: "good",
+        topic: "topicGit",
+        level: "levelEasy",
+        prompt: "Explain what `git status` is telling me. Current output says `modified: index.html` and `untracked: style.css`. Goal: understand which files Git is tracking before I commit. Do not run any commands that change files. Give me the difference between modified and untracked in simple terms.",
+        reason: "Good. It asks for explanation, sets a no-mutation constraint, and provides context."
+      },
+      {
+        type: "bad",
+        topic: "topicGit",
+        level: "levelHard",
+        prompt: "Force push this because Git is annoying.",
+        reason: "Unsafe. It suggests a destructive action without explaining the repository state.",
+        better: "Before pushing, help me compare my branch with the remote. Current state: push was rejected because remote has new commits. Goal: bring remote changes into my branch safely. Show me the safest command sequence and explain when force push would be dangerous."
+      },
+      {
+        type: "good",
+        topic: "topicGit",
+        level: "levelMedium",
+        prompt: "Help me write a commit message for this change: I fixed platform collision so the player no longer snaps onto the side of platforms. The commit should be short, specific, and in imperative style. Give me three options and do not include unrelated changes.",
+        reason: "Good. It defines the change and the style of output."
+      },
+      {
+        type: "bad",
+        topic: "topicTesting",
+        level: "levelEasy",
+        prompt: "Write tests.",
+        reason: "Too vague. It does not say what behavior should be tested.",
+        better: "Write tests for the `isLegalKnightMove(from, to, board)` function. Expected behavior: a knight moves in an L shape, can capture enemy pieces, cannot capture friendly pieces, and cannot move like a rook or bishop. Include at least five test cases and explain how to run them."
+      },
+      {
+        type: "good",
+        topic: "topicTesting",
+        level: "levelMedium",
+        prompt: "Add unit tests for win detection in my tic-tac-toe game. Current state: `checkWinner(board)` returns 'X', 'O', or null. Expected tests: row win, column win, both diagonal wins, draw board, and unfinished board. Do not change the game UI. After adding tests, tell me the command to run them.",
+        reason: "Good. It names the function, expected cases, and excludes UI work."
+      },
+      {
+        type: "bad",
+        topic: "topicTesting",
+        level: "levelMedium",
+        prompt: "Make sure there are no bugs.",
+        reason: "Impossible to verify. It does not define scope or test cases.",
+        better: "Create manual test steps for my coin feature. Current behavior should be: score starts at 0, each coin increases score by 1, and collected coins disappear. Give me five steps I can run in the browser and the expected result for each step."
+      },
+      {
+        type: "good",
+        topic: "topicTesting",
+        level: "levelHard",
+        prompt: "Before changing code, propose a test plan for castling. Cover legal kingside castling, blocked path, king currently in check, square the king passes through under attack, and rook already moved. Do not implement anything yet. I want the test cases first so I can approve them.",
+        reason: "Good. It asks for planning first and lists important edge cases."
+      },
+      {
+        type: "bad",
+        topic: "topicTesting",
+        level: "levelEasy",
+        prompt: "Test my whole chess game.",
+        reason: "Too broad. A whole chess game needs many tests; one prompt should focus.",
+        better: "Test pawn movement only. Cover one-square move, two-square first move, blocked forward move, diagonal capture, illegal backward move, and promotion reaching the final rank. Do not test other pieces yet."
+      },
+      {
+        type: "good",
+        topic: "topicTesting",
+        level: "levelEasy",
+        prompt: "Give me a simple browser test checklist for my Restart button. Expected behavior: score returns to 0, player returns to the start position, enemies return to their starting positions, and the timer resets to 60. Keep it as a checklist I can follow manually.",
+        reason: "Good. It translates behavior into a student-friendly checklist."
+      },
+      {
+        type: "bad",
+        topic: "topicRefactor",
+        level: "levelEasy",
+        prompt: "Refactor everything and make it clean.",
+        reason: "Too broad and risky. It gives no boundaries or behavior-preservation tests.",
+        better: "Refactor only the score update code. Current state: score changes are repeated in three places. Goal: create one `addScore(points)` function and replace those repeated lines. Do not change scoring behavior. Test by collecting a coin, defeating an enemy, and finishing a level."
+      },
+      {
+        type: "good",
+        topic: "topicRefactor",
+        level: "levelMedium",
+        prompt: "Refactor the keyboard input code without changing behavior. Current state: keydown and keyup handlers directly set player velocity. Goal: store pressed keys in a `keys` object and update movement in the game loop. Keep A/D, arrow keys, W, and Space working. Test each key before and after the refactor.",
+        reason: "Good. It defines a refactor target and protects behavior."
+      },
+      {
+        type: "bad",
+        topic: "topicRefactor",
+        level: "levelHard",
+        prompt: "Use a better architecture for my game.",
+        reason: "Vague architecture request. It does not explain the current problem or desired structure.",
+        better: "Split only the rendering code from the update code. Current state: the `gameLoop` function updates physics and draws everything in one long function. Goal: create `updateGame(delta)` and `drawGame(ctx)` while keeping gameplay unchanged. Test by playing one full round before and after."
+      },
+      {
+        type: "good",
+        topic: "topicRefactor",
+        level: "levelHard",
+        prompt: "Extract repeated collision checks into one helper. Current state: coin, enemy, and power-up collision each repeat rectangle-overlap logic. Goal: create `rectsOverlap(a, b)` and use it in those three places only. Do not change object shapes or collision behavior. After refactoring, explain how you confirmed behavior stayed the same.",
+        reason: "Good. It scopes the abstraction to real duplication and asks for verification."
+      },
+      {
+        type: "bad",
+        topic: "topicRefactor",
+        level: "levelMedium",
+        prompt: "Convert my whole project to React.",
+        reason: "Huge tool/framework change with no reason, migration plan, or acceptance criteria.",
+        better: "Do not convert frameworks. First improve the existing HTML/CSS/JS project by extracting the scoreboard rendering into a `renderScoreboard()` function. Keep the UI identical. Test by collecting a coin and losing a life."
+      },
+      {
+        type: "good",
+        topic: "topicRefactor",
+        level: "levelEasy",
+        prompt: "Rename confusing variables in the enemy movement code only. Current state: variables `x1` and `x2` are the patrol bounds. Goal: rename them to `minX` and `maxX` and update references. Do not change movement behavior. Test by confirming the enemy still patrols between the same two points.",
+        reason: "Good. It is a small cleanup with a clear behavior check."
+      },
+      {
+        type: "bad",
+        topic: "topicGame",
+        level: "levelEasy",
+        prompt: "Make a game.",
+        reason: "Far too vague. It gives no genre, controls, win condition, or platform.",
+        better: "Create a simple browser number guessing game in one HTML file. Requirements: random number from 1 to 50, input box, Guess button, too high/too low feedback, attempt counter, and Restart button. Keep the design simple. Test by guessing below, above, and exactly the number."
+      },
+      {
+        type: "good",
+        topic: "topicGame",
+        level: "levelMedium",
+        prompt: "Create a small Rock Paper Scissors game in one HTML file. Requirements: three buttons, random computer choice, result text, player score, computer score, and reset button. Keep all CSS and JS inside the file. After creating it, explain where the win/loss logic lives.",
+        reason: "Good. It gives concrete requirements and asks for explanation."
+      },
+      {
+        type: "bad",
+        topic: "topicGame",
+        level: "levelMedium",
+        prompt: "Build Minecraft but 2D in HTML.",
+        reason: "Way too large for one prompt and not scoped to a first playable version.",
+        better: "Build the first version of a 2D block sandbox in HTML canvas. Requirements for v1: draw a grid, allow the player to click to place one type of block, right-click to remove a block, and save blocks in an array. Do not add inventory, enemies, or world generation yet."
+      },
+      {
+        type: "good",
+        topic: "topicGame",
+        level: "levelEasy",
+        prompt: "Create a click-the-target game in one HTML file. Requirements: a target appears at a random position, player clicks it to gain 1 point, target moves after each click, and a 30-second timer ends the game. Keep the target fully inside the window. Test by clicking three targets and confirming the score is 3.",
+        reason: "Good. It defines rules, UI, and a test."
+      },
+      {
+        type: "bad",
+        topic: "topicGame",
+        level: "levelHard",
+        prompt: "Make a full RPG with inventory, quests, maps, NPCs, fighting, saving, and cool graphics.",
+        reason: "Too much scope. The AI will likely produce shallow or broken code.",
+        better: "Create only the first playable RPG prototype in one HTML file. Requirements: player moves on a 10x10 grid, one NPC stands on the map, pressing Space next to the NPC opens one dialogue line, and movement is blocked by walls. Do not add combat, quests, inventory, or saving yet."
+      },
+      {
+        type: "good",
+        topic: "topicGame",
+        level: "levelHard",
+        prompt: "Add a level select screen to my existing platformer. Current state: the game has three level objects in a `levels` array and starts level 0 immediately. Expected behavior: show buttons for Level 1, Level 2, and Level 3; clicking a button loads that level. Do not change level data or physics. Test by selecting each level and confirming the player starts at that level's spawn point.",
+        reason: "Good. It fits an existing codebase and avoids unrelated changes."
+      },
+      {
+        type: "bad",
+        topic: "topicGame",
+        level: "levelEasy",
+        prompt: "Add stuff to make it fun.",
+        reason: "Vague. 'Stuff' and 'fun' do not translate into code.",
+        better: "Add one fun feature: a temporary speed boost power-up. Current state: player speed is constant. Expected behavior: collecting a blue power-up increases speed by 50% for 5 seconds, then returns to normal. Do not add other power-ups. Test by collecting it and timing the effect."
+      },
+      {
+        type: "good",
+        topic: "topicGame",
+        level: "levelMedium",
+        prompt: "Add lives to my falling-object catcher game. Current state: the player catches apples for score, but missing apples has no penalty. Expected behavior: start with 3 lives, lose 1 life when an apple reaches the bottom, and show Game Over at 0 lives. Do not change apple speed. Test by missing three apples.",
+        reason: "Good. It adds one rule with clear state and test."
+      },
+      {
+        type: "bad",
+        topic: "topicChess",
+        level: "levelEasy",
+        prompt: "Can you add checkmate and make it smart?",
+        reason: "Ambiguous. It does not define what 'smart' means and checkmate is a complex feature.",
+        better: "Add basic checkmate detection only after check detection already works. Current state: the game can identify when a king is in check. Expected behavior: if the checked player has no legal move that removes check, display 'Checkmate' and stop further moves. Do not add a bot. Test with a simple back-rank mate position."
+      },
+      {
+        type: "good",
+        topic: "topicChess",
+        level: "levelHard",
+        prompt: "Add stalemate detection separate from checkmate. Current state: the game can detect check and checkmate. Expected behavior: if the current player is not in check but has no legal moves, display 'Stalemate' and end the game as a draw. Do not change checkmate behavior. Test with a known king-versus-queen stalemate position.",
+        reason: "Good. It separates a subtle rule and protects existing behavior."
+      },
+      {
+        type: "bad",
+        topic: "topicPlatformer",
+        level: "levelMedium",
+        prompt: "Add mobile.",
+        reason: "Too short. It does not say what mobile controls or layout should exist.",
+        better: "Add mobile touch controls to my platformer. Current state: keyboard controls work with left/right arrows and Space. Expected behavior: on screens under 700px, show left, right, and jump buttons at the bottom of the screen. Keep keyboard controls working. Test on a narrow browser width by tapping each button."
+      },
+      {
+        type: "good",
+        topic: "topicPlatformer",
+        level: "levelHard",
+        prompt: "Add a camera that follows the player vertically. Current state: the world is taller than the canvas, but the camera does not move. Expected behavior: as the player climbs, translate the canvas so the player stays around 60% from the top of the screen. Clamp the camera so it does not show beyond the bottom or top of the world. Do not change physics. Test by climbing three platforms.",
+        reason: "Good. It explains the camera behavior and boundary conditions."
+      },
+      {
+        type: "bad",
+        topic: "topicDebugging",
+        level: "levelMedium",
+        prompt: "The bot is dumb. Make it smarter.",
+        reason: "Subjective. It does not specify the bot's current decision problem.",
+        better: "Improve the chess bot's move selection one step. Current behavior: the bot chooses a random legal move. Expected behavior: if the bot can capture an opponent piece, prefer the highest-value capture; otherwise choose a random legal move. Do not implement checkmate search yet. Test with a position where the bot can capture a queen and a pawn."
+      },
+      {
+        type: "good",
+        topic: "topicDebugging",
+        level: "levelHard",
+        prompt: "Debug the minimax function returning illegal moves. Current behavior: the bot sometimes returns a move where the bishop jumps over a piece. Expected behavior: minimax should evaluate only moves produced by the legal move generator. First trace where candidate moves are created, then fix the smallest issue. Test with a blocked bishop position.",
+        reason: "Good. It points to the likely area and asks for the smallest fix."
+      },
+      {
+        type: "bad",
+        topic: "topicTesting",
+        level: "levelHard",
+        prompt: "Make perfect tests for everything.",
+        reason: "Unrealistic and too broad. It gives no priority or behavior list.",
+        better: "Start with tests for the highest-risk chess rule: king safety. Write tests that reject moving into check, reject castling through check, allow escaping check, and allow blocking a check. Do not test UI rendering in this prompt."
+      },
+      {
+        type: "good",
+        topic: "topicTesting",
+        level: "levelMedium",
+        prompt: "Write a regression test for this bug: after restarting the platformer, old enemy intervals keep running and enemies move twice as fast. Expected behavior: Restart should create exactly one game loop. Do not change gameplay until the test fails for the current bug. Then propose the smallest fix.",
+        reason: "Good. It uses a regression test and asks for proof before fixing."
+      },
+      {
+        type: "bad",
+        topic: "topicRefactor",
+        level: "levelMedium",
+        prompt: "Optimize this code.",
+        reason: "Vague. It does not say what is slow or how to measure improvement.",
+        better: "Optimize enemy collision checks only. Current state: each frame checks every enemy against every bullet, and the game slows when there are more than 100 bullets. Goal: remove inactive bullets before collision checks and skip enemies marked defeated. Do not change collision results. Test with 150 bullets and confirm gameplay stays smooth."
+      },
+      {
+        type: "good",
+        topic: "topicRefactor",
+        level: "levelHard",
+        prompt: "Improve performance of particle effects without changing visuals. Current state: particles are stored forever after fading out. Expected behavior: remove particles once alpha <= 0. Do not change spawn rate, colors, or movement. Test by collecting 20 coins and confirming the particle array stops growing forever.",
+        reason: "Good. It has a measurable performance target and protects visuals."
+      },
+      {
+        type: "bad",
+        topic: "topicUI",
+        level: "levelMedium",
+        prompt: "Make it look like Fortnite.",
+        reason: "Unhelpful reference. It is not specific, realistic, or tied to the current project.",
+        better: "Give my game menu a bold arcade style. Change only the menu screen: dark background, large white title, green Start button, and smaller Instructions button. Do not change gameplay screen. Test that both buttons still work."
+      },
+      {
+        type: "good",
+        topic: "topicUI",
+        level: "levelEasy",
+        prompt: "Add a mute toggle button. Current state: the game plays sound effects but there is no way to turn them off. Expected behavior: a button in the top bar switches between Sound On and Muted and prevents future sound effects while muted. Do not remove audio files. Test by toggling mute and collecting a coin.",
+        reason: "Good. It defines state, UI text, and test."
+      },
+      {
+        type: "bad",
+        topic: "topicGit",
+        level: "levelMedium",
+        prompt: "Commit all my stuff.",
+        reason: "Unsafe and imprecise. It may include unrelated files.",
+        better: "Help me create a commit for only the restart-button fix. First show the changed files, then stage only files related to that fix, then suggest the commit message `Fix restart button reset state`. Do not stage screenshots, build folders, or unrelated lesson files."
+      },
+      {
+        type: "good",
+        topic: "topicGit",
+        level: "levelHard",
+        prompt: "Help me split my current work into two commits. Current changes include a bug fix for pawn movement and a visual update to the board colors. Goal: commit the pawn bug fix separately from the board color change. First identify which files or hunks belong to each commit. Do not discard any work.",
+        reason: "Good. It describes the state and protects against data loss."
+      }
+    ];
+
+    let currentLang = "en";
+    let deckMode = "all";
+    let deck = [];
+    let deckIndex = 0;
+    let currentCard = null;
+    let answered = false;
+    let totalAnswered = 0;
+    let correctAnswers = 0;
+    let streak = 0;
+
+    const els = {
+      cardStat: document.getElementById("cardStat"),
+      correctStat: document.getElementById("correctStat"),
+      streakStat: document.getElementById("streakStat"),
+      accuracyStat: document.getElementById("accuracyStat"),
+      bankTotal: document.getElementById("bankTotal"),
+      bankGood: document.getElementById("bankGood"),
+      bankBad: document.getElementById("bankBad"),
+      bankLeft: document.getElementById("bankLeft"),
+      deckSelect: document.getElementById("deckSelect"),
+      promptText: document.getElementById("promptText"),
+      topicPill: document.getElementById("topicPill"),
+      difficultyPill: document.getElementById("difficultyPill"),
+      answerPill: document.getElementById("answerPill"),
+      answerPanel: document.getElementById("answerPanel"),
+      answerTitle: document.getElementById("answerTitle"),
+      answerReason: document.getElementById("answerReason"),
+      fixPanel: document.getElementById("fixPanel"),
+      fixText: document.getElementById("fixText")
+    };
+
+    function t(key) {
+      return translations[currentLang][key] || translations.en[key] || key;
+    }
+
+    function filteredBank() {
+      if (deckMode === "good") return promptBank.filter((item) => item.type === "good");
+      if (deckMode === "bad") return promptBank.filter((item) => item.type === "bad");
+      return promptBank.slice();
+    }
+
+    function shuffle(items) {
+      const copy = items.slice();
+      for (let i = copy.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function resetDeck() {
+      deck = shuffle(filteredBank());
+      deckIndex = 0;
+      totalAnswered = 0;
+      correctAnswers = 0;
+      streak = 0;
+      showCurrentCard();
+      updateStats();
+    }
+
+    function nextCard() {
+      if (deck.length === 0) resetDeck();
+      if (deckIndex >= deck.length - 1) {
+        deck = shuffle(filteredBank());
+        deckIndex = 0;
+      } else {
+        deckIndex += 1;
+      }
+      showCurrentCard();
+      updateStats();
+    }
+
+    function showCurrentCard() {
+      currentCard = deck[deckIndex];
+      answered = false;
+      els.promptText.textContent = currentCard.prompt;
+      els.topicPill.textContent = t(currentCard.topic);
+      els.difficultyPill.textContent = t(currentCard.level);
+      els.answerPill.hidden = true;
+      els.answerPill.className = "pill";
+      els.answerPanel.hidden = true;
+      els.answerPanel.className = "answer";
+      els.fixPanel.hidden = true;
+      document.querySelectorAll("[data-grade]").forEach((button) => {
+        button.classList.remove("selected");
+        button.disabled = false;
+      });
+    }
+
+    function revealAnswer(choice) {
+      if (!currentCard) return;
+      const hasChoice = choice === "good" || choice === "bad";
+      const correct = hasChoice && choice === currentCard.type;
+
+      if (!answered && hasChoice) {
+        totalAnswered += 1;
+        if (correct) {
+          correctAnswers += 1;
+          streak += 1;
+        } else {
+          streak = 0;
+        }
+      }
+
+      answered = true;
+      document.querySelectorAll("[data-grade]").forEach((button) => {
+        button.classList.toggle("selected", button.dataset.grade === choice);
+        button.disabled = hasChoice;
+      });
+
+      const answerLabel = currentCard.type === "good" ? t("goodLabel") : t("badLabel");
+      els.answerPill.hidden = false;
+      els.answerPill.textContent = answerLabel;
+      els.answerPill.classList.add(currentCard.type);
+      els.answerPanel.hidden = false;
+      els.answerPanel.classList.toggle("correct", correct);
+      els.answerPanel.classList.toggle("incorrect", hasChoice && !correct);
+      els.answerTitle.textContent = hasChoice
+        ? `${correct ? t("correctTitle") : t("incorrectTitle")} ${t("answerWas")} ${answerLabel}`
+        : `${t("answerWas")} ${answerLabel}`;
+      els.answerReason.textContent = currentCard.reason;
+
+      if (currentCard.type === "bad" && currentCard.better) {
+        els.fixPanel.hidden = false;
+        els.fixText.textContent = currentCard.better;
+      }
+
+      updateStats();
+    }
+
+    function updateStats() {
+      const bank = filteredBank();
+      const goodCount = bank.filter((item) => item.type === "good").length;
+      const badCount = bank.filter((item) => item.type === "bad").length;
+      const accuracy = totalAnswered === 0 ? 0 : Math.round((correctAnswers / totalAnswered) * 100);
+
+      els.cardStat.textContent = `${Math.min(deckIndex + 1, deck.length)}/${deck.length}`;
+      els.correctStat.textContent = `${correctAnswers}/${totalAnswered}`;
+      els.streakStat.textContent = String(streak);
+      els.accuracyStat.textContent = `${accuracy}%`;
+      els.bankTotal.textContent = String(bank.length);
+      els.bankGood.textContent = String(goodCount);
+      els.bankBad.textContent = String(badCount);
+      els.bankLeft.textContent = String(Math.max(deck.length - deckIndex - 1, 0));
+    }
+
+    function setLanguage(lang) {
+      currentLang = lang;
+      document.documentElement.lang = lang;
+      document.querySelectorAll("[data-i18n]").forEach((node) => {
+        node.textContent = t(node.dataset.i18n);
+      });
+      document.querySelectorAll("[data-lang]").forEach((button) => {
+        button.classList.toggle("active", button.dataset.lang === lang);
+      });
+      [...els.deckSelect.options].forEach((option) => {
+        option.textContent = t(option.dataset.i18n);
+      });
+      if (currentCard) {
+        els.topicPill.textContent = t(currentCard.topic);
+        els.difficultyPill.textContent = t(currentCard.level);
+        if (!els.answerPill.hidden) {
+          els.answerPill.textContent = currentCard.type === "good" ? t("goodLabel") : t("badLabel");
+        }
+      }
+      updateStats();
+    }
+
+    document.querySelectorAll("[data-lang]").forEach((button) => {
+      button.addEventListener("click", () => setLanguage(button.dataset.lang));
+    });
+
+    document.querySelectorAll("[data-grade]").forEach((button) => {
+      button.addEventListener("click", () => revealAnswer(button.dataset.grade));
+    });
+
+    document.getElementById("revealButton").addEventListener("click", () => revealAnswer(null));
+    document.getElementById("nextButton").addEventListener("click", nextCard);
+    document.getElementById("nextButtonMain").addEventListener("click", nextCard);
+    document.getElementById("shuffleButton").addEventListener("click", resetDeck);
+    els.deckSelect.addEventListener("change", () => {
+      deckMode = els.deckSelect.value;
+      resetDeck();
+    });
+
+    window.addEventListener("keydown", (event) => {
+      if (event.target && ["SELECT", "BUTTON"].includes(event.target.tagName)) return;
+      if (event.key === "ArrowRight" || event.key.toLowerCase() === "n") nextCard();
+      if (event.key.toLowerCase() === "b") revealAnswer("bad");
+      if (event.key.toLowerCase() === "g") revealAnswer("good");
+      if (event.key.toLowerCase() === "r") revealAnswer(null);
+    });
+
+    setLanguage(currentLang);
+    resetDeck();
+  </script>
+</body>
+</html>
